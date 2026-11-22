@@ -1,0 +1,113 @@
+[
+    {
+        "latitude": 46.83776,
+        "longitude": 9.283691,
+        "generationtime_ms": 0.41663646697998047,
+        "utc_offset_seconds": 3600,
+        "timezone": "Europe/Zurich",
+        "timezone_abbreviation": "GMT+1",
+        "elevation": 1172.0,
+        "daily_units": {
+            "time": "iso8601",
+            "temperature_2m_min": "°C",
+            "temperature_2m_max": "°C",
+            "snowfall_sum": "cm",
+            "sunshine_duration": "s",
+            "wind_speed_10m_max": "km/h",
+            "weather_code": "wmo code"
+        },
+        "daily": {
+            "time": [
+                "2026-11-18",
+                "2026-11-19",
+                "2026-11-20"
+            ],
+            "temperature_2m_min": [
+                1.0,
+                0.4,
+                0.6
+            ],
+            "temperature_2m_max": [
+                9.7,
+                5.5,
+                4.9
+            ],
+            "snowfall_sum": [
+                0.00,
+                0.00,
+                3.92
+            ],
+            "sunshine_duration": [
+                8520.00,
+                3720.00,
+                8460.00
+            ],
+            "wind_speed_10m_max": [
+                15.3,
+                9.0,
+                9.2
+            ],
+            "weather_code": [
+                53,
+                61,
+                75
+            ]
+        }
+    },
+    {
+        "latitude": 47.087753,
+        "longitude": 9.280334,
+        "generationtime_ms": 0.44608116149902344,
+        "utc_offset_seconds": 3600,
+        "timezone": "Europe/Zurich",
+        "timezone_abbreviation": "GMT+1",
+        "elevation": 1398.0,
+        "location_id": 1,
+        "daily_units": {
+            "time": "iso8601",
+            "temperature_2m_min": "°C",
+            "temperature_2m_max": "°C",
+            "snowfall_sum": "cm",
+            "sunshine_duration": "s",
+            "wind_speed_10m_max": "km/h",
+            "weather_code": "wmo code"
+        },
+        "daily": {
+            "time": [
+                "2026-11-18",
+                "2026-11-19",
+                "2026-11-20"
+            ],
+            "temperature_2m_min": [
+                3.2,
+                2.0,
+                1.0
+            ],
+            "temperature_2m_max": [
+                7.8,
+                4.4,
+                2.8
+            ],
+            "snowfall_sum": [
+                2.10,
+                2.63,
+                10.29
+            ],
+            "sunshine_duration": [
+                360.00,
+                8340.00,
+                14580.00
+            ],
+            "wind_speed_10m_max": [
+                38.8,
+                32.6,
+                25.1
+            ],
+            "weather_code": [
+                73,
+                75,
+                75
+            ]
+        }
+    }
+]

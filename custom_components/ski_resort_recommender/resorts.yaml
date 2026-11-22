@@ -1,0 +1,39 @@
+- key: flims_laax_flims
+  name: Flims
+  lat: 46.8383
+  lon: 9.2103
+  meteoswiss_point_id:
+  station: Chur
+  day_price_chf: 99
+  price_api:
+  https://api.pricenow.dev/api/booking/products/1190144/journey/validities?from=2027-01-01T00%3A00%3A00.000%2B01%3A00&to=2027-01-31T23%3A59%3A59.999%2B01%3A00&formState=%7B%22attributes%22%3A%7B%22duration%22%3A%221d%22%7D%2C%22allocation%22%3A%7B%22kind%22%3A%22persontype%22%2C%22values%22%3A%5B%7B%22kind%22%3A%22anonymous%22%2C%22personType%22%3A%22adult%22%2C%22quantity%22%3A1%7D%5D%7D%7D
+  https://api.pricenow.dev/api/booking/products/1190144/journey/validities?from={YYYY-MM-DD}T00%3A00%3A00.000%2B01%3A00&to={YYYY-MM-DD}T23%3A59%3A59.999%2B01%3A00&formState=%7B%22attributes%22%3A%7B%22duration%22%3A%22{number_of_days}d%22%7D%2C%22allocation%22%3A%7B%22kind%22%3A%22persontype%22%2C%22values%22%3A%5B%7B%22kind%22%3A%22anonymous%22%2C%22personType%22%3A%22adult%22%2C%22quantity%22%3A1%7D%5D%7D%7D
+  uuid: e3570742-351d-420b-8f86-ab31a1363e10
+
+- key: flims_laax_peak
+  name: Flims Laax Crap Sogn Gion
+  lat: 46.8383
+  lon: 9.2103
+  meteoswiss_point_id:
+  station: Chur
+  day_price_chf: 99
+
+- key: flumserberg
+  name: Flumserberg
+  lat: 47.0923
+  lon: 9.2806
+  meteoswiss_point_id:
+  station: Tannenboden
+  day_price_chf: 72
+
+- key: zermatt
+  name: Zermatt
+  lat: 46.0207
+  lon: 7.7491
+  meteoswiss_point_id: null
+  station: Zermatt
+  day_price_chf: 120
+
+
+
+

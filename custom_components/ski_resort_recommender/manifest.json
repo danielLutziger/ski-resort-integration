@@ -1,0 +1,12 @@
+{
+  "domain": "ski_resort_recommender",
+  "name": "Ski Resort Recommender",
+  "codeowners": [
+    "@danielLutziger"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/danielLutziger/ski-resort-integration",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/danielLutziger/ski-resort-integration/issues",
+  "version": "0.1.0"
+}
