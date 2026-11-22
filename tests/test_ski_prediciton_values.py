@@ -248,5 +248,24 @@ def test_sunny_day_after_rain_is_not_good() -> None:
     assert score_day(icy, SCORING).total < 60
 
 
+@pytest.mark.parametrize(
+    ("snow_on_top", "points"), [(None, -40), (0, -40), (10, -20), (20, 0), (35, 0)]
+)
+def test_snow_after_the_rain_covers_the_ice(
+    snow_on_top: float | None, points: float
+) -> None:
+    """The icy penalty shrinks with the snow on top, gone from ice_cover_full_cm."""
+    day = replace(CLEAR_DAY, recent_rain_mm=5, snow_after_rain_cm=snow_on_top)
+
+    assert score_day(day, SCORING).reasons["icy"] == points
+
+
+def test_bluebird_day_on_covered_ice_is_still_the_top() -> None:
+    """Rain, then 30 cm of snow, then sun: full points, the ice is buried."""
+    day = replace(CLEAR_DAY, recent_rain_mm=10, fresh_snow_cm=30, snow_after_rain_cm=30)
+
+    assert score_day(day, SCORING).total == 100
+
+
 # test ideas:
 # good vision bad weather > high wind speed + slush
