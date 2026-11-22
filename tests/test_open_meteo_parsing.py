@@ -5,12 +5,15 @@ from datetime import date
 from pathlib import Path
 from statistics import mean, median
 
+import pytest
+
 from custom_components.ski_resort_recommender.lib.models import (
     DayForecast,
     Resort,
     WeatherPoint,
 )
 from custom_components.ski_resort_recommender.lib.open_meteo import (
+    DWD_SUN_FACTOR,
     _before_opening,
     _combine,
     _coordinates,
@@ -264,3 +267,29 @@ def test_snow_after_rain_without_rain_is_all_fresh_snow() -> None:
     hourly = {"time": times, "rain": zeros, "showers": zeros, "snowfall": snow}
 
     assert _snow_after_rain(hourly) == {date(2026, 11, 28): 8}
+
+
+def test_dwd_sunshine_is_scaled_down() -> None:
+    """DWD forecasts ~70 % too much sun; its days get sunshine * DWD_SUN_FACTOR."""
+    loc = json.loads(DWD_FIXTURE.read_text())[0]
+
+    raw = _parse_location(loc, {})
+    scaled = _parse_location(loc, {}, sun_factor=DWD_SUN_FACTOR)
+
+    for a, b in zip(raw, scaled, strict=True):
+        assert b.sunshine_hours == pytest.approx(a.sunshine_hours * DWD_SUN_FACTOR)
+
+
+def test_combine_scales_only_the_dwd_days() -> None:
+    """MeteoSwiss days keep their sunshine, DWD days are scaled."""
+    meteoswiss = json.loads(MS_FIXTURE.read_text())
+    dwd = json.loads(DWD_FIXTURE.read_text())
+    top = WeatherPoint(name="top", lat=46.8, lon=9.3, elevation_m=2500)
+    mid = WeatherPoint(name="mid", lat=46.8, lon=9.3, elevation_m=1800)
+
+    days = _combine([make_resort("a", top, mid)], meteoswiss, dwd)["a"]["top"]
+
+    ms_days = {d.day: d for d in _parse_location(meteoswiss[0], {})}
+    for day in days:
+        if ms_days[day.day].has_data:
+            assert day.sunshine_hours == ms_days[day.day].sunshine_hours

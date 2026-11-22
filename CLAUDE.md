@@ -223,6 +223,12 @@ and imports so that the integration still loads and tests/ruff stay green.
 - Visibility on Open-Meteo (checked 22.11.2026): hourly only, metres, no daily aggregate. Not provided by
   `meteoswiss_icon_seamless`, ECMWF or Météo-France. `icon_seamless` (DWD) has it ~5 days ahead, later days
   are None, so days 1–5 can get a visibility penalty and later days cannot. GFS caps at 24 km.
+- Model accuracy, sunshine (checked 22.11.2026 against measured daily sunshine `sre000d0` at 12
+  SwissMetNet mountain stations, 30 days, via the Open-Meteo previous-runs API): MeteoSwiss = 1.05x the
+  measurement (MAE 1.1 h), DWD latest = 1.59x (MAE 2.4 h), DWD 5 days ahead = 1.72x (MAE 3.7 h).
+  MeteoSwiss is preferred wherever it has data; DWD days get `DWD_SUN_FACTOR` = 0.6. Re-check in winter.
+  Observations: `https://data.geo.admin.ch/ch.meteoschweiz.ogd-smn/<sta>/ogd-smn_<sta>_d_recent.csv`
+  (`htoautd0` = measured snow depth). No MeteoSwiss previous runs in Open-Meteo.
 - The `elevation` in an Open-Meteo response is the 90 m terrain height of the coordinate, used for
   downscaling (not the model grid height). We pass each point's `elevation_m` explicitly.
 - MeteoSwiss `meteoswiss_icon_seamless` daily data only reaches today + 4 days (22.11: Fri–Sun empty);
