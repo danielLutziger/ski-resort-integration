@@ -91,6 +91,8 @@ Done and tested (pytest green at last check):
     days at ~1600 m: drizzle 0.7–3 mm, storms 5–33 mm, rain before opening on about half the days.
     Snow that fell after the last rain hour (> 0.1 mm/h) covers the ice: the penalty shrinks linearly
     and is gone at `ice_cover_full_cm` (20). Snow before the rain is soaked and does not count.
+    Decided 22.11: rain only counts for 48 h (same window as fresh snow), not until it is buried.
+    Reason: resorts cover icy pistes with artificial snow within a day or two. Do not extend it.
 - Horizon / outlook (done 22.11): 8 forecast days. MeteoSwiss where it has data, DWD `icon_seamless`
   for the rest (`_merge`). Days 1..`ranking_days` (5) are ranked; the best allowed day up to
   `outlook_days` (7) is `RecommendationResult.outlook`, a separate 4th entry. The status only looks at
