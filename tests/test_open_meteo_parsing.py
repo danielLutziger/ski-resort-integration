@@ -18,6 +18,7 @@ from custom_components.ski_resort_recommender.lib.open_meteo import (
     _parse_daily,
     _parse_location,
     _ski_hours,
+    _snow_after_rain,
 )
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -55,6 +56,13 @@ def test_parse_location_returns_one_forecast_per_day() -> None:
     # the first two (past) days have no full 48 h window before opening
     assert [d.fresh_snow_cm is None for d in days] == [True, True, False, False, False]
     assert [d.recent_rain_mm is None for d in days] == [True, True, False, False, False]
+    assert [d.snow_after_rain_cm is None for d in days] == [
+        True,
+        True,
+        False,
+        False,
+        False,
+    ]
 
 
 def test_parse_daily_attaches_visibility_per_day() -> None:
@@ -227,3 +235,32 @@ def test_rain_before_opening_adds_rain_and_showers() -> None:
     )
 
     assert result == {date(2026, 11, 28): 3.5}
+
+
+def test_snow_after_rain_counts_only_snow_after_the_last_rain_hour() -> None:
+    """Snow before the rain is soaked; snow after the last rain hour covers the ice."""
+    times = [f"2026-11-{d}T{h:02d}:00" for d in (26, 27, 28) for h in range(24)]
+    zeros = [0.0] * len(times)
+    rain, showers, snow = list(zeros), list(zeros), list(zeros)
+    snow[times.index("2026-11-26T20:00")] = 5  # before the rain: soaked
+    rain[times.index("2026-11-27T06:00")] = 2.0
+    showers[times.index("2026-11-27T10:00")] = 1.0  # last rain hour
+    snow[times.index("2026-11-27T10:00")] = 3  # same hour as the rain: not on top
+    snow[times.index("2026-11-27T18:00")] = 8  # on top
+    snow[times.index("2026-11-28T09:00")] = 4  # 08-09, still before opening
+
+    hourly = {"time": times, "rain": rain, "showers": showers, "snowfall": snow}
+
+    assert _snow_after_rain(hourly) == {date(2026, 11, 28): 12}
+
+
+def test_snow_after_rain_without_rain_is_all_fresh_snow() -> None:
+    """No rain in the window: all fresh snow lies on top (no ice to cover)."""
+    times = [f"2026-11-{d}T{h:02d}:00" for d in (26, 27, 28) for h in range(24)]
+    zeros = [0.0] * len(times)
+    snow = list(zeros)
+    snow[times.index("2026-11-27T18:00")] = 8
+
+    hourly = {"time": times, "rain": zeros, "showers": zeros, "snowfall": snow}
+
+    assert _snow_after_rain(hourly) == {date(2026, 11, 28): 8}

@@ -23,6 +23,7 @@ SCORING = ScoringSettings(
     rain_limit_mm=0.5,
     rain_full_mm=5,
     icy_penalty=40,
+    ice_cover_full_cm=20,
     visibility_good_m=5000,
     visibility_bad_m=1000,
     visibility_penalty=30,

@@ -32,8 +32,7 @@ def score_day(day: DayForecast, scoring: ScoringSettings | None = None) -> DaySc
         "temp": _temp_points(day, s),
         "weather": _weather_points(day, s),
         "visibility": _visibility_points(day, s),
-        "icy": -_ramp(day.recent_rain_mm or 0, s.rain_limit_mm, s.rain_full_mm)
-        * s.icy_penalty,
+        "icy": _icy_points(day, s),
     }
     total = max(0.0, sum(reasons.values()))
     return DayScore(total, reasons=reasons)
@@ -95,6 +94,13 @@ def _weather_points(day: DayForecast, s: ScoringSettings) -> float:
     }
     codes = day.weather_codes_ski or (day.weather_code,)
     return sum(points[classify(code)] for code in codes) / len(codes)
+
+
+def _icy_points(day: DayForecast, s: ScoringSettings) -> float:
+    """Rain before opening refreezes; snow that fell after the rain covers it."""
+    icy = _ramp(day.recent_rain_mm or 0, s.rain_limit_mm, s.rain_full_mm)
+    covered = _ramp(day.snow_after_rain_cm or 0, 0, s.ice_cover_full_cm)
+    return -icy * (1 - covered) * s.icy_penalty
 
 
 def _visibility_points(day: DayForecast, s: ScoringSettings) -> float:

@@ -47,6 +47,8 @@ FALLBACK_MODEL = "icon_seamless"
 SKI_HOURS = range(9, 17)  # hourly values from 09:00 to 16:00 local time
 # fresh snow and rain (icy slope) count in this window before the lifts open
 BEFORE_OPENING = timedelta(hours=48)
+RAIN = ("rain", "showers")  # liquid precipitation (mm)
+RAIN_HOUR_MM = 0.1  # an hour with more liquid precipitation counts as a rain hour
 PAST_DAYS = 2  # needed for the window before opening of tomorrow
 
 
@@ -142,7 +144,8 @@ def _parse_location(loc: dict, visibility: dict[date, float]) -> list[DayForecas
     gust_max = _ski_hours(h, "wind_gusts_10m", max)
     weather_codes = _ski_hours(h, "weather_code", tuple)
     fresh_snow = _before_opening(h, ("snowfall",))
-    recent_rain = _before_opening(h, ("rain", "showers"))  # liquid only
+    recent_rain = _before_opening(h, RAIN)
+    snow_after_rain = _snow_after_rain(h)
     return [
         replace(
             day,
@@ -151,6 +154,7 @@ def _parse_location(loc: dict, visibility: dict[date, float]) -> list[DayForecas
             fresh_snow_cm=fresh_snow.get(day.day),
             weather_codes_ski=weather_codes.get(day.day, ()),
             recent_rain_mm=recent_rain.get(day.day),
+            snow_after_rain_cm=snow_after_rain.get(day.day),
         )
         for day in _parse_daily(loc["daily"], visibility=visibility)
     ]
@@ -202,27 +206,52 @@ def _ski_hours[T](
     return {day: aggregate(values) for day, values in per_day.items()}
 
 
-def _before_opening(h: dict, keys: tuple[str, ...]) -> dict[date, float]:
-    """
-    Sum of hourly variables in the 48 h before opening, for days with a full window.
-
-    Hourly sums belong to the hour before their time stamp: the 09:00 value is
-    the amount from 08:00 to 09:00, so it still counts as before opening.
-    """
+def _per_hour(h: dict, keys: tuple[str, ...]) -> dict[datetime, float]:
+    """Sum of several hourly variables per hour (missing values count as 0)."""
     per_hour: dict[datetime, float] = defaultdict(float)
     for key in keys:
         for moment, value in _hours(h, key):
             per_hour[moment] += value
-    first = datetime.fromisoformat(h["time"][0])
-    result = {}
-    for day in sorted({moment.date() for moment in per_hour}):
+    return per_hour
+
+
+def _opening_windows(h: dict) -> dict[date, tuple[datetime, datetime]]:
+    """
+    Return the 48 h window (start, opening] per day that has a full window.
+
+    Hourly sums belong to the hour before their time stamp: the 09:00 value is
+    the amount from 08:00 to 09:00, so it still counts as before opening.
+    """
+    times = [datetime.fromisoformat(t) for t in h["time"]]
+    windows = {}
+    for day in sorted({t.date() for t in times}):
         opening = datetime.combine(day, datetime.min.time()).replace(
             hour=SKI_HOURS.start
         )
         start = opening - BEFORE_OPENING
-        if first > start + timedelta(hours=1):
-            continue  # the series starts too late to see the whole window
-        result[day] = sum(
-            value for moment, value in per_hour.items() if start < moment <= opening
-        )
+        if times[0] <= start + timedelta(hours=1):  # the series sees the whole window
+            windows[day] = (start, opening)
+    return windows
+
+
+def _before_opening(h: dict, keys: tuple[str, ...]) -> dict[date, float]:
+    """Sum of hourly variables in the 48 h before opening."""
+    per_hour = _per_hour(h, keys)
+    return {
+        day: sum(v for moment, v in per_hour.items() if start < moment <= opening)
+        for day, (start, opening) in _opening_windows(h).items()
+    }
+
+
+def _snow_after_rain(h: dict) -> dict[date, float]:
+    """Snowfall (cm) after the last rain hour before opening: it covers the ice."""
+    rain = _per_hour(h, RAIN)
+    snow = _per_hour(h, ("snowfall",))
+    result = {}
+    for day, (start, opening) in _opening_windows(h).items():
+        rain_hours = [
+            m for m, v in rain.items() if start < m <= opening and v > RAIN_HOUR_MM
+        ]
+        after = max(rain_hours, default=start)  # no rain: all snow lies on top
+        result[day] = sum(v for m, v in snow.items() if after < m <= opening)
     return result

@@ -40,6 +40,9 @@ class ScoringSettings:
     rain_limit_mm: float = 0.5
     rain_full_mm: float = 5
     icy_penalty: float = 40
+    # snow that fell after the rain covers the ice: the penalty shrinks and is gone
+    # from ice_cover_full_cm
+    ice_cover_full_cm: float = 20
     # visibility in ski hours (WMO: fog below 1 km, mist 1-5 km): no penalty from
     # visibility_good_m up, full penalty from visibility_bad_m down
     visibility_good_m: float = 5000
