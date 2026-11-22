@@ -1,9 +1,11 @@
 """Tests for pick_recommendations()."""
 
 from dataclasses import replace
-from datetime import date
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 
 from custom_components.ski_resort_recommender.lib.models import (
+    Connection,
     DayForecast,
     Forecasts,
     Resort,
@@ -13,6 +15,7 @@ from custom_components.ski_resort_recommender.lib.scoring import score_day
 from custom_components.ski_resort_recommender.lib.service import (
     RecommendationResult,
     RecommendationStatus,
+    attach_connections,
     pick_recommendations,
 )
 from custom_components.ski_resort_recommender.lib.settings import Settings
@@ -439,3 +442,88 @@ def test_icy_slope_after_rain_is_not_good() -> None:
     ).recommendations
 
     assert rec.is_good is False
+
+
+def make_connection(minutes: int, day: date = SATURDAY) -> Connection:
+    """Create a morning connection that takes the given number of minutes."""
+    zurich = ZoneInfo("Europe/Zurich")
+    return Connection(
+        departure=datetime(day.year, day.month, day.day, 7, 0, tzinfo=zurich),
+        platform="9",
+        arrival=datetime(day.year, day.month, day.day, 9, 0, tzinfo=zurich),
+        duration_min=minutes,
+        transfers=1,
+        legs=(),
+    )
+
+
+def travel_points(result: RecommendationResult) -> dict[str, float]:
+    """Travel reason per resort key."""
+    return {r.resort.key: r.score.reasons["travel"] for r in result.recommendations}
+
+
+def test_travel_points_are_relative_shortest_10_longest_0() -> None:
+    """Shortest trip gets travel_points, longest 0, linear by travel time."""
+    resorts = [make_resort(k) for k in ("near", "far", "mid")]
+    forecasts = {k: [make_day(SATURDAY)] for k in ("near", "far", "mid")}
+    travel = {
+        "near": make_connection(60),
+        "far": make_connection(180),
+        "mid": make_connection(120),
+    }
+
+    result = pick_recommendations(
+        resorts,
+        {k: {MAIN: v} for k, v in forecasts.items()},
+        SETTINGS,
+        today=TODAY,
+        travel=travel,
+    )
+
+    assert travel_points(result) == {"near": 10, "mid": 5, "far": 0}
+    assert [r.resort.key for r in result.recommendations] == ["near", "mid", "far"]
+
+
+def test_resort_without_morning_connection_gets_no_travel_points() -> None:
+    """No connection in the arrival window: 0 travel points, no connection shown."""
+    resorts = [make_resort("train"), make_resort("no_train")]
+    forecasts = {k: {MAIN: [make_day(SATURDAY)]} for k in ("train", "no_train")}
+
+    result = pick_recommendations(
+        resorts,
+        forecasts,
+        SETTINGS,
+        today=TODAY,
+        travel={"train": make_connection(90)},
+    )
+
+    by_key = {r.resort.key: r for r in result.recommendations}
+    assert by_key["train"].score.reasons["travel"] == 10
+    assert by_key["no_train"].score.reasons["travel"] == 0
+    assert by_key["no_train"].connection is None
+
+
+def test_without_travel_data_every_resort_gets_0_travel_points() -> None:
+    """No home station set: travel does not change the ranking."""
+    result = pick(
+        [make_resort("laax")], {"laax": [make_day(SATURDAY)]}, SETTINGS, today=TODAY
+    )
+
+    assert result.recommendations[0].score.reasons["travel"] == 0
+
+
+def test_attach_connections_shows_the_connection_of_the_ski_day() -> None:
+    """The reference connection is replaced by the one of the recommended day."""
+    resorts = [make_resort("laax")]
+    result = pick_recommendations(
+        resorts,
+        {"laax": {MAIN: [make_day(SATURDAY)]}},
+        SETTINGS,
+        today=TODAY,
+        travel={"laax": make_connection(90, day=SUNDAY)},
+    )
+    exact = make_connection(95)
+
+    updated = attach_connections(result, {("laax", SATURDAY): exact})
+
+    assert updated.recommendations[0].connection is exact

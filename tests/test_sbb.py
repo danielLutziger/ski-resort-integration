@@ -1,0 +1,67 @@
+"""Tests for the SBB connection parsing and the choice of the morning connection."""
+
+import json
+from dataclasses import replace
+from datetime import date, time
+from pathlib import Path
+
+from custom_components.ski_resort_recommender.lib.sbb import _parse, _pick
+from custom_components.ski_resort_recommender.lib.settings import Settings
+
+FIXTURE = Path(__file__).parent / "fixtures" / "sbb_connections.json"
+SATURDAY = date(2026, 11, 28)
+# arrival window around lift opening, written out (tests never rely on defaults)
+SETTINGS = Settings(
+    home_station="Zürich HB",
+    arrival_target=time(9, 0),
+    arrival_earliest=time(8, 45),
+    arrival_latest=time(9, 30),
+)
+
+
+def connections() -> list:
+    """Parse the saved Zürich HB -> Flims Dorf, Bergbahnen response (Sat 28.11)."""
+    return _parse(json.loads(FIXTURE.read_text()))
+
+
+def test_parse_reads_times_platform_and_legs() -> None:
+    """Departure, platform, arrival, duration, transfers and the train legs."""
+    last = connections()[-1]
+
+    assert f"{last.departure:%H:%M}" == "07:07"
+    assert last.platform == "9"
+    assert f"{last.arrival:%H:%M}" == "09:01"
+    assert last.duration_min == 114
+    assert last.transfers == 1
+    train, bus = last.legs
+    assert (train.line, train.train_number) == ("IC 3", "1057")
+    assert (train.departure_station, train.arrival_station) == ("Zürich HB", "Chur")
+    assert train.platform == "9"
+    # buses have internal trip ids instead of train numbers: not shown
+    assert (bus.line, bus.train_number) == ("B 81", None)
+    assert bus.arrival_station == "Flims Dorf, Bergbahnen"
+
+
+def test_pick_takes_the_arrival_closest_to_the_target_in_the_window() -> None:
+    """08:45-09:30, target 09:00: the 07:07 train arriving 09:01."""
+    chosen = _pick(connections(), SATURDAY, SETTINGS)
+
+    assert chosen is not None
+    assert f"{chosen.departure:%H:%M}" == "07:07"
+
+
+def test_pick_without_a_connection_in_the_window_returns_none() -> None:
+    """No guessing: outside the window there is no morning connection."""
+    late = replace(
+        SETTINGS,
+        arrival_target=time(11, 0),
+        arrival_earliest=time(10, 45),
+        arrival_latest=time(11, 30),
+    )
+
+    assert _pick(connections(), SATURDAY, late) is None
+
+
+def test_pick_ignores_connections_that_leave_the_day_before() -> None:
+    """An overnight trip from the evening before is not a morning connection."""
+    assert _pick(connections(), date(2026, 11, 29), SETTINGS) is None

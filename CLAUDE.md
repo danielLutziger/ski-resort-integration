@@ -34,7 +34,8 @@ custom_components/ski_resort_recommender/
   lib/                          # NO homeassistant imports, testable alone
     models.py                   # Resort, WeatherPoint, DayForecast (frozen dataclasses), Forecasts alias; imports nothing from lib
     errors.py                   # SkiApiError (base, Exception) -> SkiApiConnectionError, SkiApiParseError
-    open_meteo.py               # OpenMeteoProvider (aiohttp); pure _combine/_parse_daily/_ski_hours_visibility
+    open_meteo.py               # OpenMeteoProvider (aiohttp); pure _combine/_parse_location/_ski_hours/...
+    sbb.py                      # SbbProvider (aiohttp, transport.opendata.ch); pure _parse/_pick
     weather_codes.py            # WeatherClass (StrEnum), _CLASSES, classify()
     scoring.py                  # score_day(DayForecast, ScoringSettings) -> DayScore(total, reasons); combine_scores()
     settings.py                 # Settings (weekdays, max_results, min_good_score, ranking_days, outlook_days, scoring)
@@ -86,6 +87,11 @@ Done and tested (pytest green at last check):
   - wind 0..-30: max gust in ski hours, from 40 km/h, full at 80 km/h
   - temp 0..-20: mean in ski hours; -10 below -15 °C, slush penalty from +2 to +6 °C
   - weather: averaged over the ski hours; NO_GO (rain/freezing/thunder) -50, BAD (fog) -15, snowfall neutral
+  - travel 0..10 (relative): train duration of the morning connection from `Settings.home_station`
+    to `Resort.station`; shortest trip of all resorts 10, longest 0, linear. No connection in the
+    arrival window (`arrival_earliest`..`arrival_latest`, 08:45–09:30, closest to `arrival_target`
+    09:00) or no home station = 0. Travel times come from one reference day (the next allowed day);
+    the shown connection of a recommendation is fetched for its exact day (`attach_connections`).
   - visibility 0..-30 as before. A clear day on a 1 m base without penalties = 60 = `min_good_score`;
     on a thin base 40. Bluebird powder day on a good base = 85.
   - icy 0..-40: rain + showers (liquid, mm) in the 48 h before opening refreeze into an icy slope;
@@ -221,13 +227,14 @@ and imports so that the integration still loads and tests/ruff stay green.
 
 ## Next steps (suggested order)
 
-1. Finding 7 (rain code with max temperature below 2 °C, check with real data) and `snow_depth`
-   (finding 4 rest). (A, B, C, findings 1–3 and 6 are done.)
-2. Coordinator (hourly poll, `UpdateFailed`), sensor (state = headline, attributes = recommendations),
-   config flow (weekdays, number of results, min score, scoring weights), then a Markdown dashboard card.
-3. Later: train connection (Swiss public transport integration is already installed in my HA), ticket
-   prices (no public API; many Swiss resorts use dynamic pricing — start with a static price per resort,
-   never rely on scraping blindly).
+1. Ticket prices: static day price per resort in `resorts.yaml`, relative price points (0..5, cheapest 5);
+   behind a small price-provider interface so a live source can be added per resort later — only via a
+   public API or with the resort's permission (the pricenow booking API needs a per-shop key).
+2. Coordinator (hourly poll, `UpdateFailed`), sensor (state = headline, attributes = recommendations incl.
+   connection), config flow (weekdays, number of results, min score, scoring weights, home station,
+   arrival window), then a Markdown dashboard card. Cache the SBB travel times (once a day).
+3. Tune wind and temperature in season (Jan/Feb); re-check `DWD_SUN_FACTOR` in winter.
+   (Done: A, B, C, findings 1–4, 6, 7, snow depth, SBB connection.)
 
 ## Data sources / facts
 
@@ -248,6 +255,11 @@ and imports so that the integration still loads and tests/ruff stay green.
   DWD `icon_seamless` daily data reaches about today + 7.
 - Station coordinates: OpenStreetMap Overpass (`aerialway=station`), terrain height from the Open-Meteo
   elevation API, Swiss names cross-checked with the swisstopo search API.
+- SBB: `https://transport.opendata.ch/v1/connections` (free, no key, no rate-limit headers; keep calls
+  few, `MAX_PARALLEL` 4). `journey.name` is the train number for trains, an internal trip id for buses.
+  Not in the Swiss timetable: Ischgl (station left empty). St. Anton returned no plausible morning
+  connection for 28.11. Stöckalp (Melchsee-Frutt) has no bus before the winter season (from mid-Dec
+  07:10 -> 08:55 from Zürich). Tests and Claude use Zürich HB, never the owner's home station.
 - Prices: dynamic pricing at many resorts (Adelboden-Lenk, Arosa Lenzerheide, Pizol, ...), no standard API.
 
 ## Working agreements

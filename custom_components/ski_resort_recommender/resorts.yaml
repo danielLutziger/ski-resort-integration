@@ -96,7 +96,7 @@
 - key: andermatt
   name: Andermatt
   meteoswiss_point_id:
-  station: Andermatt Gemsstock
+  station: Andermatt, Gemsstockbahn
   day_price_chf:
   points:
     - name: Geissgrat
@@ -263,7 +263,7 @@
 - key: melchsee_frutt
   name: Melchsee Frutt
   meteoswiss_point_id:
-  station:
+  station: Stöckalp
   day_price_chf:
   points:
     - name: Melchsee-Frutt
@@ -312,7 +312,7 @@
 - key: st_moritz_corvatsch
   name: St. Moritz Corvatsch
   meteoswiss_point_id:
-  station: St. Moritz, Corvatsch, Via Tegiatscha
+  station: Surlej, Corvatschbahn
   day_price_chf:
   points:
     - name: Murtèl
@@ -366,7 +366,7 @@
 - key: samnaun
   name: Samnaun
   meteoswiss_point_id:
-  station: Samnaun
+  station: Samnaun-Ravaisch, Bergbahnen
   day_price_chf: 100
   points:
     - name: Alp Trida
@@ -393,7 +393,7 @@
 - key: ischgl
   name: Ischgl
   meteoswiss_point_id:
-  station: Ischgl, Silvrettabahn
+  station:
   day_price_chf: 100
   points:
     - name: Idalp
@@ -425,7 +425,7 @@
 - key: st_anton
   name: St. Anton
   meteoswiss_point_id:
-  station: St. Anton am Arlberg
+  station: St. Anton am Arlberg, Bahnhof
   day_price_chf: 100
   points:
     - name: Galzig
