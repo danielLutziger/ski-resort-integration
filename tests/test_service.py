@@ -46,7 +46,7 @@ def make_point(name: str = MAIN, weight: float = 1) -> WeatherPoint:
     return WeatherPoint(name=name, lat=46.8, lon=9.3, elevation_m=2000, weight=weight)
 
 
-def make_resort(key: str, *points: WeatherPoint) -> Resort:
+def make_resort(key: str, *points: WeatherPoint, price: float | None = None) -> Resort:
     """Create a resort; without points it gets one point called MAIN."""
     return Resort(
         key=key,
@@ -54,7 +54,7 @@ def make_resort(key: str, *points: WeatherPoint) -> Resort:
         points=points or (make_point(),),
         meteoswiss_point_id=None,
         station="Chur",
-        day_price_chf=None,
+        day_price_chf=price,
     )
 
 
@@ -527,3 +527,63 @@ def test_attach_connections_shows_the_connection_of_the_ski_day() -> None:
     updated = attach_connections(result, {("laax", SATURDAY): exact})
 
     assert updated.recommendations[0].connection is exact
+
+
+def price_points(result: RecommendationResult) -> dict[str, float]:
+    """Price reason per resort key."""
+    return {r.resort.key: r.score.reasons["price"] for r in result.recommendations}
+
+
+def test_price_points_are_relative_cheapest_5_most_expensive_0() -> None:
+    """Day price from resorts.yaml: cheapest price_points, most expensive 0."""
+    resorts = [
+        make_resort("cheap", price=60),
+        make_resort("mid", price=80),
+        make_resort("dear", price=100),
+    ]
+    forecasts = {k: {MAIN: [make_day(SATURDAY)]} for k in ("cheap", "mid", "dear")}
+
+    result = pick_recommendations(resorts, forecasts, SETTINGS, today=TODAY)
+
+    assert price_points(result) == {"cheap": 5, "mid": 2.5, "dear": 0}
+
+
+def test_resort_without_price_gets_no_price_points() -> None:
+    """Unknown price: 0 price points (like a missing train connection)."""
+    resorts = [make_resort("known", price=70), make_resort("unknown")]
+    forecasts = {k: {MAIN: [make_day(SATURDAY)]} for k in ("known", "unknown")}
+
+    result = pick_recommendations(resorts, forecasts, SETTINGS, today=TODAY)
+
+    assert price_points(result) == {"known": 5, "unknown": 0}
+
+
+def test_live_prices_override_the_static_prices() -> None:
+    """A prices dict (e.g. from a live source later) replaces day_price_chf."""
+    resorts = [make_resort("a", price=60), make_resort("b", price=100)]
+    forecasts = {k: {MAIN: [make_day(SATURDAY)]} for k in ("a", "b")}
+
+    result = pick_recommendations(
+        resorts, forecasts, SETTINGS, today=TODAY, prices={"a": 120, "b": 90}
+    )
+
+    assert price_points(result) == {"a": 0, "b": 5}
+
+
+def test_travel_and_price_count_towards_a_good_day() -> None:
+    """is_good uses the final total: weather 58 + travel 10 + price 5 is good."""
+    day = make_day(SATURDAY, sun=8, snow=0)  # weather part: sun 40 + depth 20
+    resorts = [make_resort("near", price=60), make_resort("far", price=100)]
+    forecasts = {k: {MAIN: [day]} for k in ("near", "far")}
+    settings = replace(SETTINGS, min_good_score=65)
+
+    result = pick_recommendations(
+        resorts,
+        forecasts,
+        settings,
+        today=TODAY,
+        travel={"near": make_connection(60), "far": make_connection(180)},
+    )
+
+    good = {r.resort.key: r.is_good for r in result.recommendations}
+    assert good == {"near": True, "far": False}

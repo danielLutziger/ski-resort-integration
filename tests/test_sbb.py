@@ -13,6 +13,7 @@ SATURDAY = date(2026, 11, 28)
 # arrival window around lift opening, written out (tests never rely on defaults)
 SETTINGS = Settings(
     home_station="Zürich HB",
+    departure_earliest=time(5, 0),
     arrival_target=time(9, 0),
     arrival_earliest=time(8, 45),
     arrival_latest=time(9, 30),
@@ -65,3 +66,21 @@ def test_pick_without_a_connection_in_the_window_returns_none() -> None:
 def test_pick_ignores_connections_that_leave_the_day_before() -> None:
     """An overnight trip from the evening before is not a morning connection."""
     assert _pick(connections(), date(2026, 11, 29), SETTINGS) is None
+
+
+def test_pick_ignores_night_trips_before_departure_earliest() -> None:
+    """A 01:05 night bus that arrives in the window is not a morning connection."""
+    early = replace(
+        SETTINGS,
+        arrival_target=time(6, 30),
+        arrival_earliest=time(6, 0),
+        arrival_latest=time(7, 30),
+    )
+    no_limit = replace(early, departure_earliest=time(0, 0))
+
+    with_limit = _pick(connections(), SATURDAY, early)
+    without_limit = _pick(connections(), SATURDAY, no_limit)
+
+    assert without_limit is not None
+    assert f"{without_limit.departure:%H:%M}" == "01:05"  # arrives 06:31
+    assert with_limit is None  # 04:18 -> 07:01 also leaves before 05:00

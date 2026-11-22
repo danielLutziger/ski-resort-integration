@@ -56,6 +56,8 @@ class ScoringSettings:
     visibility_penalty: float = 30
     # travel time by train, relative: shortest trip travel_points, longest 0
     travel_points: float = 10
+    # day ticket price, relative: cheapest resort price_points, most expensive 0
+    price_points: float = 5
 
 
 @dataclass(frozen=True, slots=True)
@@ -77,3 +79,5 @@ class Settings:
     arrival_target: time = time(9, 0)
     arrival_earliest: time = time(8, 45)
     arrival_latest: time = time(9, 30)
+    # no night trips: the morning connection must not leave before this
+    departure_earliest: time = time(5, 0)

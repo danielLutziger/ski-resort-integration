@@ -129,11 +129,16 @@ def _time(value: str) -> datetime:
 def _pick(
     connections: list[Connection], day: date, settings: Settings
 ) -> Connection | None:
-    """Leaving on day, arriving in the window; closest to the target wins."""
+    """
+    Leaving on day after departure_earliest, arriving in the window.
+
+    The arrival closest to arrival_target wins.
+    """
     candidates = [
         c
         for c in connections
         if c.departure.date() == day
+        and c.departure.time() >= settings.departure_earliest
         and settings.arrival_earliest <= c.arrival.time() <= settings.arrival_latest
     ]
     target = datetime.combine(day, settings.arrival_target)

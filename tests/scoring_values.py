@@ -30,4 +30,6 @@ SCORING = ScoringSettings(
     visibility_good_m=5000,
     visibility_bad_m=1000,
     visibility_penalty=30,
+    travel_points=10,
+    price_points=5,
 )
