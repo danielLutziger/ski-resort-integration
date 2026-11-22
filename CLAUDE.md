@@ -117,6 +117,8 @@ Not started: coordinator, sensor, config flow, dashboard card, ticket prices, tr
    weekend (Sat/Sun) has no data until about Tuesday. Missing data used to score 0 (misleading) — now
    skipped via `has_data` and reported as "No forecast yet" (verify this change is in the repo).
    Option: drop `models=` (best_match) or add a second model for days 6–8; test what Fri–Tue then return.
+   Done 22.11: `has_data` fixed (empty days are skipped), DWD `icon_seamless` fills the days after
+   MeteoSwiss' horizon.
 2. **Daily `weather_code` = most severe condition of the day.** One shower makes the whole day NO_GO
    (e.g. Andermatt Tue 24.11: 3.7 h sun, still 0 points). Plan: request **hourly** data and judge only
    ski hours (about 09:00–16:00), not the daily worst code.
@@ -136,10 +138,16 @@ Not started: coordinator, sensor, config flow, dashboard card, ticket prices, tr
 5. Wind and temperature barely discriminate between resorts on the same day; they act as penalties/gates.
    Ranking is mostly sun + snow right now. That is expected in a dry November, tune again in season.
    22.11: wind now uses gusts (daily mean wind max was median 13 km/h, gusts up to 127 km/h).
+   Still to do: tune wind and temperature in season (Jan/Feb). Cold penalty stays a flat step (decided).
 6. The total is not normalised to 0–100 (maximum is 70). Either normalise or keep `min_good_score` relative.
    Done 22.11: positive parts sun 60 + fresh snow 40 = 100; everything else is a penalty.
 7. Zermatt-style cases: rain code together with a max temperature below 2 °C looks inconsistent
    (freezing rain, or grid/elevation mismatch) — check after the elevation fix.
+   Checked 22.11 (72 points, last 30 days + 7 forecast days): rain codes below 0 °C in 11 % of the rain
+   hours (MeteoSwiss) / 2 % (DWD), almost all between −1 and 0 °C. Cause: Open-Meteo downscales the
+   temperature to our station elevation, the precipitation type comes from the (lower) model grid.
+   MeteoSwiss never reports freezing-rain codes. Rain near 0 °C is wet snow or freezing rain, bad either
+   way, so NO_GO + icy penalty fit. No code change.
 
 ## Pain points / requirements added 22.11.2026
 
@@ -158,6 +166,7 @@ for that resort. Open design questions, to decide together before coding:
   build that until the multi-point case works.
 
 Decided and implemented 22.11.2026:
+- Point weights reviewed and accepted by the owner (22.11).
 - `resorts.yaml`: each resort has `points:` (1–5, `MAX_POINTS`), each a ski-area lift station (not the
   village) with `name`, `lat`, `lon`, `elevation_m`, `weight` (default 1; main area 2). Coordinates from
   OpenStreetMap `aerialway=station`, checked against the terrain height.
@@ -234,6 +243,12 @@ and imports so that the integration still loads and tests/ruff stay green.
 - Visibility on Open-Meteo (checked 22.11.2026): hourly only, metres, no daily aggregate. Not provided by
   `meteoswiss_icon_seamless`, ECMWF or Météo-France. `icon_seamless` (DWD) has it ~5 days ahead, later days
   are None, so days 1–5 can get a visibility penalty and later days cannot. GFS caps at 24 km.
+- Model accuracy, sunshine (checked 22.11.2026 against measured daily sunshine `sre000d0` at 12
+  SwissMetNet mountain stations, 30 days, via the Open-Meteo previous-runs API): MeteoSwiss = 1.05x the
+  measurement (MAE 1.1 h), DWD latest = 1.59x (MAE 2.4 h), DWD 5 days ahead = 1.72x (MAE 3.7 h).
+  MeteoSwiss is preferred wherever it has data; DWD days get `DWD_SUN_FACTOR` = 0.6. Re-check in winter.
+  Observations: `https://data.geo.admin.ch/ch.meteoschweiz.ogd-smn/<sta>/ogd-smn_<sta>_d_recent.csv`
+  (`htoautd0` = measured snow depth). No MeteoSwiss previous runs in Open-Meteo.
 - The `elevation` in an Open-Meteo response is the 90 m terrain height of the coordinate, used for
   downscaling (not the model grid height). We pass each point's `elevation_m` explicitly.
 - MeteoSwiss `meteoswiss_icon_seamless` daily data only reaches today + 4 days (22.11: Fri–Sun empty);
