@@ -85,6 +85,10 @@ Done and tested (pytest green at last check):
   - temp 0..-20: mean in ski hours; -10 below -15 °C, slush penalty from +2 to +6 °C
   - weather: averaged over the ski hours; NO_GO (rain/freezing/thunder) -50, BAD (fog) -15, snowfall neutral
   - visibility 0..-30 as before. A clear day without penalties = 60 = `min_good_score`.
+  - icy 0..-40: rain + showers (liquid, mm) in the 48 h before opening refreeze into an icy slope;
+    no penalty up to 0.5 mm, full from 5 mm. Applies to every point (all points are ski-area
+    stations; a village point would be the only place where rain is acceptable). Real data last 30
+    days at ~1600 m: drizzle 0.7–3 mm, storms 5–33 mm, rain before opening on about half the days.
 - Horizon / outlook (done 22.11): 8 forecast days. MeteoSwiss where it has data, DWD `icon_seamless`
   for the rest (`_merge`). Days 1..`ranking_days` (5) are ranked; the best allowed day up to
   `outlook_days` (7) is `RecommendationResult.outlook`, a separate 4th entry. The status only looks at
