@@ -46,6 +46,15 @@ type: markdown
 content: "{{ state_attr('sensor.ski_resort_recommender', 'table') }}"
 ```
 
+### Troubleshooting
+
+- The card shows **"⚠️ No data yet: …"**: the first update failed. The reason is shown (also in the sensor
+  attribute `last_error` and in *Settings → System → Logs*), and the integration retries every hour.
+  **"Open-Meteo rate limit (HTTP 429)"** means the free weather API quota is used up for this internet
+  connection; raise the *Weather update interval* if it happens regularly.
+- The card is **completely empty**: the entity does not exist. Check *Developer tools → States* for
+  `sensor.ski_resort_recommender` (the ID can differ, e.g. `_2`) and *Settings → Devices & services*.
+
 ## Development
 
 - Open the repo in the VS Code dev container.
