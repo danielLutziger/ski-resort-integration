@@ -62,6 +62,18 @@ def score_day(day: DayForecast) -> DayScore:
     return DayScore(total, reasons=reasons)
 
 
+def combine_scores(weighted: list[tuple[float, DayScore]]) -> DayScore:
+    """Weighted average of several point scores (the total and every reason)."""
+    total_weight = sum(weight for weight, _ in weighted)
+    total = sum(weight * score.total for weight, score in weighted) / total_weight
+    reasons = {
+        key: sum(weight * score.reasons[key] for weight, score in weighted)
+        / total_weight
+        for key in weighted[0][1].reasons
+    }
+    return DayScore(total, reasons=reasons)
+
+
 def _temp_points(day: DayForecast) -> float:
     if day.temp_max_c is None:
         return 0.0

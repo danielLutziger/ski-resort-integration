@@ -1,7 +1,5 @@
-- key: flims_laax_flims
-  name: Flims
-  lat: 46.8383
-  lon: 9.2103
+- key: flims_laax
+  name: Flims Laax
   meteoswiss_point_id:
   station: Flims Dorf, Bergbahnen
   day_price_chf: 99
@@ -9,132 +7,476 @@
 #  https://api.pricenow.dev/api/booking/products/1190144/journey/validities?from=2027-01-01T00%3A00%3A00.000%2B01%3A00&to=2027-01-31T23%3A59%3A59.999%2B01%3A00&formState=%7B%22attributes%22%3A%7B%22duration%22%3A%221d%22%7D%2C%22allocation%22%3A%7B%22kind%22%3A%22persontype%22%2C%22values%22%3A%5B%7B%22kind%22%3A%22anonymous%22%2C%22personType%22%3A%22adult%22%2C%22quantity%22%3A1%7D%5D%7D%7D
 #  https://api.pricenow.dev/api/booking/products/1190144/journey/validities?from={YYYY-MM-DD}T00%3A00%3A00.000%2B01%3A00&to={YYYY-MM-DD}T23%3A59%3A59.999%2B01%3A00&formState=%7B%22attributes%22%3A%7B%22duration%22%3A%22{number_of_days}d%22%7D%2C%22allocation%22%3A%7B%22kind%22%3A%22persontype%22%2C%22values%22%3A%5B%7B%22kind%22%3A%22anonymous%22%2C%22personType%22%3A%22adult%22%2C%22quantity%22%3A1%7D%5D%7D%7D
 #  uuid: e3570742-351d-420b-8f86-ab31a1363e10
+  points:
+    - name: Crap Sogn Gion
+      lat: 46.8352
+      lon: 9.2158
+      elevation_m: 2222
+      weight: 2
+    - name: Crap Masegn
+      lat: 46.8424
+      lon: 9.1801
+      elevation_m: 2477
+      weight: 1
+    - name: Vorab
+      lat: 46.8734
+      lon: 9.1815
+      elevation_m: 2566
+      weight: 1
+    - name: Nagens
+      lat: 46.8619
+      lon: 9.2331
+      elevation_m: 2127
+      weight: 1
+    - name: Plaun
+      lat: 46.8454
+      lon: 9.233
+      elevation_m: 1630
+      weight: 1
 
 - key: flumserberg
   name: Flumserberg
-  lat: 47.0923
-  lon: 9.2806
   meteoswiss_point_id:
   station: Flumserberg, Tannenboden
   day_price_chf: 72
+  points:
+    - name: Maschgenkamm
+      lat: 47.0698
+      lon: 9.2537
+      elevation_m: 2020
+      weight: 2
+    - name: Leist
+      lat: 47.0651
+      lon: 9.2332
+      elevation_m: 2222
+      weight: 1
+    - name: Prodkamm
+      lat: 47.0738
+      lon: 9.268
+      elevation_m: 1944
+      weight: 1
+    - name: Chrüz
+      lat: 47.083
+      lon: 9.27
+      elevation_m: 1639
+      weight: 1
 
 - key: zermatt
   name: Zermatt
-  lat: 46.0207
-  lon: 7.7491
-  meteoswiss_point_id: null
+  meteoswiss_point_id:
   station: Zermatt
   day_price_chf: 120
+  points:
+    - name: Trockener Steg
+      lat: 45.9718
+      lon: 7.7222
+      elevation_m: 2929
+      weight: 2
+    - name: Schwarzsee
+      lat: 45.9922
+      lon: 7.7091
+      elevation_m: 2588
+      weight: 1
+    - name: Riffelberg
+      lat: 45.9941
+      lon: 7.7548
+      elevation_m: 2560
+      weight: 1
+    - name: Gornergrat
+      lat: 45.9861
+      lon: 7.7752
+      elevation_m: 2935
+      weight: 1
+    - name: Blauherd
+      lat: 46.0166
+      lon: 7.7883
+      elevation_m: 2576
+      weight: 1
 
 - key: andermatt
   name: Andermatt
-  lat: 46.632894
-  lon: 8.594822
-  meteoswiss_point_id: null
+  meteoswiss_point_id:
   station: Andermatt Gemsstock
   day_price_chf:
+  points:
+    - name: Geissgrat
+      lat: 46.6166
+      lon: 8.615
+      elevation_m: 2400
+      weight: 2
+    - name: Gemsstock
+      lat: 46.6023
+      lon: 8.6116
+      elevation_m: 2955
+      weight: 1
+    - name: Lutersee
+      lat: 46.6227
+      lon: 8.6036
+      elevation_m: 2025
+      weight: 1
 
 - key: andermatt_sedrun_disentis
   name: Andermatt Sedrun Disentis
-  lat: 46.679996
-  lon: 8.774718
-  meteoswiss_point_id: null
+  meteoswiss_point_id:
   station: Andermatt
   day_price_chf:
+  points:
+    - name: Gütsch
+      lat: 46.6564
+      lon: 8.622
+      elevation_m: 2344
+      weight: 1
+    - name: Schneehüenerstock
+      lat: 46.6695
+      lon: 8.6556
+      elevation_m: 2595
+      weight: 1
+    - name: Oberalppass
+      lat: 46.6601
+      lon: 8.672
+      elevation_m: 2036
+      weight: 1
+    - name: Cuolm Val
+      lat: 46.667
+      lon: 8.7033
+      elevation_m: 2199
+      weight: 1
+    - name: Caischavedra
+      lat: 46.7035
+      lon: 8.813
+      elevation_m: 1894
+      weight: 1
 
 - key: engelberg
   name: Engelberg Titlis
-  lat: 46.4620
-  lon: 8.2616
-  meteoswiss_point_id: null
+  meteoswiss_point_id:
   station: Engelberg, Titlisbahn
   day_price_chf:
+  points:
+    - name: Trübsee
+      lat: 46.7932
+      lon: 8.3987
+      elevation_m: 1802
+      weight: 2
+    - name: Stand
+      lat: 46.7825
+      lon: 8.4174
+      elevation_m: 2428
+      weight: 1
+    - name: Titlis
+      lat: 46.7707
+      lon: 8.4229
+      elevation_m: 3020
+      weight: 1
+    - name: Jochpass
+      lat: 46.7788
+      lon: 8.3868
+      elevation_m: 2213
+      weight: 1
 
 - key: pizol
   name: Pizol
-  lat: 46.95917
-  lon: 9.38675
-  meteoswiss_point_id: null
+  meteoswiss_point_id:
   station: Wangs Talstation Pizolbahnen
   day_price_chf:
+  points:
+    - name: Pizolhütte
+      lat: 46.9792
+      lon: 9.417
+      elevation_m: 2221
+      weight: 2
+    - name: Laufböden
+      lat: 46.9797
+      lon: 9.4364
+      elevation_m: 2224
+      weight: 1
+    - name: Furt
+      lat: 47.0017
+      lon: 9.4183
+      elevation_m: 1523
+      weight: 1
+    - name: Pardiel
+      lat: 46.9896
+      lon: 9.4642
+      elevation_m: 1627
+      weight: 1
 
-- key: davos_jackobshorn
-  name: Davos Jackobshorn
-  lat: 46.4620
-  lon: 9.5056
-  meteoswiss_point_id: null
+- key: davos_jakobshorn
+  name: Davos Jakobshorn
+  meteoswiss_point_id:
   station: Davos Platz (Jakobshorn)
   day_price_chf:
+  points:
+    - name: Ischalp
+      lat: 46.7868
+      lon: 9.8326
+      elevation_m: 1931
+      weight: 2
+    - name: Jakobshorn
+      lat: 46.7724
+      lon: 9.8483
+      elevation_m: 2571
+      weight: 1
+    - name: Jatzhorn
+      lat: 46.7665
+      lon: 9.8511
+      elevation_m: 2500
+      weight: 1
+    - name: Brämabüel
+      lat: 46.7806
+      lon: 9.849
+      elevation_m: 2492
+      weight: 1
 
 - key: davos_parsenn
   name: Davos Klosters Parsenn
-  lat: 46.501594
-  lon: 9.474054
-  meteoswiss_point_id: null
+  meteoswiss_point_id:
   station: Klosters Dorf, Bahnhof
   day_price_chf:
+  points:
+    - name: Weissfluhjoch
+      lat: 46.8335
+      lon: 9.8054
+      elevation_m: 2666
+      weight: 2
+    - name: Weissfluhgipfel
+      lat: 46.8343
+      lon: 9.7962
+      elevation_m: 2844
+      weight: 1
+    - name: Parsennhütte
+      lat: 46.8506
+      lon: 9.8251
+      elevation_m: 2200
+      weight: 1
+    - name: Höhenweg
+      lat: 46.8194
+      lon: 9.8229
+      elevation_m: 2216
+      weight: 1
+    - name: Gotschnagrat
+      lat: 46.8574
+      lon: 9.8448
+      elevation_m: 2285
+      weight: 1
 
 - key: melchsee_frutt
   name: Melchsee Frutt
-  lat: 46.7733
-  lon: 8.2683
-  meteoswiss_point_id: null
+  meteoswiss_point_id:
   station:
   day_price_chf:
+  points:
+    - name: Melchsee-Frutt
+      lat: 46.7759
+      lon: 8.2692
+      elevation_m: 1910
+      weight: 2
+    - name: Bonistock
+      lat: 46.7776
+      lon: 8.2927
+      elevation_m: 2166
+      weight: 1
+    - name: Glogghüs
+      lat: 46.7634
+      lon: 8.2589
+      elevation_m: 2429
+      weight: 1
 
 - key: st_moritz_corviglia
   name: St. Moritz Corviglia
-  lat: 46.508
-  lon: 9.819
-  meteoswiss_point_id: null
+  meteoswiss_point_id:
   station: St. Moritz (Standseilbahn)
   day_price_chf:
+  points:
+    - name: Corviglia
+      lat: 46.508
+      lon: 9.8185
+      elevation_m: 2490
+      weight: 2
+    - name: Piz Nair
+      lat: 46.5054
+      lon: 9.7877
+      elevation_m: 3057
+      weight: 1
+    - name: Marguns
+      lat: 46.5158
+      lon: 9.8258
+      elevation_m: 2272
+      weight: 1
+    - name: Randolins
+      lat: 46.4912
+      lon: 9.8093
+      elevation_m: 2211
+      weight: 1
 
 - key: st_moritz_corvatsch
   name: St. Moritz Corvatsch
-  lat: 46.42
-  lon: 9.82
-  meteoswiss_point_id: null
+  meteoswiss_point_id:
   station: St. Moritz, Corvatsch, Via Tegiatscha
   day_price_chf:
+  points:
+    - name: Murtèl
+      lat: 46.4317
+      lon: 9.8229
+      elevation_m: 2702
+      weight: 2
+    - name: Corvatsch
+      lat: 46.418
+      lon: 9.8214
+      elevation_m: 3303
+      weight: 1
+    - name: Furtschellas
+      lat: 46.4224
+      lon: 9.7839
+      elevation_m: 2312
+      weight: 1
+    - name: Alp Surlej
+      lat: 46.4457
+      lon: 9.8115
+      elevation_m: 2079
+      weight: 1
 
 - key: scuol
   name: Scuol
-  lat: 46.7969
-  lon: 10.2977
-  meteoswiss_point_id: null
+  meteoswiss_point_id:
   station: Scuol (pendicularas)
   day_price_chf: 80
+  points:
+    - name: Motta Naluns
+      lat: 46.8109
+      lon: 10.2735
+      elevation_m: 2152
+      weight: 2
+    - name: Prui
+      lat: 46.8054
+      lon: 10.2513
+      elevation_m: 2068
+      weight: 1
+    - name: Schlivera
+      lat: 46.8193
+      lon: 10.2589
+      elevation_m: 2414
+      weight: 1
+    - name: Mot da Ri
+      lat: 46.8264
+      lon: 10.2532
+      elevation_m: 2579
+      weight: 1
 
 - key: samnaun
   name: Samnaun
-  lat: 46.5638
-  lon: 10.2138
-  meteoswiss_point_id: null
+  meteoswiss_point_id:
   station: Samnaun
   day_price_chf: 100
+  points:
+    - name: Alp Trida
+      lat: 46.9786
+      lon: 10.3739
+      elevation_m: 2274
+      weight: 2
+    - name: Alp Trider Sattel
+      lat: 46.97
+      lon: 10.3663
+      elevation_m: 2511
+      weight: 1
+    - name: Muller
+      lat: 46.9841
+      lon: 10.3777
+      elevation_m: 2516
+      weight: 1
+    - name: Greitspitz
+      lat: 46.9696
+      lon: 10.3521
+      elevation_m: 2460
+      weight: 1
 
 - key: ischgl
   name: Ischgl
-  lat: 47.0131
-  lon: 10.2881
-  meteoswiss_point_id: null
+  meteoswiss_point_id:
   station: Ischgl, Silvrettabahn
   day_price_chf: 100
+  points:
+    - name: Idalp
+      lat: 46.9825
+      lon: 10.3169
+      elevation_m: 2335
+      weight: 2
+    - name: Pardatschgrat
+      lat: 46.9915
+      lon: 10.3241
+      elevation_m: 2637
+      weight: 1
+    - name: Palinkopf
+      lat: 46.9629
+      lon: 10.3186
+      elevation_m: 2420
+      weight: 1
+    - name: Paznauner Thaya
+      lat: 46.9723
+      lon: 10.3074
+      elevation_m: 2277
+      weight: 1
+    - name: Viderjoch
+      lat: 46.9752
+      lon: 10.3376
+      elevation_m: 2766
+      weight: 1
 
 - key: st_anton
   name: St. Anton
-  lat: 47.1296
-  lon: 10.2682
-  meteoswiss_point_id: null
+  meteoswiss_point_id:
   station: St. Anton am Arlberg
   day_price_chf: 100
+  points:
+    - name: Galzig
+      lat: 47.1309
+      lon: 10.2303
+      elevation_m: 2185
+      weight: 2
+    - name: Valluga
+      lat: 47.1576
+      lon: 10.213
+      elevation_m: 2809
+      weight: 1
+    - name: Gampen
+      lat: 47.1376
+      lon: 10.2484
+      elevation_m: 1852
+      weight: 1
+    - name: Rendl (Riffel II)
+      lat: 47.1011
+      lon: 10.285
+      elevation_m: 2649
+      weight: 1
 
 - key: arosa_lenzerheide
   name: Arosa Lenzerheide
-  lat: 46.726963
-  lon: 9.557741
-  meteoswiss_point_id: null
+  meteoswiss_point_id:
   station: Lenzerheide/Lai, Rothornbahn
   day_price_chf: 100
-
+  points:
+    - name: Scharmoin
+      lat: 46.7428
+      lon: 9.5731
+      elevation_m: 1906
+      weight: 1
+    - name: Rothorn
+      lat: 46.7426
+      lon: 9.5973
+      elevation_m: 2857
+      weight: 1
+    - name: Scalottas
+      lat: 46.7219
+      lon: 9.511
+      elevation_m: 2323
+      weight: 1
+    - name: Weisshorn
+      lat: 46.7893
+      lon: 9.6392
+      elevation_m: 2646
+      weight: 1
+    - name: Hörnli
+      lat: 46.7671
+      lon: 9.6209
+      elevation_m: 2500
+      weight: 1

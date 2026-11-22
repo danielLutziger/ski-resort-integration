@@ -5,25 +5,30 @@ from datetime import date
 from pathlib import Path
 from statistics import median
 
-from custom_components.ski_resort_recommender.lib.models import Resort
+from custom_components.ski_resort_recommender.lib.models import (
+    DayForecast,
+    Resort,
+    WeatherPoint,
+)
 from custom_components.ski_resort_recommender.lib.open_meteo import (
     _combine,
+    _coordinates,
+    _merge,
     _parse_daily,
     _ski_hours_visibility,
 )
 
 FIXTURES = Path(__file__).parent / "fixtures"
 DAILY_FIXTURE = FIXTURES / "open_meteo_response.json"
-HOURLY_FIXTURE = FIXTURES / "open_meteo_visibility_response.json"
+DWD_FIXTURE = FIXTURES / "open_meteo_dwd_response.json"  # daily + hourly visibility
 
 
-def make_resort(key: str) -> Resort:
-    """Create a resort."""
+def make_resort(key: str, *points: WeatherPoint) -> Resort:
+    """Create a resort with the given points."""
     return Resort(
         key=key,
         name=key,
-        lat=46.8,
-        lon=9.3,
+        points=points,
         meteoswiss_point_id=None,
         station="Chur",
         day_price_chf=None,
@@ -80,7 +85,7 @@ def test_ski_hours_visibility_uses_median_of_ski_hours_only() -> None:
 
 def test_ski_hours_visibility_on_real_response() -> None:
     """The saved hourly fixture gives one median per day."""
-    hourly = json.loads(HOURLY_FIXTURE.read_text())[0]["hourly"]
+    hourly = json.loads(DWD_FIXTURE.read_text())[0]["hourly"]
 
     result = _ski_hours_visibility(hourly)
 
@@ -94,16 +99,40 @@ def test_ski_hours_visibility_on_real_response() -> None:
     assert result[date.fromisoformat(first_day)] == median(ski_values)
 
 
-def test_combine_matches_both_responses_to_resorts_by_position() -> None:
-    """Daily and hourly payloads are merged per resort in coordinate order."""
+def test_combine_matches_both_responses_to_points_by_position() -> None:
+    """MeteoSwiss and DWD payloads are merged per point in coordinate order."""
     daily = json.loads(DAILY_FIXTURE.read_text())
-    hourly = json.loads(HOURLY_FIXTURE.read_text())
-    resorts = [make_resort("a"), make_resort("b")]
+    dwd = json.loads(DWD_FIXTURE.read_text())
+    top = WeatherPoint(name="top", lat=46.8, lon=9.3, elevation_m=2500)
+    mid = WeatherPoint(name="mid", lat=46.8, lon=9.3, elevation_m=1800)
 
-    forecasts = _combine(resorts, daily, hourly)
+    forecasts = _combine([make_resort("a", top, mid)], daily, dwd)
 
-    assert list(forecasts) == ["a", "b"]
-    assert len(forecasts["a"]) == len(daily[0]["daily"]["time"])
+    assert list(forecasts) == ["a"]
+    assert list(forecasts["a"]) == ["top", "mid"]
+    # the fixtures cover different dates: the result has the days of both
+    days = {*daily[1]["daily"]["time"], *dwd[1]["daily"]["time"]}
+    assert [d.day.isoformat() for d in forecasts["a"]["mid"]] == sorted(days)
+
+
+def test_coordinates_list_all_points_in_order_with_elevation() -> None:
+    """One request location per point; Open-Meteo gets the station elevation."""
+    resorts = [
+        make_resort(
+            "a",
+            WeatherPoint(name="top", lat=46.1, lon=9.1, elevation_m=2500),
+            WeatherPoint(name="mid", lat=46.2, lon=9.2, elevation_m=1800),
+        ),
+        make_resort("b", WeatherPoint(name="x", lat=47.0, lon=10.0, elevation_m=2000)),
+    ]
+
+    params = _coordinates(resorts)
+
+    assert params == {
+        "latitude": "46.1,46.2,47.0",
+        "longitude": "9.1,9.2,10.0",
+        "elevation": "2500,1800,2000",
+    }
 
 
 def test_days_beyond_the_model_horizon_have_no_data() -> None:
@@ -122,3 +151,28 @@ def test_days_beyond_the_model_horizon_have_no_data() -> None:
 
     assert day.sunshine_hours is None
     assert day.has_data is False
+
+
+def make_forecast(day: date, sun: float | None) -> DayForecast:
+    """Create a day that only has sunshine (None = no data)."""
+    return DayForecast(
+        day=day,
+        temp_min_c=None,
+        temp_max_c=None,
+        snowfall_cm=None,
+        sunshine_hours=sun,
+        wind_max_kmh=None,
+        weather_code=None,
+        visibility_m=None,
+    )
+
+
+def test_merge_prefers_meteoswiss_and_fills_gaps_from_dwd() -> None:
+    """MeteoSwiss days with data win; empty or missing days come from DWD."""
+    thu, fri, sat = date(2026, 11, 26), date(2026, 11, 27), date(2026, 11, 28)
+    meteoswiss = [make_forecast(thu, 5), make_forecast(fri, None)]
+    dwd = [make_forecast(thu, 1), make_forecast(fri, 2), make_forecast(sat, 3)]
+
+    merged = _merge(meteoswiss, dwd)
+
+    assert [(d.day, d.sunshine_hours) for d in merged] == [(thu, 5), (fri, 2), (sat, 3)]

@@ -32,14 +32,14 @@ custom_components/ski_resort_recommender/
   __init__.py manifest.json config_flow.py const.py coordinator.py sensor.py   # HA glue only (mostly TODO)
   resorts.yaml                  # resorts as DATA (one file, list of entries)
   lib/                          # NO homeassistant imports, testable alone
-    models.py                   # Resort, DayForecast (frozen dataclasses); imports nothing from lib
+    models.py                   # Resort, WeatherPoint, DayForecast (frozen dataclasses), Forecasts alias; imports nothing from lib
     errors.py                   # SkiApiError (base, Exception) -> SkiApiConnectionError, SkiApiParseError
     open_meteo.py               # OpenMeteoProvider (aiohttp); pure _combine/_parse_daily/_ski_hours_visibility
     weather_codes.py            # WeatherClass (StrEnum), _CLASSES, classify()
     scoring.py                  # score_day(DayForecast) -> DayScore(total, reasons)
-    settings.py                 # Settings dataclass (weekdays, max_results, min_good_score)
+    settings.py                 # Settings dataclass (weekdays, max_results, min_good_score, ranking_days, outlook_days)
     service.py                  # pick_recommendations(); Recommendation, RecommendationResult, RecommendationStatus
-    resorts.py                  # load_resorts(path) -> list[Resort]
+    resorts.py                  # load_resorts(path) -> list[Resort]; checks 1-5 points with unique names
 scripts/try_forecast.py         # runs the whole chain on the real API and prints the ranking
 tests/                          # pytest; fixtures in tests/fixtures
 ```
@@ -77,6 +77,10 @@ Done and tested (pytest green at last check):
 - `weather_codes.py` + coverage test; `scoring.py` (sun 30, fresh snow 20, wind penalty above 30 km/h,
   temperature band, weather class points) + tests; `service.py` + tests (weekday filter, future-only,
   max results, same resort twice, no-go never good, missing resort, status).
+- Horizon / outlook (done 22.11): 8 forecast days. MeteoSwiss where it has data, DWD `icon_seamless`
+  for the rest (`_merge`). Days 1..`ranking_days` (5) are ranked; the best allowed day up to
+  `outlook_days` (7) is `RecommendationResult.outlook`, a separate 4th entry. The status only looks at
+  the ranked days (outlook only -> "No forecast yet").
 - Visibility (B, done): `DayForecast.visibility_m` = median of hourly visibility 09:00–16:00, from a second
   batched request with model `icon_seamless`; scored as a penalty (0 at >= 5 km, −30 at <= 1 km, None = 0).
 
@@ -97,6 +101,7 @@ Not started: coordinator, sensor, config flow, dashboard card, ticket prices, tr
 4. **Elevation.** Temperature/precipitation come from the village coordinate. Add `elevation_m` to
    `Resort` (mid-station) and pass Open-Meteo's `elevation` parameter. Also consider hourly `snow_depth`
    (base matters more than fresh snow in early season).
+   Done 22.11: every weather point has `elevation_m`, passed to Open-Meteo. `snow_depth` still open.
 5. Wind and temperature barely discriminate between resorts on the same day; they act as penalties/gates.
    Ranking is mostly sun + snow right now. That is expected in a dry November, tune again in season.
 6. The total is not normalised to 0–100 (maximum is 70). Either normalise or keep `min_good_score` relative.
@@ -118,6 +123,16 @@ for that resort. Open design questions, to decide together before coding:
 - Whether recommendations should also name the best point/area inside the resort.
 - Disagreeing predictions (different models) could later be part of the same mechanism, but do not
   build that until the multi-point case works.
+
+Decided and implemented 22.11.2026:
+- `resorts.yaml`: each resort has `points:` (1–5, `MAX_POINTS`), each a ski-area lift station (not the
+  village) with `name`, `lat`, `lon`, `elevation_m`, `weight` (default 1; main area 2). Coordinates from
+  OpenStreetMap `aerialway=station`, checked against the terrain height.
+- One request location per point (72 points, still one batched request per model); `elevation` is
+  passed per point. Forecasts are `resort key -> point name -> days` (`Forecasts` in `models.py`).
+- Combination: weighted average of the point scores (total and every reason). Points without data on a
+  day are left out of that day's average. The recommendation names the best point (`Recommendation.point`,
+  `Recommendation.day` is that point's forecast). NO_GO only blocks `is_good` at the best point.
 
 **B. Rename `vision` to `visibility` and use it in the rating.**
 `DayForecast.vision` becomes `visibility` (check models, provider/parsing, fixtures, tests, script).
@@ -162,11 +177,10 @@ and imports so that the integration still loads and tests/ruff stay green.
 
 1. Settings-driven scoring (C), keep tests green. (B is done.)
 2. Fix findings 2 and 3 (hourly ski-hours window, no double counting).
-3. Multi-point resorts (A): agree on the data format and combination rule first, then implement.
-4. Add `elevation_m`; test `best_match` vs. `meteoswiss_icon_seamless` for days 6–8.
-5. Coordinator (hourly poll, `UpdateFailed`), sensor (state = headline, attributes = recommendations),
+   (Multi-point resorts (A), per-point `elevation_m` and the outlook entry are done.)
+3. Coordinator (hourly poll, `UpdateFailed`), sensor (state = headline, attributes = recommendations),
    config flow (weekdays, number of results, min score, scoring weights), then a Markdown dashboard card.
-6. Later: train connection (Swiss public transport integration is already installed in my HA), ticket
+4. Later: train connection (Swiss public transport integration is already installed in my HA), ticket
    prices (no public API; many Swiss resorts use dynamic pricing — start with a static price per resort,
    never rely on scraping blindly).
 
@@ -177,8 +191,12 @@ and imports so that the integration still loads and tests/ruff stay green.
 - Visibility on Open-Meteo (checked 22.11.2026): hourly only, metres, no daily aggregate. Not provided by
   `meteoswiss_icon_seamless`, ECMWF or Météo-France. `icon_seamless` (DWD) has it ~5 days ahead, later days
   are None, so days 1–5 can get a visibility penalty and later days cannot. GFS caps at 24 km.
-- Different models use different grid cells for the same coordinate (e.g. Flims village coordinate:
-  `icon_seamless` grid elevation 2253 m). Relevant for finding 4: pass `elevation` to both requests.
+- The `elevation` in an Open-Meteo response is the 90 m terrain height of the coordinate, used for
+  downscaling (not the model grid height). We pass each point's `elevation_m` explicitly.
+- MeteoSwiss `meteoswiss_icon_seamless` daily data only reaches today + 4 days (22.11: Fri–Sun empty);
+  DWD `icon_seamless` daily data reaches about today + 7.
+- Station coordinates: OpenStreetMap Overpass (`aerialway=station`), terrain height from the Open-Meteo
+  elevation API, Swiss names cross-checked with the swisstopo search API.
 - Prices: dynamic pricing at many resorts (Adelboden-Lenk, Arosa Lenzerheide, Pizol, ...), no standard API.
 
 ## Working agreements

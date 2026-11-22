@@ -1,18 +1,27 @@
-"""Data objects: Resort and DayForecast."""
+"""Data objects: Resort, WeatherPoint and DayForecast."""
 
 from dataclasses import dataclass
 from datetime import date
+
+
+@dataclass(frozen=True, slots=True)
+class WeatherPoint:
+    """One forecast location inside a resort (a lift station in the ski area)."""
+
+    name: str
+    lat: float
+    lon: float
+    elevation_m: int  # passed to Open-Meteo for the temperature downscaling
+    weight: float = 1.0  # share in the resort's weighted average
 
 
 @dataclass(frozen=True)
 class Resort:
     """Every resort follows the same logic."""
 
-    # add elevation to resort for different values (base, mid, peak)
     key: str
     name: str
-    lat: float
-    lon: float
+    points: tuple[WeatherPoint, ...]
     meteoswiss_point_id: int | None
     station: str  # train connection (base station)
     day_price_chf: float | None
@@ -38,3 +47,7 @@ class DayForecast:
             value is not None
             for value in (self.weather_code, self.sunshine_hours, self.temp_max_c)
         )
+
+
+# resort key -> point name -> one DayForecast per day
+type Forecasts = dict[str, dict[str, list[DayForecast]]]
