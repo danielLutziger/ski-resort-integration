@@ -1,7 +1,7 @@
-"""Data objects: Resort, WeatherPoint and DayForecast."""
+"""Data objects: Resort, WeatherPoint, DayForecast and train Connection."""
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 
 
 @dataclass(frozen=True, slots=True)
@@ -55,6 +55,31 @@ class DayForecast:
             value is not None
             for value in (self.weather_code, self.sunshine_hours, self.temp_max_c)
         )
+
+
+@dataclass(frozen=True, slots=True)
+class Leg:
+    """One train/bus ride of a connection."""
+
+    line: str  # e.g. "IC 3", "B 81"
+    train_number: str | None  # e.g. "1057"
+    departure_station: str
+    departure: datetime
+    platform: str | None
+    arrival_station: str
+    arrival: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class Connection:
+    """A public transport connection from the home station to a resort."""
+
+    departure: datetime
+    platform: str | None
+    arrival: datetime
+    duration_min: int
+    transfers: int
+    legs: tuple[Leg, ...]
 
 
 # resort key -> point name -> one DayForecast per day

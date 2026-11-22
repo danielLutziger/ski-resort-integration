@@ -1,6 +1,7 @@
 """User settings for the recommendation."""
 
 from dataclasses import dataclass
+from datetime import time
 
 SATURDAY = 5
 SUNDAY = 6
@@ -53,6 +54,8 @@ class ScoringSettings:
     visibility_good_m: float = 5000
     visibility_bad_m: float = 1000
     visibility_penalty: float = 30
+    # travel time by train, relative: shortest trip travel_points, longest 0
+    travel_points: float = 10
 
 
 @dataclass(frozen=True, slots=True)
@@ -68,3 +71,9 @@ class Settings:
     # the best day after the ranking window, up to outlook_days, is a 4th entry
     outlook_days: int = 7
     scoring: ScoringSettings = ScoringSettings()
+    # public transport from home: None = no travel score and no connections
+    home_station: str | None = None
+    # the morning connection must arrive in this window; closest to the target wins
+    arrival_target: time = time(9, 0)
+    arrival_earliest: time = time(8, 45)
+    arrival_latest: time = time(9, 30)

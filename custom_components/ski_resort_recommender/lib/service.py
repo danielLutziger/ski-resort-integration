@@ -1,11 +1,12 @@
 """Pick the best resort/day combinations."""
 
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date, timedelta
 from enum import StrEnum
 
 from custom_components.ski_resort_recommender.lib.models import (
+    Connection,
     DayForecast,
     Forecasts,
     Resort,
@@ -16,6 +17,7 @@ from custom_components.ski_resort_recommender.lib.scoring import (
     combine_scores,
     is_no_go,
     score_day,
+    with_reason,
 )
 from custom_components.ski_resort_recommender.lib.settings import Settings
 
@@ -29,6 +31,7 @@ class Recommendation:
     score: DayScore  # weighted average over the resort's points
     is_good: bool
     point: WeatherPoint  # best point of the resort on that day
+    connection: Connection | None = None  # morning train, None = none found
 
 
 class RecommendationStatus(StrEnum):
@@ -67,14 +70,22 @@ def pick_recommendations(
     settings: Settings | None = None,
     *,
     today: date | None = None,
+    travel: dict[str, Connection] | None = None,
 ) -> RecommendationResult:
-    """Score all allowed future days; rank days 1..ranking_days, outlook after."""
+    """
+    Score all allowed future days; rank days 1..ranking_days, outlook after.
+
+    travel: one morning connection per resort key (reference day); its duration
+    gives the relative travel points. Without it travel scores 0 everywhere.
+    """
     ranked: list[Recommendation] = []
     outlook: list[Recommendation] = []
     settings = settings or Settings()
     today = today or date.today()  # noqa: DTZ011
     ranking_end = today + timedelta(days=settings.ranking_days)
     outlook_end = today + timedelta(days=settings.outlook_days)
+    travel = travel or {}
+    travel_points = _travel_points(travel, settings.scoring.travel_points)
 
     for resort in resorts:
         point_days: dict[date, list[tuple[WeatherPoint, DayForecast]]] = defaultdict(
@@ -91,7 +102,18 @@ def pick_recommendations(
                 point_days[day.day].append((point, day))
         for day, points in point_days.items():
             target = ranked if day <= ranking_end else outlook
-            target.append(_recommend(resort, points, settings))
+            recommendation = _recommend(resort, points, settings)
+            target.append(
+                replace(
+                    recommendation,
+                    score=with_reason(
+                        recommendation.score,
+                        "travel",
+                        travel_points.get(resort.key, 0.0),
+                    ),
+                    connection=travel.get(resort.key),
+                )
+            )
     ranked.sort(key=lambda r: r.score.total, reverse=True)
     return RecommendationResult(
         tuple(ranked[: settings.max_results]),
@@ -114,4 +136,33 @@ def _recommend(
     )
     return Recommendation(
         resort=resort, day=best_day, score=score, is_good=is_good, point=best_point
+    )
+
+
+def _travel_points(travel: dict[str, Connection], points: float) -> dict[str, float]:
+    """Relative: the shortest trip gets all points, the longest 0, linear between."""
+    if not travel:
+        return {}
+    durations = {key: c.duration_min for key, c in travel.items()}
+    shortest, longest = min(durations.values()), max(durations.values())
+    if shortest == longest:
+        return dict.fromkeys(durations, points)
+    return {
+        key: (longest - minutes) / (longest - shortest) * points
+        for key, minutes in durations.items()
+    }
+
+
+def attach_connections(
+    result: RecommendationResult, connections: dict[tuple[str, date], Connection]
+) -> RecommendationResult:
+    """Show the connection of the recommended day (keyed by resort key and day)."""
+
+    def attach(r: Recommendation) -> Recommendation:
+        found = connections.get((r.resort.key, r.day.day))
+        return replace(r, connection=found) if found else r
+
+    return RecommendationResult(
+        tuple(attach(r) for r in result.recommendations),
+        outlook=attach(result.outlook) if result.outlook else None,
     )

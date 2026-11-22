@@ -1,0 +1,1174 @@
+{
+    "connections": [
+        {
+            "from": {
+                "station": {
+                    "id": "8503000",
+                    "name": "Zürich HB"
+                },
+                "arrival": null,
+                "arrivalTimestamp": null,
+                "departure": "2026-11-28T00:23:00+0100",
+                "departureTimestamp": 1795821780,
+                "delay": null,
+                "platform": "7",
+                "realtimeAvailability": null
+            },
+            "to": {
+                "station": {
+                    "id": "8574680",
+                    "name": "Flims Dorf, Bergbahnen"
+                },
+                "arrival": "2026-11-28T02:39:00+0100",
+                "arrivalTimestamp": 1795829940,
+                "departure": null,
+                "departureTimestamp": null,
+                "delay": null,
+                "platform": "",
+                "realtimeAvailability": null
+            },
+            "duration": "00d02:16:00",
+            "transfers": 1,
+            "sections": [
+                {
+                    "journey": {
+                        "name": "002395",
+                        "category": "IR",
+                        "subcategory": null,
+                        "categoryCode": 2,
+                        "number": "35",
+                        "operator": "SOB-sob",
+                        "to": "Chur",
+                        "trip": {
+                            "id": ".ojp-91-35-A.1.TA.498.j26",
+                            "date": "2026-11-27"
+                        }
+                    },
+                    "departure": {
+                        "station": {
+                            "id": "8503000",
+                            "name": "Zürich HB"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T00:23:00+0100",
+                        "departureTimestamp": 1795821780,
+                        "delay": null,
+                        "platform": "7",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8509000",
+                            "name": "Chur"
+                        },
+                        "arrival": "2026-11-28T01:48:00+0100",
+                        "arrivalTimestamp": 1795826880,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": "5",
+                        "realtimeAvailability": null
+                    }
+                },
+                {
+                    "journey": null,
+                    "departure": {
+                        "station": {
+                            "id": "8509000",
+                            "name": "Chur"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T01:48:00+0100",
+                        "departureTimestamp": 1795826880,
+                        "delay": null,
+                        "platform": "5",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8575112",
+                            "name": "Chur, Postautostation"
+                        },
+                        "arrival": "2026-11-28T01:51:00+0100",
+                        "arrivalTimestamp": 1795827060,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": null,
+                        "realtimeAvailability": null
+                    }
+                },
+                {
+                    "journey": {
+                        "name": "881141",
+                        "category": "B",
+                        "subcategory": null,
+                        "categoryCode": 6,
+                        "number": "81",
+                        "operator": "PAG",
+                        "to": "Ilanz, Bahnhof/Post",
+                        "trip": {
+                            "id": ".ojp-96-263-5.1.TA.595.j26",
+                            "date": "2026-11-27"
+                        }
+                    },
+                    "departure": {
+                        "station": {
+                            "id": "8575112",
+                            "name": "Chur, Postautostation"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T02:10:00+0100",
+                        "departureTimestamp": 1795828200,
+                        "delay": null,
+                        "platform": null,
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8574680",
+                            "name": "Flims Dorf, Bergbahnen"
+                        },
+                        "arrival": "2026-11-28T02:39:00+0100",
+                        "arrivalTimestamp": 1795829940,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": null,
+                        "realtimeAvailability": null
+                    }
+                }
+            ]
+        },
+        {
+            "from": {
+                "station": {
+                    "id": "8503000",
+                    "name": "Zürich HB"
+                },
+                "arrival": null,
+                "arrivalTimestamp": null,
+                "departure": "2026-11-28T01:05:00+0100",
+                "departureTimestamp": 1795824300,
+                "delay": null,
+                "platform": "43/44",
+                "realtimeAvailability": null
+            },
+            "to": {
+                "station": {
+                    "id": "8574680",
+                    "name": "Flims Dorf, Bergbahnen"
+                },
+                "arrival": "2026-11-28T06:31:00+0100",
+                "arrivalTimestamp": 1795843860,
+                "departure": null,
+                "departureTimestamp": null,
+                "delay": null,
+                "platform": "",
+                "realtimeAvailability": null
+            },
+            "duration": "00d05:26:00",
+            "transfers": 5,
+            "sections": [
+                {
+                    "journey": {
+                        "name": "013711",
+                        "category": "SN",
+                        "subcategory": null,
+                        "categoryCode": 5,
+                        "number": "1",
+                        "operator": "SBB",
+                        "to": "Winterthur",
+                        "trip": {
+                            "id": ".ojp-91-1-H.1.TA.5.j26",
+                            "date": "2026-11-28"
+                        }
+                    },
+                    "departure": {
+                        "station": {
+                            "id": "8503000",
+                            "name": "Zürich HB"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T01:05:00+0100",
+                        "departureTimestamp": 1795824300,
+                        "delay": null,
+                        "platform": "43/44",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8506000",
+                            "name": "Winterthur"
+                        },
+                        "arrival": "2026-11-28T01:28:00+0100",
+                        "arrivalTimestamp": 1795825680,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": "3",
+                        "realtimeAvailability": null
+                    }
+                },
+                {
+                    "journey": {
+                        "name": "013623",
+                        "category": "SN",
+                        "subcategory": null,
+                        "categoryCode": 5,
+                        "number": "22",
+                        "operator": "THURBO",
+                        "to": "Heerbrugg",
+                        "trip": {
+                            "id": ".ojp-91-22-B.1.TA.96.j26",
+                            "date": "2026-11-28"
+                        }
+                    },
+                    "departure": {
+                        "station": {
+                            "id": "8506000",
+                            "name": "Winterthur"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T01:33:00+0100",
+                        "departureTimestamp": 1795825980,
+                        "delay": null,
+                        "platform": "2",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8506317",
+                            "name": "Heerbrugg"
+                        },
+                        "arrival": "2026-11-28T02:54:00+0100",
+                        "arrivalTimestamp": 1795830840,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": "1",
+                        "realtimeAvailability": null
+                    }
+                },
+                {
+                    "journey": null,
+                    "departure": {
+                        "station": {
+                            "id": "8506317",
+                            "name": "Heerbrugg"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T02:54:00+0100",
+                        "departureTimestamp": 1795830840,
+                        "delay": null,
+                        "platform": "1",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8574137",
+                            "name": "Heerbrugg, Bahnhof"
+                        },
+                        "arrival": "2026-11-28T02:55:00+0100",
+                        "arrivalTimestamp": 1795830900,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": "E",
+                        "realtimeAvailability": null
+                    }
+                },
+                {
+                    "journey": {
+                        "name": "032195",
+                        "category": "B",
+                        "subcategory": null,
+                        "categoryCode": 6,
+                        "number": "N32",
+                        "operator": "BOS",
+                        "to": "Sennwald, Post",
+                        "trip": {
+                            "id": ".ojp-92-N32-B.1.TA.5.j26",
+                            "date": "2026-11-27"
+                        }
+                    },
+                    "departure": {
+                        "station": {
+                            "id": "8574137",
+                            "name": "Heerbrugg, Bahnhof"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T03:00:00+0100",
+                        "departureTimestamp": 1795831200,
+                        "delay": null,
+                        "platform": "E",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8506450",
+                            "name": "Altstätten SG, Bahnhof"
+                        },
+                        "arrival": "2026-11-28T03:20:00+0100",
+                        "arrivalTimestamp": 1795832400,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": "A",
+                        "realtimeAvailability": null
+                    }
+                },
+                {
+                    "journey": null,
+                    "departure": {
+                        "station": {
+                            "id": "8506450",
+                            "name": "Altstätten SG, Bahnhof"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T03:20:00+0100",
+                        "departureTimestamp": 1795832400,
+                        "delay": null,
+                        "platform": "A",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8506319",
+                            "name": "Altstätten SG"
+                        },
+                        "arrival": "2026-11-28T03:21:00+0100",
+                        "arrivalTimestamp": 1795832460,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": "1C",
+                        "realtimeAvailability": null
+                    }
+                },
+                {
+                    "journey": {
+                        "name": "011033",
+                        "category": "S",
+                        "subcategory": null,
+                        "categoryCode": 5,
+                        "number": "13",
+                        "operator": "THURBO",
+                        "to": "Sargans",
+                        "trip": {
+                            "id": ".ojp-91-13-H.1.TA.13.j26",
+                            "date": "2026-11-28"
+                        }
+                    },
+                    "departure": {
+                        "station": {
+                            "id": "8506319",
+                            "name": "Altstätten SG"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T04:53:00+0100",
+                        "departureTimestamp": 1795837980,
+                        "delay": null,
+                        "platform": "1C",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8509411",
+                            "name": "Sargans"
+                        },
+                        "arrival": "2026-11-28T05:24:00+0100",
+                        "arrivalTimestamp": 1795839840,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": "6",
+                        "realtimeAvailability": null
+                    }
+                },
+                {
+                    "journey": {
+                        "name": "012219",
+                        "category": "S",
+                        "subcategory": null,
+                        "categoryCode": 5,
+                        "number": "12",
+                        "operator": "THURBO",
+                        "to": "Chur",
+                        "trip": {
+                            "id": ".ojp-91-12-A.1.TA.209.j26",
+                            "date": "2026-11-28"
+                        }
+                    },
+                    "departure": {
+                        "station": {
+                            "id": "8509411",
+                            "name": "Sargans"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T05:36:00+0100",
+                        "departureTimestamp": 1795840560,
+                        "delay": null,
+                        "platform": "3",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8509000",
+                            "name": "Chur"
+                        },
+                        "arrival": "2026-11-28T05:56:00+0100",
+                        "arrivalTimestamp": 1795841760,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": "4",
+                        "realtimeAvailability": null
+                    }
+                },
+                {
+                    "journey": null,
+                    "departure": {
+                        "station": {
+                            "id": "8509000",
+                            "name": "Chur"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T05:56:00+0100",
+                        "departureTimestamp": 1795841760,
+                        "delay": null,
+                        "platform": "4",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8575112",
+                            "name": "Chur, Postautostation"
+                        },
+                        "arrival": "2026-11-28T05:59:00+0100",
+                        "arrivalTimestamp": 1795841940,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": "N",
+                        "realtimeAvailability": null
+                    }
+                },
+                {
+                    "journey": {
+                        "name": "881009",
+                        "category": "B",
+                        "subcategory": null,
+                        "categoryCode": 6,
+                        "number": "81",
+                        "operator": "PAG",
+                        "to": "Falera, center",
+                        "trip": {
+                            "id": ".ojp-96-263-5.1.TA.101.j26",
+                            "date": "2026-11-28"
+                        }
+                    },
+                    "departure": {
+                        "station": {
+                            "id": "8575112",
+                            "name": "Chur, Postautostation"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T06:00:00+0100",
+                        "departureTimestamp": 1795842000,
+                        "delay": null,
+                        "platform": "N",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8574680",
+                            "name": "Flims Dorf, Bergbahnen"
+                        },
+                        "arrival": "2026-11-28T06:31:00+0100",
+                        "arrivalTimestamp": 1795843860,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": null,
+                        "realtimeAvailability": null
+                    }
+                }
+            ]
+        },
+        {
+            "from": {
+                "station": {
+                    "id": "8503000",
+                    "name": "Zürich HB"
+                },
+                "arrival": null,
+                "arrivalTimestamp": null,
+                "departure": "2026-11-28T04:18:00+0100",
+                "departureTimestamp": 1795835880,
+                "delay": null,
+                "platform": "43/44",
+                "realtimeAvailability": null
+            },
+            "to": {
+                "station": {
+                    "id": "8574680",
+                    "name": "Flims Dorf, Bergbahnen"
+                },
+                "arrival": "2026-11-28T07:01:00+0100",
+                "arrivalTimestamp": 1795845660,
+                "departure": null,
+                "departureTimestamp": null,
+                "delay": null,
+                "platform": "",
+                "realtimeAvailability": null
+            },
+            "duration": "00d02:43:00",
+            "transfers": 3,
+            "sections": [
+                {
+                    "journey": {
+                        "name": "013757",
+                        "category": "SN",
+                        "subcategory": null,
+                        "categoryCode": 5,
+                        "number": "5",
+                        "operator": "SBB",
+                        "to": "Pfäffikon SZ",
+                        "trip": {
+                            "id": ".ojp-91-5-G.1.TA.75.j26",
+                            "date": "2026-11-28"
+                        }
+                    },
+                    "departure": {
+                        "station": {
+                            "id": "8503000",
+                            "name": "Zürich HB"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T04:18:00+0100",
+                        "departureTimestamp": 1795835880,
+                        "delay": null,
+                        "platform": "43/44",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8503110",
+                            "name": "Rapperswil SG"
+                        },
+                        "arrival": "2026-11-28T04:52:00+0100",
+                        "arrivalTimestamp": 1795837920,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": "3",
+                        "realtimeAvailability": null
+                    }
+                },
+                {
+                    "journey": {
+                        "name": "012317",
+                        "category": "S",
+                        "subcategory": null,
+                        "categoryCode": 5,
+                        "number": "17",
+                        "operator": "SOB-sob",
+                        "to": "Sargans",
+                        "trip": {
+                            "id": ".ojp-91-17-M.1.TA.369.j26",
+                            "date": "2026-11-28"
+                        }
+                    },
+                    "departure": {
+                        "station": {
+                            "id": "8503110",
+                            "name": "Rapperswil SG"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T05:03:00+0100",
+                        "departureTimestamp": 1795838580,
+                        "delay": null,
+                        "platform": "5",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8509411",
+                            "name": "Sargans"
+                        },
+                        "arrival": "2026-11-28T05:57:00+0100",
+                        "arrivalTimestamp": 1795841820,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": "5",
+                        "realtimeAvailability": null
+                    }
+                },
+                {
+                    "journey": {
+                        "name": "012221",
+                        "category": "S",
+                        "subcategory": null,
+                        "categoryCode": 5,
+                        "number": "12",
+                        "operator": "THURBO",
+                        "to": "Chur",
+                        "trip": {
+                            "id": ".ojp-91-12-A.1.TA.227.j26",
+                            "date": "2026-11-28"
+                        }
+                    },
+                    "departure": {
+                        "station": {
+                            "id": "8509411",
+                            "name": "Sargans"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T06:06:00+0100",
+                        "departureTimestamp": 1795842360,
+                        "delay": null,
+                        "platform": "3",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8509000",
+                            "name": "Chur"
+                        },
+                        "arrival": "2026-11-28T06:26:00+0100",
+                        "arrivalTimestamp": 1795843560,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": "4",
+                        "realtimeAvailability": null
+                    }
+                },
+                {
+                    "journey": null,
+                    "departure": {
+                        "station": {
+                            "id": "8509000",
+                            "name": "Chur"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T06:26:00+0100",
+                        "departureTimestamp": 1795843560,
+                        "delay": null,
+                        "platform": "4",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8575112",
+                            "name": "Chur, Postautostation"
+                        },
+                        "arrival": "2026-11-28T06:29:00+0100",
+                        "arrivalTimestamp": 1795843740,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": "N",
+                        "realtimeAvailability": null
+                    }
+                },
+                {
+                    "journey": {
+                        "name": "881013",
+                        "category": "B",
+                        "subcategory": null,
+                        "categoryCode": 6,
+                        "number": "81",
+                        "operator": "PAG",
+                        "to": "Falera, center",
+                        "trip": {
+                            "id": ".ojp-96-263-5.1.TA.82.j26",
+                            "date": "2026-11-28"
+                        }
+                    },
+                    "departure": {
+                        "station": {
+                            "id": "8575112",
+                            "name": "Chur, Postautostation"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T06:30:00+0100",
+                        "departureTimestamp": 1795843800,
+                        "delay": null,
+                        "platform": "N",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8574680",
+                            "name": "Flims Dorf, Bergbahnen"
+                        },
+                        "arrival": "2026-11-28T07:01:00+0100",
+                        "arrivalTimestamp": 1795845660,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": null,
+                        "realtimeAvailability": null
+                    }
+                }
+            ]
+        },
+        {
+            "from": {
+                "station": {
+                    "id": "8503000",
+                    "name": "Zürich HB"
+                },
+                "arrival": null,
+                "arrivalTimestamp": null,
+                "departure": "2026-11-28T06:07:00+0100",
+                "departureTimestamp": 1795842420,
+                "delay": null,
+                "platform": "5",
+                "realtimeAvailability": null
+            },
+            "to": {
+                "station": {
+                    "id": "8574680",
+                    "name": "Flims Dorf, Bergbahnen"
+                },
+                "arrival": "2026-11-28T08:01:00+0100",
+                "arrivalTimestamp": 1795849260,
+                "departure": null,
+                "departureTimestamp": null,
+                "delay": null,
+                "platform": "",
+                "realtimeAvailability": null
+            },
+            "duration": "00d01:54:00",
+            "transfers": 1,
+            "sections": [
+                {
+                    "journey": {
+                        "name": "000757",
+                        "category": "IC",
+                        "subcategory": null,
+                        "categoryCode": 1,
+                        "number": "3",
+                        "operator": "SBB",
+                        "to": "Chur",
+                        "trip": {
+                            "id": ".ojp-91-3-C.1.TA.2490.j26",
+                            "date": "2026-11-28"
+                        }
+                    },
+                    "departure": {
+                        "station": {
+                            "id": "8503000",
+                            "name": "Zürich HB"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T06:07:00+0100",
+                        "departureTimestamp": 1795842420,
+                        "delay": null,
+                        "platform": "5",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8509000",
+                            "name": "Chur"
+                        },
+                        "arrival": "2026-11-28T07:22:00+0100",
+                        "arrivalTimestamp": 1795846920,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": "9",
+                        "realtimeAvailability": null
+                    }
+                },
+                {
+                    "journey": null,
+                    "departure": {
+                        "station": {
+                            "id": "8509000",
+                            "name": "Chur"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T07:22:00+0100",
+                        "departureTimestamp": 1795846920,
+                        "delay": null,
+                        "platform": "9",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8575112",
+                            "name": "Chur, Postautostation"
+                        },
+                        "arrival": "2026-11-28T07:25:00+0100",
+                        "arrivalTimestamp": 1795847100,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": "N",
+                        "realtimeAvailability": null
+                    }
+                },
+                {
+                    "journey": {
+                        "name": "881017",
+                        "category": "B",
+                        "subcategory": null,
+                        "categoryCode": 6,
+                        "number": "81",
+                        "operator": "PAG",
+                        "to": "Falera, center",
+                        "trip": {
+                            "id": ".ojp-96-263-5.1.TA.270.j26",
+                            "date": "2026-11-28"
+                        }
+                    },
+                    "departure": {
+                        "station": {
+                            "id": "8575112",
+                            "name": "Chur, Postautostation"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T07:28:00+0100",
+                        "departureTimestamp": 1795847280,
+                        "delay": null,
+                        "platform": "N",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8574680",
+                            "name": "Flims Dorf, Bergbahnen"
+                        },
+                        "arrival": "2026-11-28T08:01:00+0100",
+                        "arrivalTimestamp": 1795849260,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": null,
+                        "realtimeAvailability": null
+                    }
+                }
+            ]
+        },
+        {
+            "from": {
+                "station": {
+                    "id": "8503000",
+                    "name": "Zürich HB"
+                },
+                "arrival": null,
+                "arrivalTimestamp": null,
+                "departure": "2026-11-28T06:38:00+0100",
+                "departureTimestamp": 1795844280,
+                "delay": null,
+                "platform": "9",
+                "realtimeAvailability": null
+            },
+            "to": {
+                "station": {
+                    "id": "8574680",
+                    "name": "Flims Dorf, Bergbahnen"
+                },
+                "arrival": "2026-11-28T08:31:00+0100",
+                "arrivalTimestamp": 1795851060,
+                "departure": null,
+                "departureTimestamp": null,
+                "delay": null,
+                "platform": "",
+                "realtimeAvailability": null
+            },
+            "duration": "00d01:53:00",
+            "transfers": 1,
+            "sections": [
+                {
+                    "journey": {
+                        "name": "000557",
+                        "category": "IC",
+                        "subcategory": null,
+                        "categoryCode": 1,
+                        "number": "3",
+                        "operator": "SBB",
+                        "to": "Chur",
+                        "trip": {
+                            "id": ".ojp-91-3-C.1.TA.2585.j26",
+                            "date": "2026-11-28"
+                        }
+                    },
+                    "departure": {
+                        "station": {
+                            "id": "8503000",
+                            "name": "Zürich HB"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T06:38:00+0100",
+                        "departureTimestamp": 1795844280,
+                        "delay": null,
+                        "platform": "9",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8509000",
+                            "name": "Chur"
+                        },
+                        "arrival": "2026-11-28T07:52:00+0100",
+                        "arrivalTimestamp": 1795848720,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": "9",
+                        "realtimeAvailability": null
+                    }
+                },
+                {
+                    "journey": null,
+                    "departure": {
+                        "station": {
+                            "id": "8509000",
+                            "name": "Chur"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T07:52:00+0100",
+                        "departureTimestamp": 1795848720,
+                        "delay": null,
+                        "platform": "9",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8575112",
+                            "name": "Chur, Postautostation"
+                        },
+                        "arrival": "2026-11-28T07:55:00+0100",
+                        "arrivalTimestamp": 1795848900,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": "N",
+                        "realtimeAvailability": null
+                    }
+                },
+                {
+                    "journey": {
+                        "name": "881023",
+                        "category": "B",
+                        "subcategory": null,
+                        "categoryCode": 6,
+                        "number": "81",
+                        "operator": "PAG",
+                        "to": "Falera, center",
+                        "trip": {
+                            "id": ".ojp-96-263-5.1.TA.394.j26",
+                            "date": "2026-11-28"
+                        }
+                    },
+                    "departure": {
+                        "station": {
+                            "id": "8575112",
+                            "name": "Chur, Postautostation"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T07:58:00+0100",
+                        "departureTimestamp": 1795849080,
+                        "delay": null,
+                        "platform": "N",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8574680",
+                            "name": "Flims Dorf, Bergbahnen"
+                        },
+                        "arrival": "2026-11-28T08:31:00+0100",
+                        "arrivalTimestamp": 1795851060,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": null,
+                        "realtimeAvailability": null
+                    }
+                }
+            ]
+        },
+        {
+            "from": {
+                "station": {
+                    "id": "8503000",
+                    "name": "Zürich HB"
+                },
+                "arrival": null,
+                "arrivalTimestamp": null,
+                "departure": "2026-11-28T07:07:00+0100",
+                "departureTimestamp": 1795846020,
+                "delay": null,
+                "platform": "9",
+                "realtimeAvailability": null
+            },
+            "to": {
+                "station": {
+                    "id": "8574680",
+                    "name": "Flims Dorf, Bergbahnen"
+                },
+                "arrival": "2026-11-28T09:01:00+0100",
+                "arrivalTimestamp": 1795852860,
+                "departure": null,
+                "departureTimestamp": null,
+                "delay": null,
+                "platform": "",
+                "realtimeAvailability": null
+            },
+            "duration": "00d01:54:00",
+            "transfers": 1,
+            "sections": [
+                {
+                    "journey": {
+                        "name": "001057",
+                        "category": "IC",
+                        "subcategory": null,
+                        "categoryCode": 1,
+                        "number": "3",
+                        "operator": "SBB",
+                        "to": "Chur",
+                        "trip": {
+                            "id": ".ojp-91-3-C.1.TA.3379.j26",
+                            "date": "2026-11-28"
+                        }
+                    },
+                    "departure": {
+                        "station": {
+                            "id": "8503000",
+                            "name": "Zürich HB"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T07:07:00+0100",
+                        "departureTimestamp": 1795846020,
+                        "delay": null,
+                        "platform": "9",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8509000",
+                            "name": "Chur"
+                        },
+                        "arrival": "2026-11-28T08:22:00+0100",
+                        "arrivalTimestamp": 1795850520,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": "9",
+                        "realtimeAvailability": null
+                    }
+                },
+                {
+                    "journey": null,
+                    "departure": {
+                        "station": {
+                            "id": "8509000",
+                            "name": "Chur"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T08:22:00+0100",
+                        "departureTimestamp": 1795850520,
+                        "delay": null,
+                        "platform": "9",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8575112",
+                            "name": "Chur, Postautostation"
+                        },
+                        "arrival": "2026-11-28T08:25:00+0100",
+                        "arrivalTimestamp": 1795850700,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": "N",
+                        "realtimeAvailability": null
+                    }
+                },
+                {
+                    "journey": {
+                        "name": "881025",
+                        "category": "B",
+                        "subcategory": null,
+                        "categoryCode": 6,
+                        "number": "81",
+                        "operator": "PAG",
+                        "to": "Falera, center",
+                        "trip": {
+                            "id": ".ojp-96-263-5.1.TA.134.j26",
+                            "date": "2026-11-28"
+                        }
+                    },
+                    "departure": {
+                        "station": {
+                            "id": "8575112",
+                            "name": "Chur, Postautostation"
+                        },
+                        "arrival": null,
+                        "arrivalTimestamp": null,
+                        "departure": "2026-11-28T08:28:00+0100",
+                        "departureTimestamp": 1795850880,
+                        "delay": null,
+                        "platform": "N",
+                        "realtimeAvailability": null
+                    },
+                    "arrival": {
+                        "station": {
+                            "id": "8574680",
+                            "name": "Flims Dorf, Bergbahnen"
+                        },
+                        "arrival": "2026-11-28T09:01:00+0100",
+                        "arrivalTimestamp": 1795852860,
+                        "departure": null,
+                        "departureTimestamp": null,
+                        "delay": null,
+                        "platform": null,
+                        "realtimeAvailability": null
+                    }
+                }
+            ]
+        }
+    ],
+    "from": {
+        "id": "8503000",
+        "name": "Zürich HB"
+    },
+    "to": {
+        "id": "8574680",
+        "name": "Flims Dorf, Bergbahnen"
+    }
+}

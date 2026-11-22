@@ -50,6 +50,11 @@ def is_no_go(day: DayForecast, scoring: ScoringSettings | None = None) -> bool:
     return no_go_hours >= s.no_go_min_hours
 
 
+def with_reason(score: DayScore, name: str, points: float) -> DayScore:
+    """Add one more reason (e.g. travel, price) to a score."""
+    return DayScore(score.total + points, reasons={**score.reasons, name: points})
+
+
 def combine_scores(weighted: list[tuple[float, DayScore]]) -> DayScore:
     """Weighted average of several point scores (the total and every reason)."""
     total_weight = sum(weight for weight, _ in weighted)
