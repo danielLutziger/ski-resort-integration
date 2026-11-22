@@ -3,10 +3,13 @@
 from custom_components.ski_resort_recommender.lib.settings import ScoringSettings
 
 SCORING = ScoringSettings(
-    sun_points=60,
+    sun_points=40,
     sun_full_share=0.8,
-    snow_points=40,
+    snow_points=25,
     snow_full_cm=30,
+    snow_depth_points=20,
+    snow_depth_min_cm=20,
+    snow_depth_full_cm=100,
     gust_limit_kmh=40,
     gust_full_kmh=80,
     wind_penalty=30,

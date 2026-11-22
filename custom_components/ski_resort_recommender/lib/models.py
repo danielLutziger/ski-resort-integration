@@ -46,6 +46,7 @@ class DayForecast:
     weather_codes_ski: tuple[int, ...] = ()  # hourly codes in the ski hours
     recent_rain_mm: float | None = None  # rain + showers in the 48 h before opening
     snow_after_rain_cm: float | None = None  # snowfall after the last rain hour
+    snow_depth_cm: float | None = None  # snow on the ground at opening (model)
 
     @property
     def has_data(self) -> bool:
