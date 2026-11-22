@@ -19,6 +19,7 @@ SCORING = ScoringSettings(
     weather_neutral_points=0,
     weather_bad_points=-15,
     weather_no_go_points=-50,
+    no_go_min_hours=2,
     visibility_good_m=5000,
     visibility_bad_m=1000,
     visibility_penalty=30,

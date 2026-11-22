@@ -8,6 +8,7 @@ import pytest
 from custom_components.ski_resort_recommender.lib.models import DayForecast
 from custom_components.ski_resort_recommender.lib.scoring import (
     combine_scores,
+    is_no_go,
     score_day,
 )
 from custom_components.ski_resort_recommender.lib.settings import ScoringSettings
@@ -190,6 +191,41 @@ def test_combine_scores_is_a_weighted_average() -> None:
 
     assert combined.total == (3 * good.total + bad.total) / 4
     assert combined.reasons["sun"] == (3 * good.reasons["sun"] + bad.reasons["sun"]) / 4
+
+
+DRY = (0, 0, 0, 0, 0, 0, 0, 0)  # eight clear ski hours (09:00-16:00)
+RAIN = 63
+
+
+def test_weather_points_are_averaged_over_the_ski_hours() -> None:
+    """One rain hour out of eight costs an eighth of the NO_GO points."""
+    shower = replace(CLEAR_DAY, weather_code=RAIN, weather_codes_ski=(RAIN, *DRY[1:]))
+
+    assert score_day(shower, SCORING).reasons["weather"] == -50 / 8
+    assert is_no_go(shower, SCORING) is False
+
+
+def test_rain_in_no_go_min_hours_makes_a_no_go_day() -> None:
+    """Two rain hours (no_go_min_hours) are enough to rule the day out."""
+    wet = replace(CLEAR_DAY, weather_codes_ski=(RAIN, RAIN, *DRY[2:]))
+
+    assert is_no_go(wet, SCORING) is True
+
+
+def test_daily_worst_code_alone_does_not_decide() -> None:
+    """A rainy night (daily code 63) with dry ski hours is a normal day."""
+    rainy_night = replace(CLEAR_DAY, weather_code=RAIN, weather_codes_ski=DRY)
+
+    assert score_day(rainy_night, SCORING).reasons["weather"] == 0
+    assert is_no_go(rainy_night, SCORING) is False
+
+
+def test_daily_code_is_the_fallback_without_hourly_codes() -> None:
+    """Without hourly codes the daily code decides, as before."""
+    rainy = replace(CLEAR_DAY, weather_code=RAIN, weather_codes_ski=())
+
+    assert score_day(rainy, SCORING).reasons["weather"] == -50
+    assert is_no_go(rainy, SCORING) is True
 
 
 # test ideas:

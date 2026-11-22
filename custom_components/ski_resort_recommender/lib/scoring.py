@@ -37,6 +37,17 @@ def score_day(day: DayForecast, scoring: ScoringSettings | None = None) -> DaySc
     return DayScore(total, reasons=reasons)
 
 
+def is_no_go(day: DayForecast, scoring: ScoringSettings | None = None) -> bool:
+    """Rain, freezing rain or thunder in at least no_go_min_hours ski hours."""
+    s = scoring or ScoringSettings()
+    if not day.weather_codes_ski:
+        return classify(day.weather_code) is WeatherClass.NO_GO
+    no_go_hours = sum(
+        classify(code) is WeatherClass.NO_GO for code in day.weather_codes_ski
+    )
+    return no_go_hours >= s.no_go_min_hours
+
+
 def combine_scores(weighted: list[tuple[float, DayScore]]) -> DayScore:
     """Weighted average of several point scores (the total and every reason)."""
     total_weight = sum(weight for weight, _ in weighted)
@@ -73,13 +84,15 @@ def _temp_points(day: DayForecast, s: ScoringSettings) -> float:
 
 
 def _weather_points(day: DayForecast, s: ScoringSettings) -> float:
-    """Points for the weather class of the day's weather code."""
-    return {
+    """Class points averaged over the ski hours (daily code if no hourly codes)."""
+    points = {
         WeatherClass.VERY_GOOD: s.weather_very_good_points,
         WeatherClass.NEUTRAL: s.weather_neutral_points,
         WeatherClass.BAD: s.weather_bad_points,
         WeatherClass.NO_GO: s.weather_no_go_points,
-    }[classify(day.weather_code)]
+    }
+    codes = day.weather_codes_ski or (day.weather_code,)
+    return sum(points[classify(code)] for code in codes) / len(codes)
 
 
 def _visibility_points(day: DayForecast, s: ScoringSettings) -> float:

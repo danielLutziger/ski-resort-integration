@@ -14,13 +14,10 @@ from custom_components.ski_resort_recommender.lib.models import (
 from custom_components.ski_resort_recommender.lib.scoring import (
     DayScore,
     combine_scores,
+    is_no_go,
     score_day,
 )
 from custom_components.ski_resort_recommender.lib.settings import Settings
-from custom_components.ski_resort_recommender.lib.weather_codes import (
-    WeatherClass,
-    classify,
-)
 
 
 @dataclass(frozen=True, slots=True)
@@ -112,9 +109,8 @@ def _recommend(
     score = combine_scores([(point.weight, s) for point, _, s in scored])
     best_point, best_day, _ = max(scored, key=lambda item: item[2].total)
     # NO_GO only counts at the best point: a shower at one side area is fine
-    is_good = (
-        score.total >= settings.min_good_score
-        and classify(best_day.weather_code) is not WeatherClass.NO_GO
+    is_good = score.total >= settings.min_good_score and not is_no_go(
+        best_day, settings.scoring
     )
     return Recommendation(
         resort=resort, day=best_day, score=score, is_good=is_good, point=best_point

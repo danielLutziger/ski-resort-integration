@@ -43,6 +43,7 @@ class DayForecast:
     temp_ski_c: float | None  # mean over the ski hours
     gust_max_kmh: float | None  # max gust over the ski hours
     fresh_snow_cm: float | None  # snowfall in the 48 h before opening
+    weather_codes_ski: tuple[int, ...] = ()  # hourly codes in the ski hours
 
     @property
     def has_data(self) -> bool:
