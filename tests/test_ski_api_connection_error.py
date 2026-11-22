@@ -138,3 +138,49 @@ def test_sbb_unexpected_errors_are_not_swallowed() -> None:
 def test_all_provider_errors_share_one_base_class() -> None:
     """The coordinator only needs to catch SkiApiError."""
     assert issubclass(SkiApiConnectionError, SkiApiError)
+
+
+def error_message(provider_call: object) -> str:
+    """Run the call and return the SkiApiConnectionError message."""
+    with pytest.raises(SkiApiConnectionError) as error:
+        asyncio.run(provider_call)  # type: ignore[arg-type]
+    return str(error.value)
+
+
+def test_rate_limit_message_is_short_and_clear() -> None:
+    """429 says "rate limit" and does not dump the 100-coordinate URL."""
+    provider = OpenMeteoProvider(always(FakeResponse(status=429)))
+
+    message = error_message(provider.get_forecast([make_resort("a")]))
+
+    assert message == "Open-Meteo rate limit (HTTP 429 Too Many Requests)"
+
+
+@pytest.mark.parametrize(
+    ("response", "message"),
+    [
+        (FakeResponse(status=503), "Open-Meteo HTTP 503 Service Unavailable"),
+        (FakeResponse(error=TimeoutError()), "Open-Meteo timeout"),
+        (
+            FakeResponse(error=aiohttp.ClientConnectionError("no route")),
+            "Open-Meteo unreachable (ClientConnectionError)",
+        ),
+    ],
+    ids=["http", "timeout", "unreachable"],
+)
+def test_open_meteo_error_messages(response: FakeResponse, message: str) -> None:
+    """Each kind of problem has a readable message for the sensor and the log."""
+    provider = OpenMeteoProvider(always(response))
+
+    assert error_message(provider.get_forecast([make_resort("a")])) == message
+
+
+def test_sbb_error_message_names_the_source() -> None:
+    """SBB problems say SBB (they only cost the train connection)."""
+    provider = SbbProvider(always(FakeResponse(status=503)))
+
+    message = error_message(
+        provider.connection("Flims Dorf, Bergbahnen", SATURDAY, SETTINGS)
+    )
+
+    assert message == "SBB HTTP 503 Service Unavailable"

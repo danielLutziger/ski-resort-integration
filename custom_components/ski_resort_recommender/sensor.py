@@ -10,7 +10,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import ATTRIBUTION, DOMAIN, NAME
 from .coordinator import SkiResortConfigEntry, SkiResortCoordinator
-from .lib.view import entry, headline, render_table
+from .lib.view import entry, sensor_state, sensor_table
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -44,20 +44,29 @@ class RecommendationSensor(CoordinatorEntity[SkiResortCoordinator], SensorEntity
         self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, entry_id)}, name=NAME)
 
     @property
-    def native_value(self) -> str | None:
-        """Return the headline: Good day / No good day / No forecast yet."""
-        if self.coordinator.data is None:
-            return None
-        return headline(self.coordinator.data)
+    def available(self) -> bool:
+        """Stay available so the reason of a failed update stays visible."""
+        return True
 
     @property
-    def extra_state_attributes(self) -> dict[str, Any] | None:
-        """Recommendations (top results + outlook) and the Markdown table."""
+    def native_value(self) -> str:
+        """Return the headline, or "No data yet" before the first good update."""
+        return sensor_state(self.coordinator.data)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Recommendations, outlook, the Markdown table and the last error."""
         result = self.coordinator.data
-        if result is None:
-            return None
+        error = None
+        if not self.coordinator.last_update_success:
+            error = str(self.coordinator.last_exception)
         return {
-            "recommendations": [entry(r) for r in result.recommendations],
-            "outlook": entry(result.outlook, outlook=True) if result.outlook else None,
-            "table": render_table(result),
+            "recommendations": [entry(r) for r in result.recommendations]
+            if result
+            else [],
+            "outlook": entry(result.outlook, outlook=True)
+            if result and result.outlook
+            else None,
+            "table": sensor_table(result, error),
+            "last_error": error,
         }

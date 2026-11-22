@@ -245,6 +245,10 @@ and imports so that the integration still loads and tests/ruff stay green.
    date | resort | icon | price / train | Snow'n'Rail), all three excluded from the recorder.
    Weather icon = most frequent weather over all points and ski hours (weighted, ties -> worse); for
    dry weather the sunshine share decides (sunny from 60 %, partly cloudy from 25 %).
+   Failed updates are visible: setup uses `async_refresh()` (no `first_refresh`), so the sensor exists
+   even if the first update fails; it stays available: state "No data yet" + table/`last_error` with the
+   reason, or the last result + "Last update failed". Messages via `errors.describe()` (source + rate
+   limit / HTTP status / timeout / unreachable, no request URL) + "next try in 60 min".
    Coordinator done: runs hourly (`UPDATE_INTERVAL`), `build_recommendations` from `lib/pipeline.py`,
    SBB travel times cached once a day, exact connections only for the shown results, `SkiApiError` ->
    `UpdateFailed`, local date as today; settings from the options form (`settings_from_options`).
