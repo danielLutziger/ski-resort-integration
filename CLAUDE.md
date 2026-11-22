@@ -75,7 +75,7 @@ Design decisions:
 Done and tested (pytest green at last check):
 
 - Open-Meteo provider (daily values, model `meteoswiss_icon_seamless`, batched), parse test with a saved fixture.
-- Resort YAML loader; ~15 resorts in `resorts.yaml`; `scripts/try_forecast.py` prints the ranking.
+- Resort YAML loader; 23 resorts (101 points) in `resorts.yaml`; `scripts/try_forecast.py` prints the ranking.
 - `weather_codes.py` + coverage test; `scoring.py` + tests (rating review 22.11, see below); `service.py` + tests (weekday filter, future-only,
   max results, same resort twice, no-go never good, missing resort, status).
 - Rating (22.11), weather part max 85; travel time 10 and price 5 follow (max 100):
@@ -92,6 +92,9 @@ Done and tested (pytest green at last check):
     arrival window (`arrival_earliest`..`arrival_latest`, 08:45–09:30, closest to `arrival_target`
     09:00) or no home station = 0. Travel times come from one reference day (the next allowed day);
     the shown connection of a recommendation is fetched for its exact day (`attach_connections`).
+  - price 0..5 (relative): day ticket price, cheapest resort 5, most expensive 0; from
+    `Resort.day_price_chf` or a `prices` dict (hook for live prices, issue #17). Unknown price = 0.
+    Travel and price count towards `is_good` (final total >= `min_good_score`).
   - visibility 0..-30 as before. A clear day on a 1 m base without penalties = 60 = `min_good_score`;
     on a thin base 40. Bluebird powder day on a good base = 85.
   - icy 0..-40: rain + showers (liquid, mm) in the 48 h before opening refreeze into an icy slope;
@@ -227,14 +230,14 @@ and imports so that the integration still loads and tests/ruff stay green.
 
 ## Next steps (suggested order)
 
-1. Ticket prices: static day price per resort in `resorts.yaml`, relative price points (0..5, cheapest 5);
-   behind a small price-provider interface so a live source can be added per resort later — only via a
-   public API or with the resort's permission (the pricenow booking API needs a per-shop key).
+1. Live ticket prices (issue #17). Static prices and the relative price score are done.
 2. Coordinator (hourly poll, `UpdateFailed`), sensor (state = headline, attributes = recommendations incl.
    connection), config flow (weekdays, number of results, min score, scoring weights, home station,
    arrival window), then a Markdown dashboard card. Cache the SBB travel times (once a day).
+   Open-Meteo budget: 23 resorts = 101 points, 2 requests with > 10 variables each; hourly polling would
+   be ~7000+ weighted calls/day (free limit 10 000) -> poll every 2-3 h or reduce variables.
 3. Tune wind and temperature in season (Jan/Feb); re-check `DWD_SUN_FACTOR` in winter.
-   (Done: A, B, C, findings 1–4, 6, 7, snow depth, SBB connection.)
+   (Done: A, B, C, findings 1–4, 6, 7, snow depth, SBB connection, static prices, 23 resorts.)
 
 ## Data sources / facts
 
@@ -255,6 +258,16 @@ and imports so that the integration still loads and tests/ruff stay green.
   DWD `icon_seamless` daily data reaches about today + 7.
 - Station coordinates: OpenStreetMap Overpass (`aerialway=station`), terrain height from the Open-Meteo
   elevation API, Swiss names cross-checked with the swisstopo search API.
+- Day prices (`day_price_chf`, adult, high season 2026/27, CHF, researched 22.11.2026). Sources:
+  schneehoehen.de price pages (Hauptsaison 2026/27), official sites, nume.ch, freizeit.ch; bergfex blocks
+  automated reads. Dynamic resorts use the high-season desk/standard price:
+  Laax 92 (dynamic, ~85 online), Flumserberg 76 (weekend), Zermatt 104 (dynamic), Andermatt and
+  Andermatt+Sedrun+Disentis 99 (one pass), Engelberg 78 (dynamic, standard), Pizol 74, Davos Parsenn and
+  Jakobshorn 87, Melchsee-Frutt 69, St. Moritz Corviglia 95 (dynamic), Corvatsch 88, Scuol 69, Samnaun and
+  Ischgl 82 (Silvretta Arena, CHF price of Samnaun), St. Anton 78 (EUR 85 x 0.9223, ECB 20.11.2026),
+  Arosa Lenzerheide 89, Saas-Fee 84, Adelboden-Lenk 80 (no official individual list; group rate 68),
+  Grindelwald-Wengen 83, Verbier 4 Vallées 94 (official), Crans-Montana 94 (desk), Hoch-Ybrig 62.
+  Live prices: issue #17 (pricenow etc. are private booking APIs: only with permission).
 - SBB: `https://transport.opendata.ch/v1/connections` (free, no key, no rate-limit headers; keep calls
   few, `MAX_PARALLEL` 4). `journey.name` is the train number for trains, an internal trip id for buses.
   Not in the Swiss timetable: Ischgl (station left empty). St. Anton returned no plausible morning

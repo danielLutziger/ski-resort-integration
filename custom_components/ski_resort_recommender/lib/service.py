@@ -64,19 +64,22 @@ class RecommendationResult:
         return RecommendationStatus.NO_GOOD_DAY
 
 
-def pick_recommendations(
+def pick_recommendations(  # noqa: PLR0913 (optional keyword-only inputs)
     resorts: list[Resort],
     forecasts: Forecasts,
     settings: Settings | None = None,
     *,
     today: date | None = None,
     travel: dict[str, Connection] | None = None,
+    prices: dict[str, float] | None = None,
 ) -> RecommendationResult:
     """
     Score all allowed future days; rank days 1..ranking_days, outlook after.
 
     travel: one morning connection per resort key (reference day); its duration
     gives the relative travel points. Without it travel scores 0 everywhere.
+    prices: day ticket price per resort key (e.g. live prices); default is
+    Resort.day_price_chf from resorts.yaml. Cheaper = more price points.
     """
     ranked: list[Recommendation] = []
     outlook: list[Recommendation] = []
@@ -85,7 +88,13 @@ def pick_recommendations(
     ranking_end = today + timedelta(days=settings.ranking_days)
     outlook_end = today + timedelta(days=settings.outlook_days)
     travel = travel or {}
-    travel_points = _travel_points(travel, settings.scoring.travel_points)
+    travel_points = _relative_points(
+        {key: c.duration_min for key, c in travel.items()},
+        settings.scoring.travel_points,
+    )
+    if prices is None:
+        prices = {r.key: r.day_price_chf for r in resorts if r.day_price_chf}
+    price_points = _relative_points(prices, settings.scoring.price_points)
 
     for resort in resorts:
         point_days: dict[date, list[tuple[WeatherPoint, DayForecast]]] = defaultdict(
@@ -102,18 +111,12 @@ def pick_recommendations(
                 point_days[day.day].append((point, day))
         for day, points in point_days.items():
             target = ranked if day <= ranking_end else outlook
-            recommendation = _recommend(resort, points, settings)
-            target.append(
-                replace(
-                    recommendation,
-                    score=with_reason(
-                        recommendation.score,
-                        "travel",
-                        travel_points.get(resort.key, 0.0),
-                    ),
-                    connection=travel.get(resort.key),
-                )
-            )
+            extras = {
+                "travel": travel_points.get(resort.key, 0.0),
+                "price": price_points.get(resort.key, 0.0),
+            }
+            recommendation = _recommend(resort, points, settings, extras)
+            target.append(replace(recommendation, connection=travel.get(resort.key)))
     ranked.sort(key=lambda r: r.score.total, reverse=True)
     return RecommendationResult(
         tuple(ranked[: settings.max_results]),
@@ -125,10 +128,13 @@ def _recommend(
     resort: Resort,
     points: list[tuple[WeatherPoint, DayForecast]],
     settings: Settings,
+    extras: dict[str, float],
 ) -> Recommendation:
-    """Combine the point scores of one resort-day into one recommendation."""
+    """Combine the point scores of one resort-day, add travel/price, judge it."""
     scored = [(point, day, score_day(day, settings.scoring)) for point, day in points]
     score = combine_scores([(point.weight, s) for point, _, s in scored])
+    for name, extra in extras.items():
+        score = with_reason(score, name, extra)
     best_point, best_day, _ = max(scored, key=lambda item: item[2].total)
     # NO_GO only counts at the best point: a shower at one side area is fine
     is_good = score.total >= settings.min_good_score and not is_no_go(
@@ -139,17 +145,16 @@ def _recommend(
     )
 
 
-def _travel_points(travel: dict[str, Connection], points: float) -> dict[str, float]:
-    """Relative: the shortest trip gets all points, the longest 0, linear between."""
-    if not travel:
+def _relative_points(values: dict[str, float], points: float) -> dict[str, float]:
+    """Lower is better: the lowest value gets all points, the highest 0, linear."""
+    if not values:
         return {}
-    durations = {key: c.duration_min for key, c in travel.items()}
-    shortest, longest = min(durations.values()), max(durations.values())
-    if shortest == longest:
-        return dict.fromkeys(durations, points)
+    lowest, highest = min(values.values()), max(values.values())
+    if lowest == highest:
+        return dict.fromkeys(values, points)
     return {
-        key: (longest - minutes) / (longest - shortest) * points
-        for key, minutes in durations.items()
+        key: (highest - value) / (highest - lowest) * points
+        for key, value in values.items()
     }
 
 
