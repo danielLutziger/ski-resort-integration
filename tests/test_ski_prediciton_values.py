@@ -16,7 +16,7 @@ def test_sunny_cold_day_beats_rainy_day() -> None:
         sunshine_hours=8,
         wind_max_kmh=10,
         weather_code=0,
-        vision=None,
+        visibility_m=None,
     )
 
     rainy = DayForecast(
@@ -27,7 +27,7 @@ def test_sunny_cold_day_beats_rainy_day() -> None:
         sunshine_hours=8,
         wind_max_kmh=10,
         weather_code=63,
-        vision=None,
+        visibility_m=None,
     )
 
     assert score_day(sunny).total > score_day(rainy).total
@@ -43,7 +43,7 @@ def test_good_vision_cloudy_beats_bad_vision_cloudy() -> None:
         sunshine_hours=8,
         wind_max_kmh=10,
         weather_code=0,
-        vision=None,
+        visibility_m=None,
     )
 
     rainy = DayForecast(
@@ -54,7 +54,7 @@ def test_good_vision_cloudy_beats_bad_vision_cloudy() -> None:
         sunshine_hours=8,
         wind_max_kmh=10,
         weather_code=63,
-        vision=None,
+        visibility_m=None,
     )
 
     assert score_day(sunny).total > score_day(rainy).total

@@ -29,7 +29,7 @@ class DayForecast:
     sunshine_hours: float | None
     wind_max_kmh: float | None
     weather_code: int | None
-    vision: int | None
+    visibility_m: float | None
 
     @property
     def has_data(self) -> bool:

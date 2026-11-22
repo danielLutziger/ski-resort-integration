@@ -40,7 +40,7 @@ def make_day(
     wind: float = 10,
     tmax: float = -2,
     code: int = 0,
-    visibility: int = 0,
+    visibility: float | None = None,
 ) -> DayForecast:
     """Create a forecast for day."""
     return DayForecast(
@@ -51,7 +51,7 @@ def make_day(
         sunshine_hours=sun,
         wind_max_kmh=wind,
         weather_code=code,
-        vision=visibility,
+        visibility_m=visibility,
     )
 
 
@@ -192,7 +192,7 @@ def make_empty_day(day: date) -> DayForecast:
         sunshine_hours=None,
         wind_max_kmh=None,
         weather_code=None,
-        vision=None,  # your DayForecast has this field
+        visibility_m=None,
     )
 
 

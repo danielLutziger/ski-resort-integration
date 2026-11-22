@@ -77,7 +77,7 @@ def _parse_daily(d: dict) -> list[DayForecast]:
             sunshine_hours=(d["sunshine_duration"][i] or 0) / 3600,  # api gives seconds
             wind_max_kmh=d["wind_speed_10m_max"][i],
             weather_code=d["weather_code"][i],
-            vision=None,
+            visibility_m=None,
         )
         for i in range(len(d["time"]))
     ]
