@@ -1,3 +1,5 @@
+"""User settings for the recommendation."""
+
 from dataclasses import dataclass
 
 SATURDAY = 5

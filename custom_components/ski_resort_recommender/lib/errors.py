@@ -1,3 +1,6 @@
+"""Exceptions raised by the weather providers."""
+
+
 class SkiApiError(Exception):
     """Base class for all exceptions in our API."""
 

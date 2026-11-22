@@ -13,7 +13,25 @@ ignore = [
     "D212", # multi-line-summary-first-line (incompatible with formatter)
     "COM812", # incompatible with formatter
     "ISC001", # incompatible with formatter
+    "TD002", # solo project: no author in TODOs
+    "TD003", # solo project: no issue links in TODOs
+    "FIX002", # TODOs are allowed while the integration is work in progress
 ]
+
+[lint.per-file-ignores]
+"tests/**" = [
+    "S101", # pytest uses plain assert
+    "PLR2004", # literal numbers in asserts are fine
+    "PLR0913", # test helpers take many keyword arguments
+]
+"scripts/**" = [
+    "INP001", # scripts/ is not a package (mostly shell scripts)
+    "T201", # the scripts print their output
+]
+
+[lint.flake8-type-checking]
+# dataclass field types are needed at runtime, keep those imports normal
+runtime-evaluated-decorators = ["dataclasses.dataclass"]
 
 [lint.flake8-pytest-style]
 fixture-parentheses = false

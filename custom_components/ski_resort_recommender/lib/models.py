@@ -1,4 +1,5 @@
-# Resort, DayForecast, Recommendation (dataclasses)
+"""Data objects: Resort and DayForecast."""
+
 from dataclasses import dataclass
 from datetime import date
 
@@ -32,7 +33,7 @@ class DayForecast:
 
     @property
     def has_data(self) -> bool:
-        """Return True if the forecast has usable values (False beyond the model horizon)."""
+        """Return True if there are usable values (False beyond the model horizon)."""
         return any(
             value is not None
             for value in (self.weather_code, self.sunshine_hours, self.temp_max_c)

@@ -1,9 +1,11 @@
+"""Tests for pick_recommendations()."""
+
 from datetime import date
 
 from custom_components.ski_resort_recommender.lib.models import DayForecast, Resort
 from custom_components.ski_resort_recommender.lib.service import (
-    pick_recommendations,
     RecommendationStatus,
+    pick_recommendations,
 )
 from custom_components.ski_resort_recommender.lib.settings import Settings
 
@@ -54,10 +56,12 @@ def make_day(
 
 
 def make_rainy_day(day: date) -> DayForecast:
+    """Create a rainy, windy, warm day."""
     return make_day(day, sun=0, snow=0, wind=50, tmax=6, code=63)
 
 
 def test_only_allowed_weekedays_are_returned() -> None:
+    """A Wednesday is dropped when only weekends are allowed."""
     resort = make_resort("flims_laax")
     forecasts = {"flims_laax": [make_day(WEDNESDAY), make_day(SATURDAY)]}
 
@@ -69,6 +73,7 @@ def test_only_allowed_weekedays_are_returned() -> None:
 
 
 def test_same_resort_can_appear_twice() -> None:
+    """One resort can be recommended for two different days."""
     resort = make_resort("laax")
     forecasts = {"laax": [make_day(SATURDAY), make_day(SUNDAY)]}
 
@@ -78,6 +83,7 @@ def test_same_resort_can_appear_twice() -> None:
 
 
 def test_results_are_sorted_best_first_and_limited() -> None:
+    """Results are sorted by score and cut to max_results."""
     resorts = [make_resort("a"), make_resort("b"), make_resort("c")]
     forecasts = {
         "a": [make_day(SATURDAY, sun=2), make_day(SUNDAY, sun=4)],
@@ -94,6 +100,7 @@ def test_results_are_sorted_best_first_and_limited() -> None:
 
 
 def test_rainy_weekend_still_returns_entries_but_no_good_day() -> None:
+    """Bad days are still listed, but none is good."""
     resort = make_resort("laax")
     forecasts = {"laax": [make_rainy_day(SATURDAY), make_rainy_day(SUNDAY)]}
 
@@ -104,6 +111,7 @@ def test_rainy_weekend_still_returns_entries_but_no_good_day() -> None:
 
 
 def test_good_day_is_flagged() -> None:
+    """A sunny cold day with fresh snow is good."""
     resort = make_resort("laax")
     forecasts = {"laax": [make_day(SATURDAY)]}
 
@@ -113,6 +121,7 @@ def test_good_day_is_flagged() -> None:
 
 
 def test_no_go_weather_is_never_good_even_with_high_score() -> None:
+    """A NO_GO weather code is never good."""
     resort = make_resort("laax")
     # perfect values for sun/snow/wind/temp, but thunderstorm code
     forecasts = {"laax": [make_day(SATURDAY, code=95)]}
@@ -128,6 +137,7 @@ def test_no_go_weather_is_never_good_even_with_high_score() -> None:
 
 
 def test_resort_without_forecast_is_skipped() -> None:
+    """A resort missing from the forecasts does not crash."""
     resorts = [make_resort("laax"), make_resort("zermatt")]
     forecasts = {"laax": [make_day(SATURDAY)]}
 
@@ -137,6 +147,7 @@ def test_resort_without_forecast_is_skipped() -> None:
 
 
 def test_custom_weekdays_setting() -> None:
+    """Only the configured weekdays are returned."""
     resort = make_resort("laax")
     forecasts = {"laax": [make_day(WEDNESDAY), make_day(SATURDAY)]}
     settings = Settings(
@@ -149,6 +160,7 @@ def test_custom_weekdays_setting() -> None:
 
 
 def test_today_and_past_days_are_not_recommended() -> None:
+    """Today itself is not recommended."""
     resort = make_resort("laax")
     forecasts = {"laax": [make_day(SATURDAY), make_day(SUNDAY)]}
 
@@ -159,6 +171,7 @@ def test_today_and_past_days_are_not_recommended() -> None:
 
 
 def test_past_days_are_not_recommended() -> None:
+    """Days before today are not recommended."""
     resort = make_resort("laax")
     forecasts = {"laax": [make_day(SATURDAY)]}
 
@@ -184,6 +197,7 @@ def make_empty_day(day: date) -> DayForecast:
 
 
 def test_days_without_forecast_data_are_skipped() -> None:
+    """Days beyond the model horizon give 'no forecast'."""
     forecasts = {"laax": [make_empty_day(SATURDAY), make_empty_day(SUNDAY)]}
 
     result = pick_recommendations(
@@ -195,6 +209,7 @@ def test_days_without_forecast_data_are_skipped() -> None:
 
 
 def test_empty_days_do_not_displace_real_days() -> None:
+    """Empty days are skipped, real days stay."""
     forecasts = {"laax": [make_empty_day(SATURDAY), make_rainy_day(SUNDAY)]}
 
     result = pick_recommendations(
@@ -205,6 +220,7 @@ def test_empty_days_do_not_displace_real_days() -> None:
 
 
 def test_status_good_day() -> None:
+    """Status is GOOD_DAY when at least one day is good."""
     result = pick_recommendations(
         [make_resort("laax")], {"laax": [make_day(SATURDAY)]}, SETTINGS, today=TODAY
     )
@@ -213,6 +229,7 @@ def test_status_good_day() -> None:
 
 
 def test_status_no_good_day_when_scored_but_poor() -> None:
+    """Status is NO_GOOD_DAY when days are scored but poor."""
     result = pick_recommendations(
         [make_resort("laax")],
         {"laax": [make_rainy_day(SATURDAY)]},

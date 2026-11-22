@@ -1,3 +1,5 @@
+"""Tests for parsing the Open-Meteo response."""
+
 import json
 from pathlib import Path
 
@@ -6,7 +8,8 @@ from custom_components.ski_resort_recommender.lib.open_meteo import _parse_daily
 FIXTURE = Path(__file__).parent / "fixtures" / "open_meteo_response.json"
 
 
-def test_parse_daily_returns_one_forecast_per_day():
+def test_parse_daily_returns_one_forecast_per_day() -> None:
+    """The saved fixture gives one DayForecast per day."""
     payload = json.loads(FIXTURE.read_text())
     daily = payload[0]["daily"]
 

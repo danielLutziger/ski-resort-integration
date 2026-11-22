@@ -1,10 +1,13 @@
+"""Tests for score_day()."""
+
 from datetime import date
 
 from custom_components.ski_resort_recommender.lib.models import DayForecast
 from custom_components.ski_resort_recommender.lib.scoring import score_day
 
 
-def test_sunny_cold_day_beats_rainy_day():
+def test_sunny_cold_day_beats_rainy_day() -> None:
+    """A clear day scores higher than a rainy one."""
     sunny = DayForecast(
         day=date(2026, 12, 5),
         temp_min_c=-8,
@@ -30,7 +33,8 @@ def test_sunny_cold_day_beats_rainy_day():
     assert score_day(sunny).total > score_day(rainy).total
 
 
-def test_good_vision_cloudy_beats_bad_vision_cloudy():
+def test_good_vision_cloudy_beats_bad_vision_cloudy() -> None:
+    """Placeholder for visibility: for now compares weather codes."""
     sunny = DayForecast(
         day=date(2026, 12, 5),
         temp_min_c=-8,

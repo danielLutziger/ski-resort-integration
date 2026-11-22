@@ -1,3 +1,5 @@
+"""Pick the best resort/day combinations."""
+
 from dataclasses import dataclass
 from datetime import date
 from enum import StrEnum
@@ -42,7 +44,7 @@ class RecommendationResult:
 
     @property
     def status(self) -> RecommendationStatus:
-        """Return the headline: good day, scored but no good day, or no forecast at all."""
+        """Return the headline: good day, no good day, or no forecast at all."""
         if not self.recommendations:
             return RecommendationStatus.NO_FORECAST
         if self.has_good_day:
@@ -57,6 +59,7 @@ def pick_recommendations(
     *,
     today: date | None = None,
 ) -> RecommendationResult:
+    """Score all allowed future days and return the best ones first."""
     candidates: list[Recommendation] = []
     settings = settings or Settings()
     today = today or date.today()  # noqa: DTZ011

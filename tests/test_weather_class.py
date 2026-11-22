@@ -1,3 +1,5 @@
+"""Tests for the weather code classification."""
+
 from custom_components.ski_resort_recommender.lib.weather_codes import (
     _CLASSES,
     WeatherClass,
@@ -37,11 +39,13 @@ ALL_CODES = {
 }
 
 
-def test_every_documented_code_is_classified_exactly_once():
+def test_every_documented_code_is_classified_exactly_once() -> None:
+    """Every documented WMO code is in exactly one class."""
     assigned = [c for codes in _CLASSES.values() for c in codes]
     assert len(assigned) == len(set(assigned))
     assert set(assigned) == ALL_CODES
 
 
-def test_unknown_is_neutral():
+def test_unknown_is_neutral() -> None:
+    """A missing code is neutral."""
     assert classify(None) == WeatherClass.NEUTRAL

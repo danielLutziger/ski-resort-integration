@@ -1,4 +1,5 @@
-import asyncio
+"""Weather forecasts from the Open-Meteo API."""
+
 from datetime import date
 
 import aiohttp
@@ -21,8 +22,11 @@ DAILY = [
 ]
 
 
-class OpenMeteoProvider:  # noqa: D101
-    def __init__(self, session: aiohttp.ClientSession) -> None:  # noqa: D107
+class OpenMeteoProvider:
+    """Fetch daily forecasts for all resorts in one batched request."""
+
+    def __init__(self, session: aiohttp.ClientSession) -> None:
+        """Use the injected aiohttp session (HA: async_get_clientsession)."""
         self._session = session
 
     async def get_forecast(
@@ -44,13 +48,14 @@ class OpenMeteoProvider:  # noqa: D101
             ) as response:
                 response.raise_for_status()
                 payload = await response.json()
-        except (aiohttp.ClientError, asyncio.TimeoutError) as error:
+        except (aiohttp.ClientError, TimeoutError) as error:
             raise SkiApiConnectionError(str(error)) from error
 
         # we would expect mutliple resorts to be returned, if from it
         locations = payload if isinstance(payload, list) else [payload]
         if len(locations) != len(resorts):
-            raise SkiApiParseError("Location count differs Resort count")
+            msg = "Location count differs Resort count"
+            raise SkiApiParseError(msg)
 
         try:
             return {
@@ -61,8 +66,8 @@ class OpenMeteoProvider:  # noqa: D101
             raise SkiApiParseError(str(error)) from error
 
 
-@staticmethod
 def _parse_daily(d: dict) -> list[DayForecast]:
+    """Turn the `daily` block of one location into DayForecasts."""
     return [
         DayForecast(
             day=date.fromisoformat(d["time"][i]),

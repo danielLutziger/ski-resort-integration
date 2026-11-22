@@ -1,11 +1,15 @@
+"""Score one forecast day at one resort."""
+
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from custom_components.ski_resort_recommender.lib.weather_codes import (
     WeatherClass,
     classify,
 )
 
-from .models import DayForecast
+if TYPE_CHECKING:
+    from .models import DayForecast
 
 _WEATHER_POINTS = {
     WeatherClass.VERY_GOOD: 0.0,
@@ -14,24 +18,28 @@ _WEATHER_POINTS = {
     WeatherClass.NO_GO: -50.0,
 }
 
+# temperature band (max temperature of the day, °C)
+_TEMP_GOOD_MIN = -8
+_TEMP_GOOD_MAX = 2
+_TEMP_SLUSH = 5
+
 
 @dataclass(frozen=True, slots=True)
 class DayScore:
+    """Total score of a day plus the points per reason."""
+
     total: float  # total score 0...100
     reasons: dict[str, float]  # HA card can explain result
 
 
 def score_day(day: DayForecast) -> DayScore:
-    """Score one day at one resort from 0 (skipto 100 (perfect)."""
-    sun = (
-        min((day.sunshine_hours or 0) / 8, 1.0) * 30
-    )  # we give it 30 points (cloudy skiing is ok)
-    snow = (
-        min((day.snowfall_cm or 0) / 25, 1.0) * 20
-    )  # fresh snow up to 20 points (25cm snow is ok)
-    wind = (
-        -max(((day.wind_max_kmh or 0) - 30) / 30, 0.0) * 25
-    )  # wind gets 30 points (30kmh wind is ok - this is for the village, on the mountains itself up to 60 would be ok)
+    """Score one day at one resort from 0 (skip) to 100 (perfect)."""
+    # sun up to 30 points (cloudy skiing is ok)
+    sun = min((day.sunshine_hours or 0) / 8, 1.0) * 30
+    # fresh snow up to 20 points (25 cm snow is ok)
+    snow = min((day.snowfall_cm or 0) / 25, 1.0) * 20
+    # wind penalty above 30 km/h (village value; on the mountain up to 60 would be ok)
+    wind = -max(((day.wind_max_kmh or 0) - 30) / 30, 0.0) * 25
     temp = _temp_points(day)
 
     # TODO: one resort multiple weather points, so weather needs a different scoring
@@ -44,8 +52,8 @@ def score_day(day: DayForecast) -> DayScore:
 def _temp_points(day: DayForecast) -> float:
     if day.temp_max_c is None:
         return 0.0
-    elif -8 <= day.temp_max_c <= 2:
+    if _TEMP_GOOD_MIN <= day.temp_max_c <= _TEMP_GOOD_MAX:
         return 20
-    elif day.temp_max_c > 5:  # slush... we dislike slush
+    if day.temp_max_c > _TEMP_SLUSH:  # slush... we dislike slush
         return -10
     return 10
