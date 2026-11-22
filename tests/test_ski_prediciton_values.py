@@ -4,7 +4,10 @@ from dataclasses import replace
 from datetime import date
 
 from custom_components.ski_resort_recommender.lib.models import DayForecast
-from custom_components.ski_resort_recommender.lib.scoring import score_day
+from custom_components.ski_resort_recommender.lib.scoring import (
+    combine_scores,
+    score_day,
+)
 
 CLEAR_DAY = DayForecast(
     day=date(2026, 12, 5),
@@ -69,6 +72,16 @@ def test_good_view_snow_beats_medium_view_snow() -> None:
     medium_view = replace(snow, visibility_m=2_500)
 
     assert score_day(good_view).total > score_day(medium_view).total
+
+
+def test_combine_scores_is_a_weighted_average() -> None:
+    """Total and every reason are averaged with the point weights."""
+    good, bad = score_day(CLEAR_DAY), score_day(replace(CLEAR_DAY, sunshine_hours=0))
+
+    combined = combine_scores([(3, good), (1, bad)])
+
+    assert combined.total == (3 * good.total + bad.total) / 4
+    assert combined.reasons["sun"] == (3 * good.reasons["sun"] + bad.reasons["sun"]) / 4
 
 
 # test ideas:

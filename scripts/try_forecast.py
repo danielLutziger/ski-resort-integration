@@ -26,7 +26,8 @@ async def main() -> None:
 
     for r in result.recommendations:
         print(
-            f"{r.day.day:%a %d.%m}  {r.resort.name:<14} {r.score.total:5.1f}  "
+            f"{r.day.day:%a %d.%m}  {r.resort.name:<26} {r.point.name:<18} "
+            f"{r.score.total:5.1f}  "
             f"{'GOOD' if r.is_good else '----'}  {r.score.reasons}"
         )
 

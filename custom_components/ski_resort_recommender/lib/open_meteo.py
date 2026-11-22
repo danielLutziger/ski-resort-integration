@@ -11,7 +11,11 @@ from custom_components.ski_resort_recommender.lib.errors import (
     SkiApiConnectionError,
     SkiApiParseError,
 )
-from custom_components.ski_resort_recommender.lib.models import DayForecast, Resort
+from custom_components.ski_resort_recommender.lib.models import (
+    DayForecast,
+    Forecasts,
+    Resort,
+)
 
 URL = "https://api.open-meteo.com/v1/forecast"
 TIMEZONE = "Europe/Zurich"
@@ -31,23 +35,20 @@ SKI_HOURS = range(9, 17)  # hourly values from 09:00 to 16:00 local time
 
 
 class OpenMeteoProvider:
-    """Fetch daily forecasts for all resorts in one batched request."""
+    """Fetch forecasts for every weather point of every resort, batched."""
 
     def __init__(self, session: aiohttp.ClientSession) -> None:
         """Use the injected aiohttp session (HA: async_get_clientsession)."""
         self._session = session
 
-    async def get_forecast(
-        self, resorts: list[Resort], days: int = 10
-    ) -> dict[str, list[DayForecast]]:
-        """Get the weather forecast for the list of ski resorts in our data."""
+    async def get_forecast(self, resorts: list[Resort], days: int = 10) -> Forecasts:
+        """Get the weather forecast for all points of the given resorts."""
         coordinates = {
-            "latitude": ",".join(str(r.lat) for r in resorts),
-            "longitude": ",".join(str(r.lon) for r in resorts),
+            **_coordinates(resorts),
             "forecast_days": days,
             "timezone": TIMEZONE,
         }
-        # two models -> two requests, each batched over all resorts
+        # two models -> two requests, each batched over all points
         daily, hourly = await asyncio.gather(
             self._get({**coordinates, "daily": ",".join(DAILY), "models": MODEL}),
             self._get(
@@ -71,23 +72,34 @@ class OpenMeteoProvider:
         return payload if isinstance(payload, list) else [payload]
 
 
-def _combine(
-    resorts: list[Resort], daily: list[dict], hourly: list[dict]
-) -> dict[str, list[DayForecast]]:
-    """Match both responses to the resorts by position and build the forecasts."""
-    if not len(daily) == len(hourly) == len(resorts):
-        msg = "Location count differs Resort count"
+def _coordinates(resorts: list[Resort]) -> dict[str, str]:
+    """Request parameters with one location per point, resort by resort."""
+    points = [point for resort in resorts for point in resort.points]
+    return {
+        "latitude": ",".join(str(p.lat) for p in points),
+        "longitude": ",".join(str(p.lon) for p in points),
+        "elevation": ",".join(str(p.elevation_m) for p in points),
+    }
+
+
+def _combine(resorts: list[Resort], daily: list[dict], hourly: list[dict]) -> Forecasts:
+    """Match both responses to the points by position and build the forecasts."""
+    pairs = [(resort, point) for resort in resorts for point in resort.points]
+    if not len(daily) == len(hourly) == len(pairs):
+        msg = "Location count differs from point count"
         raise SkiApiParseError(msg)
 
+    forecasts: Forecasts = {resort.key: {} for resort in resorts}
     try:
-        return {
-            resort.key: _parse_daily(
+        for (resort, point), day_loc, hour_loc in zip(
+            pairs, daily, hourly, strict=True
+        ):
+            forecasts[resort.key][point.name] = _parse_daily(
                 day_loc["daily"], _ski_hours_visibility(hour_loc["hourly"])
             )
-            for resort, day_loc, hour_loc in zip(resorts, daily, hourly, strict=True)
-        }
     except (KeyError, IndexError, TypeError, ValueError) as error:
         raise SkiApiParseError(str(error)) from error
+    return forecasts
 
 
 def _parse_daily(d: dict, visibility: dict[date, float]) -> list[DayForecast]:
