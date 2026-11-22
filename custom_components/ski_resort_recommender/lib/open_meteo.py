@@ -33,13 +33,21 @@ DAILY = [
     "daylight_duration",
     "weather_code",
 ]
-HOURLY = ["temperature_2m", "snowfall", "wind_gusts_10m", "weather_code"]
+HOURLY = [
+    "temperature_2m",
+    "snowfall",
+    "rain",
+    "showers",
+    "wind_gusts_10m",
+    "weather_code",
+]
 # DWD ICON fills what MeteoSwiss lacks: daily values after today + 4 (MeteoSwiss
 # horizon) and hourly visibility (metres, about 5 days; MeteoSwiss has none).
 FALLBACK_MODEL = "icon_seamless"
 SKI_HOURS = range(9, 17)  # hourly values from 09:00 to 16:00 local time
-FRESH_SNOW_WINDOW = timedelta(hours=48)  # snowfall before the lifts open counts
-PAST_DAYS = 2  # needed for the fresh snow window of tomorrow
+# fresh snow and rain (icy slope) count in this window before the lifts open
+BEFORE_OPENING = timedelta(hours=48)
+PAST_DAYS = 2  # needed for the window before opening of tomorrow
 
 
 class OpenMeteoProvider:
@@ -133,7 +141,8 @@ def _parse_location(loc: dict, visibility: dict[date, float]) -> list[DayForecas
     temp_ski = _ski_hours(h, "temperature_2m", mean)
     gust_max = _ski_hours(h, "wind_gusts_10m", max)
     weather_codes = _ski_hours(h, "weather_code", tuple)
-    fresh_snow = _fresh_snow(h)
+    fresh_snow = _before_opening(h, ("snowfall",))
+    recent_rain = _before_opening(h, ("rain", "showers"))  # liquid only
     return [
         replace(
             day,
@@ -141,6 +150,7 @@ def _parse_location(loc: dict, visibility: dict[date, float]) -> list[DayForecas
             gust_max_kmh=gust_max.get(day.day),
             fresh_snow_cm=fresh_snow.get(day.day),
             weather_codes_ski=weather_codes.get(day.day, ()),
+            recent_rain_mm=recent_rain.get(day.day),
         )
         for day in _parse_daily(loc["daily"], visibility=visibility)
     ]
@@ -192,22 +202,27 @@ def _ski_hours[T](
     return {day: aggregate(values) for day, values in per_day.items()}
 
 
-def _fresh_snow(h: dict) -> dict[date, float]:
+def _before_opening(h: dict, keys: tuple[str, ...]) -> dict[date, float]:
     """
-    Snowfall (cm) in the 48 h before opening, for days with a full window.
+    Sum of hourly variables in the 48 h before opening, for days with a full window.
 
     Hourly sums belong to the hour before their time stamp: the 09:00 value is
-    the snow from 08:00 to 09:00, so it still counts as fresh snow.
+    the amount from 08:00 to 09:00, so it still counts as before opening.
     """
-    snow = list(_hours(h, "snowfall"))
+    per_hour: dict[datetime, float] = defaultdict(float)
+    for key in keys:
+        for moment, value in _hours(h, key):
+            per_hour[moment] += value
     first = datetime.fromisoformat(h["time"][0])
     result = {}
-    for day in sorted({moment.date() for moment, _ in snow}):
+    for day in sorted({moment.date() for moment in per_hour}):
         opening = datetime.combine(day, datetime.min.time()).replace(
             hour=SKI_HOURS.start
         )
-        start = opening - FRESH_SNOW_WINDOW
+        start = opening - BEFORE_OPENING
         if first > start + timedelta(hours=1):
             continue  # the series starts too late to see the whole window
-        result[day] = sum(value for moment, value in snow if start < moment <= opening)
+        result[day] = sum(
+            value for moment, value in per_hour.items() if start < moment <= opening
+        )
     return result

@@ -76,6 +76,7 @@ def make_day(
     temp: float = -5,
     code: int = 0,
     hourly_codes: tuple[int, ...] = (),
+    rain: float | None = None,
     visibility: float | None = None,
 ) -> DayForecast:
     """Create a forecast for day (snow = fresh snow before opening)."""
@@ -92,6 +93,7 @@ def make_day(
         gust_max_kmh=gust,
         fresh_snow_cm=snow,
         weather_codes_ski=hourly_codes,
+        recent_rain_mm=rain,
     )
 
 
@@ -425,3 +427,14 @@ def test_a_short_shower_does_not_block_a_good_day() -> None:
     ).recommendations
 
     assert rec.is_good is True
+
+
+def test_icy_slope_after_rain_is_not_good() -> None:
+    """Rain before opening makes a sunny powder day not good."""
+    icy = make_day(SATURDAY, rain=5)
+
+    (rec,) = pick(
+        [make_resort("laax")], {"laax": [icy]}, SETTINGS, today=TODAY
+    ).recommendations
+
+    assert rec.is_good is False
