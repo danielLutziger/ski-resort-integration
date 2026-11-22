@@ -2,11 +2,11 @@
     {
         "latitude": 46.841114,
         "longitude": 9.183472,
-        "generationtime_ms": 0.06306171417236328,
+        "generationtime_ms": 0.3063678741455078,
         "utc_offset_seconds": 3600,
         "timezone": "Europe/Zurich",
         "timezone_abbreviation": "GMT+1",
-        "elevation": 2253.0,
+        "elevation": 2222.0,
         "hourly_units": {
             "time": "iso8601",
             "visibility": "m"
@@ -112,16 +112,55 @@
                 6380.0,
                 9840.0
             ]
+        },
+        "daily_units": {
+            "time": "iso8601",
+            "temperature_2m_min": "\u00b0C",
+            "temperature_2m_max": "\u00b0C",
+            "snowfall_sum": "cm",
+            "sunshine_duration": "s",
+            "wind_speed_10m_max": "km/h",
+            "weather_code": "wmo code"
+        },
+        "daily": {
+            "time": [
+                "2026-11-22",
+                "2026-11-23"
+            ],
+            "temperature_2m_min": [
+                -5.5,
+                -5.7
+            ],
+            "temperature_2m_max": [
+                -1.1,
+                -4.2
+            ],
+            "snowfall_sum": [
+                10.43,
+                11.46
+            ],
+            "sunshine_duration": [
+                0.0,
+                0.0
+            ],
+            "wind_speed_10m_max": [
+                25.5,
+                25.4
+            ],
+            "weather_code": [
+                86,
+                85
+            ]
         }
     },
     {
-        "latitude": 47.08929,
-        "longitude": 9.279065,
-        "generationtime_ms": 0.03349781036376953,
+        "latitude": 46.86768,
+        "longitude": 9.168379,
+        "generationtime_ms": 0.22804737091064453,
         "utc_offset_seconds": 3600,
         "timezone": "Europe/Zurich",
         "timezone_abbreviation": "GMT+1",
-        "elevation": 1389.0,
+        "elevation": 2477.0,
         "location_id": 1,
         "hourly_units": {
             "time": "iso8601",
@@ -179,54 +218,93 @@
                 "2026-11-23T23:00"
             ],
             "visibility": [
-                39860.0,
-                40340.0,
-                40880.0,
-                41120.0,
-                41140.0,
-                41020.0,
-                40860.0,
-                41280.0,
-                40900.0,
-                7000.0,
-                2300.0,
-                5080.0,
-                5080.0,
-                240.0,
-                120.0,
-                200.0,
-                200.0,
-                1040.0,
-                140.0,
-                140.0,
-                200.0,
-                180.0,
-                160.0,
+                39160.0,
+                37380.0,
+                42240.0,
+                40060.0,
+                37840.0,
+                38760.0,
+                38960.0,
+                36840.0,
+                8840.0,
+                260.0,
+                300.0,
+                380.0,
                 560.0,
-                240.0,
-                360.0,
-                400.0,
-                180.0,
-                180.0,
-                140.0,
-                180.0,
-                140.0,
-                160.0,
-                100.0,
-                80.0,
-                80.0,
-                80.0,
-                100.0,
-                100.0,
-                100.0,
-                120.0,
-                180.0,
-                160.0,
-                160.0,
-                140.0,
-                245.0,
+                1240.0,
+                1460.0,
+                600.0,
+                300.0,
                 220.0,
-                140.0
+                260.0,
+                120.0,
+                80.0,
+                80.0,
+                80.0,
+                80.0,
+                100.0,
+                80.0,
+                100.0,
+                200.0,
+                160.0,
+                100.0,
+                140.0,
+                120.0,
+                120.0,
+                160.0,
+                180.0,
+                120.0,
+                120.0,
+                120.0,
+                120.0,
+                120.0,
+                120.0,
+                140.0,
+                220.0,
+                245.0,
+                460.0,
+                435.0,
+                480.0,
+                860.0
+            ]
+        },
+        "daily_units": {
+            "time": "iso8601",
+            "temperature_2m_min": "\u00b0C",
+            "temperature_2m_max": "\u00b0C",
+            "snowfall_sum": "cm",
+            "sunshine_duration": "s",
+            "wind_speed_10m_max": "km/h",
+            "weather_code": "wmo code"
+        },
+        "daily": {
+            "time": [
+                "2026-11-22",
+                "2026-11-23"
+            ],
+            "temperature_2m_min": [
+                -7.2,
+                -7.9
+            ],
+            "temperature_2m_max": [
+                -2.7,
+                -6.7
+            ],
+            "snowfall_sum": [
+                11.62,
+                13.74
+            ],
+            "sunshine_duration": [
+                0.0,
+                0.0
+            ],
+            "wind_speed_10m_max": [
+                34.8,
+                30.6
+            ],
+            "weather_code": [
+                86,
+                85
             ]
         }
     }
