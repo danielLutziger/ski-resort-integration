@@ -12,7 +12,9 @@ SUNDAY = date(2026, 11, 29)
 WEDNESDAY = date(2026, 11, 25)
 TODAY = date(2026, 11, 22)
 
-SETTINGS = Settings(min_good_score=50.0)
+WEEKEND = frozenset({5, 6})
+
+SETTINGS = Settings(allowed_weekdays=WEEKEND, max_results=3, min_good_score=50.0)
 
 
 def make_resort(key: str) -> Resort:
@@ -116,7 +118,10 @@ def test_no_go_weather_is_never_good_even_with_high_score() -> None:
     forecasts = {"laax": [make_day(SATURDAY, code=95)]}
 
     result = pick_recommendations(
-        [resort], forecasts, Settings(min_good_score=0.0), today=TODAY
+        [resort],
+        forecasts,
+        Settings(allowed_weekdays=WEEKEND, max_results=3, min_good_score=0.0),
+        today=TODAY,
     )
 
     assert result.recommendations[0].is_good is False
@@ -134,7 +139,9 @@ def test_resort_without_forecast_is_skipped() -> None:
 def test_custom_weekdays_setting() -> None:
     resort = make_resort("laax")
     forecasts = {"laax": [make_day(WEDNESDAY), make_day(SATURDAY)]}
-    settings = Settings(allowed_weekdays=frozenset({2}), min_good_score=50.0)
+    settings = Settings(
+        allowed_weekdays=frozenset({2}), max_results=3, min_good_score=50.0
+    )
 
     result = pick_recommendations([resort], forecasts, settings, today=TODAY)
 

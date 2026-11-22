@@ -53,9 +53,9 @@ class RecommendationResult:
 def pick_recommendations(
     resorts: list[Resort],
     forecasts: dict[str, list[DayForecast]],
-    settings: Settings | None,
+    settings: Settings | None = None,
     *,
-    today: date | None,
+    today: date | None = None,
 ) -> RecommendationResult:
     candidates: list[Recommendation] = []
     settings = settings or Settings()

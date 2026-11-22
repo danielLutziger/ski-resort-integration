@@ -15,9 +15,9 @@ async def main():
     async with aiohttp.ClientSession() as session:
         forecasts = await OpenMeteoProvider(session).get_forecast(resorts)
 
-    result = pick_recommendations(
-        resorts=resorts, forecasts=forecasts, settings=Settings(), today=None
-    )
+    # override the defaults here to see every fetched day, not just the top 3 weekend days
+    settings = Settings(allowed_weekdays=frozenset(range(7)), max_results=200)
+    result = pick_recommendations(resorts, forecasts, settings)
     print("Good day found" if result.has_good_day else "No good day")
 
     for r in result.recommendations:
