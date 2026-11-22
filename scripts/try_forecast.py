@@ -9,20 +9,21 @@ python -m scripts.try_forecast [--from STATION] [--all]
 import argparse
 import asyncio
 from dataclasses import replace
-from datetime import date, timedelta
+from datetime import date
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import aiohttp
 
-from custom_components.ski_resort_recommender.lib.open_meteo import OpenMeteoProvider
-from custom_components.ski_resort_recommender.lib.resorts import load_resorts
-from custom_components.ski_resort_recommender.lib.sbb import SbbProvider
-from custom_components.ski_resort_recommender.lib.service import (
-    Recommendation,
-    attach_connections,
-    pick_recommendations,
+from custom_components.ski_resort_recommender.lib.pipeline import (
+    TravelCache,
+    build_recommendations,
 )
+from custom_components.ski_resort_recommender.lib.resorts import load_resorts
 from custom_components.ski_resort_recommender.lib.settings import Settings
+
+if TYPE_CHECKING:
+    from custom_components.ski_resort_recommender.lib.service import Recommendation
 
 
 async def main() -> None:
@@ -42,30 +43,16 @@ async def main() -> None:
     )
     today = date.today()  # noqa: DTZ011
     async with aiohttp.ClientSession() as session:
-        forecasts = await OpenMeteoProvider(session).get_forecast(resorts)
-        sbb = SbbProvider(session)
-        # travel times from one reference day: the next allowed day
-        reference = next(
-            today + timedelta(days=n)
-            for n in range(1, 8)
-            if (today + timedelta(days=n)).weekday() in settings.allowed_weekdays
+        result = await build_recommendations(
+            session,
+            resorts,
+            settings,
+            today=today,
+            cache=TravelCache(),
+            connections_for=5,
         )
-        travel = await sbb.connections(resorts, reference, settings)
-        result = pick_recommendations(
-            resorts, forecasts, settings, today=today, travel=travel
-        )
-        # the exact connection of each recommended day
-        shown = [*result.recommendations[:5], *filter(None, [result.outlook])]
-        exact = {}
-        if settings.home_station:
-            for r in shown:
-                if r.resort.station:
-                    c = await sbb.connection(r.resort.station, r.day.day, settings)
-                    if c:
-                        exact[(r.resort.key, r.day.day)] = c
-        result = attach_connections(result, exact)
 
-    print(f"Status: {result.status}  (travel reference day {reference:%a %d.%m})")
+    print(f"Status: {result.status}")
     for r in result.recommendations:
         print_line(r)
     if result.outlook:

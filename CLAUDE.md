@@ -36,6 +36,7 @@ custom_components/ski_resort_recommender/
     errors.py                   # SkiApiError (base, Exception) -> SkiApiConnectionError, SkiApiParseError
     open_meteo.py               # OpenMeteoProvider (aiohttp); pure _combine/_parse_location/_ski_hours/...
     sbb.py                      # SbbProvider (aiohttp, transport.opendata.ch); pure _parse/_pick
+    pipeline.py                 # build_recommendations(): forecasts + SBB (TravelCache) + ranking
     weather_codes.py            # WeatherClass (StrEnum), _CLASSES, classify()
     scoring.py                  # score_day(DayForecast, ScoringSettings) -> DayScore(total, reasons); combine_scores()
     settings.py                 # Settings (weekdays, max_results, min_good_score, ranking_days, outlook_days, scoring)
@@ -232,9 +233,11 @@ and imports so that the integration still loads and tests/ruff stay green.
 
 1. Live ticket prices (issue #17) and the per-day Snow'n'Rail availability (issue #19). Static prices,
    the relative price score and the static `snow-n-rail` tag are done.
-2. Coordinator (hourly poll, `UpdateFailed`), sensor (state = headline, attributes = recommendations incl.
-   connection), config flow (weekdays, number of results, min score, scoring weights, home station,
+2. Sensor (state = headline, attributes = recommendations incl. connection), config flow (weekdays, number of results, min score, scoring weights, home station,
    arrival window), then a Markdown dashboard card. Cache the SBB travel times (once a day).
+   Coordinator done: every 3 h (`UPDATE_INTERVAL`), `build_recommendations` from `lib/pipeline.py`, SBB
+   travel times cached once a day, exact connections only for the shown results, `SkiApiError` ->
+   `UpdateFailed`, local date as today; home station from the entry option `home_station` for now.
    Open-Meteo budget: 23 resorts = 101 points, 2 requests with > 10 variables each; hourly polling would
    be ~7000+ weighted calls/day (free limit 10 000) -> poll every 2-3 h or reduce variables.
 3. Tune wind and temperature in season (Jan/Feb); re-check `DWD_SUN_FACTOR` in winter.
