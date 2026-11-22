@@ -2,8 +2,6 @@
 
 from enum import StrEnum
 
-# TODO: we also need vision scores (how far can you see - more important than weather)
-
 
 class WeatherClass(StrEnum):
     """How good a weather code is for skiing."""

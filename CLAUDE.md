@@ -34,7 +34,7 @@ custom_components/ski_resort_recommender/
   lib/                          # NO homeassistant imports, testable alone
     models.py                   # Resort, DayForecast (frozen dataclasses); imports nothing from lib
     errors.py                   # SkiApiError (base, Exception) -> SkiApiConnectionError, SkiApiParseError
-    open_meteo.py               # OpenMeteoProvider (aiohttp), module-level _parse_daily
+    open_meteo.py               # OpenMeteoProvider (aiohttp); pure _combine/_parse_daily/_ski_hours_visibility
     weather_codes.py            # WeatherClass (StrEnum), _CLASSES, classify()
     scoring.py                  # score_day(DayForecast) -> DayScore(total, reasons)
     settings.py                 # Settings dataclass (weekdays, max_results, min_good_score)
@@ -77,7 +77,8 @@ Done and tested (pytest green at last check):
 - `weather_codes.py` + coverage test; `scoring.py` (sun 30, fresh snow 20, wind penalty above 30 km/h,
   temperature band, weather class points) + tests; `service.py` + tests (weekday filter, future-only,
   max results, same resort twice, no-go never good, missing resort, status).
-- `DayForecast` has an extra `vision` field (to be renamed `visibility` and used in scoring, see B).
+- Visibility (B, done): `DayForecast.visibility_m` = median of hourly visibility 09:00–16:00, from a second
+  batched request with model `icon_seamless`; scored as a penalty (0 at >= 5 km, −30 at <= 1 km, None = 0).
 
 Not started: coordinator, sensor, config flow, dashboard card, ticket prices, train connections.
 
@@ -159,7 +160,7 @@ and imports so that the integration still loads and tests/ruff stay green.
 ## Next steps (suggested order)
 
 0. Commit the current state (see Git rules), then clean up boilerplate (E) in a separate commit.
-1. Settings-driven scoring (C) and `vision` -> `visibility` (B), keep tests green.
+1. Settings-driven scoring (C), keep tests green. (B is done.)
 2. Fix findings 2 and 3 (hourly ski-hours window, no double counting).
 3. Multi-point resorts (A): agree on the data format and combination rule first, then implement.
 4. Add `elevation_m`; test `best_match` vs. `meteoswiss_icon_seamless` for days 6–8.
@@ -173,6 +174,11 @@ and imports so that the integration still loads and tests/ruff stay green.
 
 - Weather: Open-Meteo (MeteoSwiss ICON-CH models); MeteoSwiss Open Data also exists (CSV/STAC, hourly
   point forecasts, ~6000 points incl. mountain POIs, cite "Source: MeteoSwiss").
+- Visibility on Open-Meteo (checked 22.11.2026): hourly only, metres, no daily aggregate. Not provided by
+  `meteoswiss_icon_seamless`, ECMWF or Météo-France. `icon_seamless` (DWD) has it ~5 days ahead, later days
+  are None, so days 1–5 can get a visibility penalty and later days cannot. GFS caps at 24 km.
+- Different models use different grid cells for the same coordinate (e.g. Flims village coordinate:
+  `icon_seamless` grid elevation 2253 m). Relevant for finding 4: pass `elevation` to both requests.
 - Prices: dynamic pricing at many resorts (Adelboden-Lenk, Arosa Lenzerheide, Pizol, ...), no standard API.
 
 ## Working agreements

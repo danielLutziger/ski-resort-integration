@@ -1,6 +1,9 @@
 """Weather forecasts from the Open-Meteo API."""
 
-from datetime import date
+import asyncio
+from collections import defaultdict
+from datetime import date, datetime
+from statistics import median
 
 import aiohttp
 
@@ -11,6 +14,7 @@ from custom_components.ski_resort_recommender.lib.errors import (
 from custom_components.ski_resort_recommender.lib.models import DayForecast, Resort
 
 URL = "https://api.open-meteo.com/v1/forecast"
+TIMEZONE = "Europe/Zurich"
 MODEL = "meteoswiss_icon_seamless"
 DAILY = [
     "temperature_2m_min",
@@ -20,6 +24,10 @@ DAILY = [
     "wind_speed_10m_max",
     "weather_code",
 ]
+# MeteoSwiss ICON has no visibility in Open-Meteo; DWD ICON has it (hourly, metres,
+# about 5 days ahead). Later days come back as None.
+VISIBILITY_MODEL = "icon_seamless"
+SKI_HOURS = range(9, 17)  # hourly values from 09:00 to 16:00 local time
 
 
 class OpenMeteoProvider:
@@ -33,15 +41,23 @@ class OpenMeteoProvider:
         self, resorts: list[Resort], days: int = 10
     ) -> dict[str, list[DayForecast]]:
         """Get the weather forecast for the list of ski resorts in our data."""
-        params = {
+        coordinates = {
             "latitude": ",".join(str(r.lat) for r in resorts),
             "longitude": ",".join(str(r.lon) for r in resorts),
-            "daily": ",".join(DAILY),
-            "models": MODEL,
             "forecast_days": days,
-            "timezone": "Europe/Zurich",
+            "timezone": TIMEZONE,
         }
+        # two models -> two requests, each batched over all resorts
+        daily, hourly = await asyncio.gather(
+            self._get({**coordinates, "daily": ",".join(DAILY), "models": MODEL}),
+            self._get(
+                {**coordinates, "hourly": "visibility", "models": VISIBILITY_MODEL}
+            ),
+        )
+        return _combine(resorts, daily, hourly)
 
+    async def _get(self, params: dict) -> list[dict]:
+        """Run one request; always return a list of locations."""
         try:
             async with self._session.get(
                 URL, params=params, timeout=aiohttp.ClientTimeout(total=15)
@@ -51,33 +67,52 @@ class OpenMeteoProvider:
         except (aiohttp.ClientError, TimeoutError) as error:
             raise SkiApiConnectionError(str(error)) from error
 
-        # we would expect mutliple resorts to be returned, if from it
-        locations = payload if isinstance(payload, list) else [payload]
-        if len(locations) != len(resorts):
-            msg = "Location count differs Resort count"
-            raise SkiApiParseError(msg)
-
-        try:
-            return {
-                resort.key: _parse_daily(loc["daily"])
-                for resort, loc in zip(resorts, locations, strict=True)
-            }
-        except (KeyError, IndexError, TypeError, ValueError) as error:
-            raise SkiApiParseError(str(error)) from error
+        # one location comes back as an object, several as a list
+        return payload if isinstance(payload, list) else [payload]
 
 
-def _parse_daily(d: dict) -> list[DayForecast]:
+def _combine(
+    resorts: list[Resort], daily: list[dict], hourly: list[dict]
+) -> dict[str, list[DayForecast]]:
+    """Match both responses to the resorts by position and build the forecasts."""
+    if not len(daily) == len(hourly) == len(resorts):
+        msg = "Location count differs Resort count"
+        raise SkiApiParseError(msg)
+
+    try:
+        return {
+            resort.key: _parse_daily(
+                day_loc["daily"], _ski_hours_visibility(hour_loc["hourly"])
+            )
+            for resort, day_loc, hour_loc in zip(resorts, daily, hourly, strict=True)
+        }
+    except (KeyError, IndexError, TypeError, ValueError) as error:
+        raise SkiApiParseError(str(error)) from error
+
+
+def _parse_daily(d: dict, visibility: dict[date, float]) -> list[DayForecast]:
     """Turn the `daily` block of one location into DayForecasts."""
+    days = [date.fromisoformat(t) for t in d["time"]]
     return [
         DayForecast(
-            day=date.fromisoformat(d["time"][i]),
+            day=day,
             temp_min_c=d["temperature_2m_min"][i],
             temp_max_c=d["temperature_2m_max"][i],
             snowfall_cm=d["snowfall_sum"][i],
             sunshine_hours=(d["sunshine_duration"][i] or 0) / 3600,  # api gives seconds
             wind_max_kmh=d["wind_speed_10m_max"][i],
             weather_code=d["weather_code"][i],
-            visibility_m=None,
+            visibility_m=visibility.get(day),
         )
-        for i in range(len(d["time"]))
+        for i, day in enumerate(days)
     ]
+
+
+def _ski_hours_visibility(h: dict) -> dict[date, float]:
+    """Median visibility (metres) per day over the ski hours; skips missing values."""
+    per_day: dict[date, list[float]] = defaultdict(list)
+    for time, value in zip(h["time"], h["visibility"], strict=True):
+        moment = datetime.fromisoformat(time)
+        if value is not None and moment.hour in SKI_HOURS:
+            per_day[moment.date()].append(value)
+    return {day: median(values) for day, values in per_day.items()}

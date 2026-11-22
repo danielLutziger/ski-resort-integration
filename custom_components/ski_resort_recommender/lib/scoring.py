@@ -23,6 +23,11 @@ _TEMP_GOOD_MIN = -8
 _TEMP_GOOD_MAX = 2
 _TEMP_SLUSH = 5
 
+# visibility during ski hours (WMO: fog below 1 km, mist 1-5 km)
+_VISIBILITY_GOOD_M = 5000  # no penalty from here up
+_VISIBILITY_BAD_M = 1000  # full penalty from here down
+_VISIBILITY_PENALTY = 30  # more than a BAD weather class: you can't see the piste
+
 
 @dataclass(frozen=True, slots=True)
 class DayScore:
@@ -41,10 +46,18 @@ def score_day(day: DayForecast) -> DayScore:
     # wind penalty above 30 km/h (village value; on the mountain up to 60 would be ok)
     wind = -max(((day.wind_max_kmh or 0) - 30) / 30, 0.0) * 25
     temp = _temp_points(day)
+    visibility = _visibility_points(day)
 
     # TODO: one resort multiple weather points, so weather needs a different scoring
     weather = _WEATHER_POINTS[classify(day.weather_code)]
-    reasons = {"sun": sun, "snow": snow, "wind": wind, "temp": temp, "weather": weather}
+    reasons = {
+        "sun": sun,
+        "snow": snow,
+        "wind": wind,
+        "temp": temp,
+        "weather": weather,
+        "visibility": visibility,
+    }
     total = max(0.0, sum(reasons.values()))
     return DayScore(total, reasons=reasons)
 
@@ -57,3 +70,13 @@ def _temp_points(day: DayForecast) -> float:
     if day.temp_max_c > _TEMP_SLUSH:  # slush... we dislike slush
         return -10
     return 10
+
+
+def _visibility_points(day: DayForecast) -> float:
+    """Penalty for fog / flat light; unknown visibility counts as neutral."""
+    if day.visibility_m is None:
+        return 0.0
+    share_bad = (_VISIBILITY_GOOD_M - day.visibility_m) / (
+        _VISIBILITY_GOOD_M - _VISIBILITY_BAD_M
+    )
+    return -min(max(share_bad, 0.0), 1.0) * _VISIBILITY_PENALTY
