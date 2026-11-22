@@ -72,27 +72,30 @@ def make_day(
     *,
     sun: float = 8,
     snow: float = 10,
-    wind: float = 10,
-    tmax: float = -2,
+    gust: float = 20,
+    temp: float = -5,
     code: int = 0,
     visibility: float | None = None,
 ) -> DayForecast:
-    """Create a forecast for day."""
+    """Create a forecast for day (snow = fresh snow before opening)."""
     return DayForecast(
         day=day,
-        temp_min_c=tmax - 6,
-        temp_max_c=tmax,
-        snowfall_cm=snow,
+        temp_min_c=temp - 4,
+        temp_max_c=temp + 2,
+        snowfall_cm=0,
         sunshine_hours=sun,
-        wind_max_kmh=wind,
+        daylight_hours=9,
         weather_code=code,
         visibility_m=visibility,
+        temp_ski_c=temp,
+        gust_max_kmh=gust,
+        fresh_snow_cm=snow,
     )
 
 
 def make_rainy_day(day: date) -> DayForecast:
     """Create a rainy, windy, warm day."""
-    return make_day(day, sun=0, snow=0, wind=50, tmax=6, code=63)
+    return make_day(day, sun=0, snow=0, gust=70, temp=6, code=63)
 
 
 def test_only_allowed_weekedays_are_returned() -> None:
@@ -221,9 +224,12 @@ def make_empty_day(day: date) -> DayForecast:
         temp_max_c=None,
         snowfall_cm=None,
         sunshine_hours=None,
-        wind_max_kmh=None,
+        daylight_hours=9,
         weather_code=None,
         visibility_m=None,
+        temp_ski_c=None,
+        gust_max_kmh=None,
+        fresh_snow_cm=None,
     )
 
 
@@ -397,7 +403,7 @@ def test_outlook_alone_does_not_change_the_status() -> None:
 def test_scoring_settings_are_used_by_the_service() -> None:
     """pick_recommendations scores with settings.scoring."""
     forecasts = {"laax": [make_day(SATURDAY, sun=8)]}
-    doubled_sun = replace(SETTINGS, scoring=replace(SCORING, sun_points=60))
+    doubled_sun = replace(SETTINGS, scoring=replace(SCORING, sun_points=90))
 
     normal = pick([make_resort("laax")], forecasts, SETTINGS, today=TODAY)
     sunnier = pick([make_resort("laax")], forecasts, doubled_sun, today=TODAY)

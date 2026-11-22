@@ -75,9 +75,16 @@ Done and tested (pytest green at last check):
 
 - Open-Meteo provider (daily values, model `meteoswiss_icon_seamless`, batched), parse test with a saved fixture.
 - Resort YAML loader; ~15 resorts in `resorts.yaml`; `scripts/try_forecast.py` prints the ranking.
-- `weather_codes.py` + coverage test; `scoring.py` (sun 30, fresh snow 20, wind penalty above 30 km/h,
-  temperature band, weather class points) + tests; `service.py` + tests (weekday filter, future-only,
+- `weather_codes.py` + coverage test; `scoring.py` + tests (rating review 22.11, see below); `service.py` + tests (weekday filter, future-only,
   max results, same resort twice, no-go never good, missing resort, status).
+- Rating review (done 22.11), max 100:
+  - sun 0..60: sunshine / daylight, full from 80 % (DWD reports ~24 % more sun than MeteoSwiss on the
+    same point-day; with the share both reach full points on clear days)
+  - fresh snow 0..40: snowfall in the 48 h before opening, full from 30 cm (bluebird day = 100)
+  - wind 0..-30: max gust in ski hours, from 40 km/h, full at 80 km/h
+  - temp 0..-20: mean in ski hours; -10 below -15 °C, slush penalty from +2 to +6 °C
+  - weather: NO_GO (rain/freezing/thunder) -50, BAD (fog) -15, snowfall neutral
+  - visibility 0..-30 as before. A clear day without penalties = 60 = `min_good_score`.
 - Horizon / outlook (done 22.11): 8 forecast days. MeteoSwiss where it has data, DWD `icon_seamless`
   for the rest (`_merge`). Days 1..`ranking_days` (5) are ranked; the best allowed day up to
   `outlook_days` (7) is `RecommendationResult.outlook`, a separate 4th entry. The status only looks at
@@ -96,16 +103,22 @@ Not started: coordinator, sensor, config flow, dashboard card, ticket prices, tr
 2. **Daily `weather_code` = most severe condition of the day.** One shower makes the whole day NO_GO
    (e.g. Andermatt Tue 24.11: 3.7 h sun, still 0 points). Plan: request **hourly** data and judge only
    ski hours (about 09:00–16:00), not the daily worst code.
+   Partly done 22.11: temperature (mean), gusts (max) and visibility (median) use the ski hours
+   09:00–16:00. The weather code is still the daily worst code (decides NO_GO).
 3. **Snow is double-counted in opposite directions**: fresh snow gives up to +20, but snowfall codes
    (73/75/77/85) are in BAD (−15). A powder day ranks far below a dry sunny day. Decide what a snowfall
    day means (powder vs. visibility) and count it in one place.
+   Done 22.11: fresh snow = hourly snowfall in the 48 h before opening (09:00); snowfall codes are
+   NEUTRAL; snow falling during ski hours only counts through visibility.
 4. **Elevation.** Temperature/precipitation come from the village coordinate. Add `elevation_m` to
    `Resort` (mid-station) and pass Open-Meteo's `elevation` parameter. Also consider hourly `snow_depth`
    (base matters more than fresh snow in early season).
    Done 22.11: every weather point has `elevation_m`, passed to Open-Meteo. `snow_depth` still open.
 5. Wind and temperature barely discriminate between resorts on the same day; they act as penalties/gates.
    Ranking is mostly sun + snow right now. That is expected in a dry November, tune again in season.
+   22.11: wind now uses gusts (daily mean wind max was median 13 km/h, gusts up to 127 km/h).
 6. The total is not normalised to 0–100 (maximum is 70). Either normalise or keep `min_good_score` relative.
+   Done 22.11: positive parts sun 60 + fresh snow 40 = 100; everything else is a penalty.
 7. Zermatt-style cases: rain code together with a max temperature below 2 °C looks inconsistent
    (freezing rain, or grid/elevation mismatch) — check after the elevation fix.
 
@@ -186,8 +199,8 @@ and imports so that the integration still loads and tests/ruff stay green.
 
 ## Next steps (suggested order)
 
-1. Fix findings 2 and 3 (hourly ski-hours window, no double counting).
-   (Multi-point resorts (A), per-point `elevation_m` and the outlook entry are done.)
+1. Finding 2 rest: judge the weather code per ski hour instead of the daily worst code.
+   (Multi-point resorts (A), per-point `elevation_m`, the outlook entry and finding 3 are done.)
 2. Coordinator (hourly poll, `UpdateFailed`), sensor (state = headline, attributes = recommendations),
    config flow (weekdays, number of results, min score, scoring weights), then a Markdown dashboard card.
 3. Later: train connection (Swiss public transport integration is already installed in my HA), ticket

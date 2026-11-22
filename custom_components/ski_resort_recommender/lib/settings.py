@@ -10,24 +10,24 @@ SUNDAY = 6
 class ScoringSettings:
     """Weights and thresholds of score_day(); flat numbers for the HA options."""
 
-    # sun: up to sun_points, full points from sun_full_hours (cloudy skiing is ok)
-    sun_points: float = 30
-    sun_full_hours: float = 8
-    # fresh snow: up to snow_points, full points from snow_full_cm
-    snow_points: float = 20
-    snow_full_cm: float = 25
-    # wind: wind_penalty per wind_penalty_step_kmh above wind_limit_kmh
-    # (village value; on the mountain up to 60 would be ok)
-    wind_limit_kmh: float = 30
-    wind_penalty: float = 25
-    wind_penalty_step_kmh: float = 30
-    # max temperature of the day: good band, ok, slush above temp_slush_c
-    temp_good_min_c: float = -8
-    temp_good_max_c: float = 2
-    temp_slush_c: float = 5
-    temp_good_points: float = 20
-    temp_ok_points: float = 10
-    temp_slush_points: float = -10
+    # sun: up to sun_points, full points from sun_full_share of the daylight
+    sun_points: float = 60
+    sun_full_share: float = 0.8
+    # fresh snow (48 h before opening): up to snow_points, full from snow_full_cm
+    snow_points: float = 40
+    snow_full_cm: float = 30
+    # gusts in ski hours: no penalty up to gust_limit_kmh, full wind_penalty from
+    # gust_full_kmh (lifts start to close)
+    gust_limit_kmh: float = 40
+    gust_full_kmh: float = 80
+    wind_penalty: float = 30
+    # mean temperature in ski hours: no penalty from temp_cold_c to
+    # temp_slush_start_c; slush penalty grows up to temp_slush_full_c
+    temp_cold_c: float = -15
+    temp_cold_penalty: float = 10
+    temp_slush_start_c: float = 2
+    temp_slush_full_c: float = 6
+    temp_slush_penalty: float = 20
     # points per weather class (see weather_codes.py)
     weather_very_good_points: float = 0
     weather_neutral_points: float = 0

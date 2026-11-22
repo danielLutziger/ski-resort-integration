@@ -3,7 +3,7 @@
 import json
 from datetime import date
 from pathlib import Path
-from statistics import median
+from statistics import mean, median
 
 from custom_components.ski_resort_recommender.lib.models import (
     DayForecast,
@@ -13,14 +13,16 @@ from custom_components.ski_resort_recommender.lib.models import (
 from custom_components.ski_resort_recommender.lib.open_meteo import (
     _combine,
     _coordinates,
+    _fresh_snow,
     _merge,
     _parse_daily,
-    _ski_hours_visibility,
+    _parse_location,
+    _ski_hours,
 )
 
 FIXTURES = Path(__file__).parent / "fixtures"
-DAILY_FIXTURE = FIXTURES / "open_meteo_response.json"
-DWD_FIXTURE = FIXTURES / "open_meteo_dwd_response.json"  # daily + hourly visibility
+MS_FIXTURE = FIXTURES / "open_meteo_response.json"  # MeteoSwiss daily + hourly
+DWD_FIXTURE = FIXTURES / "open_meteo_dwd_response.json"  # DWD daily + hourly
 
 
 def make_resort(key: str, *points: WeatherPoint) -> Resort:
@@ -35,84 +37,112 @@ def make_resort(key: str, *points: WeatherPoint) -> Resort:
     )
 
 
-def test_parse_daily_returns_one_forecast_per_day() -> None:
-    """The saved fixture gives one DayForecast per day."""
-    payload = json.loads(DAILY_FIXTURE.read_text())
-    daily = payload[0]["daily"]
+def test_parse_location_returns_one_forecast_per_day() -> None:
+    """The saved fixture gives one complete DayForecast per day."""
+    loc = json.loads(MS_FIXTURE.read_text())[0]
 
-    days = _parse_daily(daily, {})
+    days = _parse_location(loc, {})
 
-    assert len(days) == len(daily["time"])
-    assert days[0].day.isoformat() == daily["time"][0]
-    assert all(d.sunshine_hours is not None for d in days)
-    assert all(d.temp_min_c is not None for d in days)
-    assert all(d.temp_max_c is not None for d in days)
-    assert all(d.snowfall_cm is not None for d in days)
-    assert all(d.wind_max_kmh is not None for d in days)
-    assert all(d.weather_code is not None for d in days)
+    assert [d.day.isoformat() for d in days] == loc["daily"]["time"]
+    for d in days:
+        assert d.sunshine_hours is not None
+        assert d.daylight_hours is not None
+        assert d.temp_max_c is not None
+        assert d.weather_code is not None
+        assert d.temp_ski_c is not None
+        assert d.gust_max_kmh is not None
+    # the first two (past) days have no full 48 h window before opening
+    assert [d.fresh_snow_cm is None for d in days] == [True, True, False, False, False]
 
 
 def test_parse_daily_attaches_visibility_per_day() -> None:
     """Visibility is looked up by date; days without a value get None."""
-    daily = json.loads(DAILY_FIXTURE.read_text())[0]["daily"]
+    daily = json.loads(MS_FIXTURE.read_text())[0]["daily"]
     first = date.fromisoformat(daily["time"][0])
 
-    days = _parse_daily(daily, {first: 1234.0})
+    days = _parse_daily(daily, visibility={first: 1234.0})
 
     assert days[0].visibility_m == 1234.0
     assert all(d.visibility_m is None for d in days[1:])
 
 
-def test_ski_hours_visibility_uses_median_of_ski_hours_only() -> None:
+HOURLY = {
+    "time": [
+        "2026-11-28T08:00",  # before ski hours
+        "2026-11-28T09:00",
+        "2026-11-28T12:00",
+        "2026-11-28T16:00",
+        "2026-11-28T17:00",  # after ski hours
+        "2026-11-29T10:00",
+        "2026-11-30T10:00",
+    ],
+    "visibility": [10, 300, 5000, 20000, 10, None, 800],
+}
+
+
+def test_ski_hours_uses_only_ski_hours_and_skips_missing_values() -> None:
     """Night hours and missing values are ignored; one value per day."""
-    hourly = {
-        "time": [
-            "2026-11-28T08:00",  # before ski hours
-            "2026-11-28T09:00",
-            "2026-11-28T12:00",
-            "2026-11-28T16:00",
-            "2026-11-28T17:00",  # after ski hours
-            "2026-11-29T10:00",
-            "2026-11-30T10:00",
-        ],
-        "visibility": [10, 300, 5000, 20000, 10, None, 800],
+    assert _ski_hours(HOURLY, "visibility", median) == {
+        date(2026, 11, 28): 5000,
+        date(2026, 11, 30): 800,
     }
-
-    result = _ski_hours_visibility(hourly)
-
-    assert result == {date(2026, 11, 28): 5000, date(2026, 11, 30): 800}
+    assert _ski_hours(HOURLY, "visibility", max)[date(2026, 11, 28)] == 20000
 
 
-def test_ski_hours_visibility_on_real_response() -> None:
-    """The saved hourly fixture gives one median per day."""
+def test_ski_hours_on_real_response() -> None:
+    """Mean temperature and max gust over 09:00-16:00 of the first day."""
     hourly = json.loads(DWD_FIXTURE.read_text())[0]["hourly"]
-
-    result = _ski_hours_visibility(hourly)
-
     first_day = hourly["time"][0][:10]
-    ski_values = [
-        v
-        for t, v in zip(hourly["time"], hourly["visibility"], strict=True)
-        if t.startswith(first_day) and 9 <= int(t[11:13]) <= 16
-    ]
-    assert len(result) == 2
-    assert result[date.fromisoformat(first_day)] == median(ski_values)
+
+    def ski_values(key: str) -> list[float]:
+        return [
+            v
+            for t, v in zip(hourly["time"], hourly[key], strict=True)
+            if t.startswith(first_day) and 9 <= int(t[11:13]) <= 16
+        ]
+
+    day = date.fromisoformat(first_day)
+    assert _ski_hours(hourly, "temperature_2m", mean)[day] == mean(
+        ski_values("temperature_2m")
+    )
+    assert _ski_hours(hourly, "wind_gusts_10m", max)[day] == max(
+        ski_values("wind_gusts_10m")
+    )
+
+
+def test_fresh_snow_sums_the_48_hours_before_opening() -> None:
+    """
+    Snow from 09:00 two days before until opening counts; later snow does not.
+
+    Each hourly value is the snow of the hour before its time stamp.
+    """
+    times = [f"2026-11-{d}T{h:02d}:00" for d in (26, 27, 28) for h in range(24)]
+    snow = [0.0] * len(times)
+    snow[times.index("2026-11-26T09:00")] = 50  # 08-09 on the 26th: too early
+    snow[times.index("2026-11-26T10:00")] = 1  # 09-10: first hour of the window
+    snow[times.index("2026-11-28T03:00")] = 10  # overnight storm
+    snow[times.index("2026-11-28T09:00")] = 2  # 08-09: just before opening
+    snow[times.index("2026-11-28T10:00")] = 7  # 09-10: falls during ski hours
+
+    result = _fresh_snow({"time": times, "snowfall": snow})
+
+    assert result == {date(2026, 11, 28): 13}  # 26th and 27th lack a full window
 
 
 def test_combine_matches_both_responses_to_points_by_position() -> None:
     """MeteoSwiss and DWD payloads are merged per point in coordinate order."""
-    daily = json.loads(DAILY_FIXTURE.read_text())
+    meteoswiss = json.loads(MS_FIXTURE.read_text())
     dwd = json.loads(DWD_FIXTURE.read_text())
     top = WeatherPoint(name="top", lat=46.8, lon=9.3, elevation_m=2500)
     mid = WeatherPoint(name="mid", lat=46.8, lon=9.3, elevation_m=1800)
 
-    forecasts = _combine([make_resort("a", top, mid)], daily, dwd)
+    forecasts = _combine([make_resort("a", top, mid)], meteoswiss, dwd)
 
     assert list(forecasts) == ["a"]
     assert list(forecasts["a"]) == ["top", "mid"]
-    # the fixtures cover different dates: the result has the days of both
-    days = {*daily[1]["daily"]["time"], *dwd[1]["daily"]["time"]}
-    assert [d.day.isoformat() for d in forecasts["a"]["mid"]] == sorted(days)
+    assert [d.day.isoformat() for d in forecasts["a"]["mid"]] == dwd[1]["daily"]["time"]
+    # DWD visibility is attached to the MeteoSwiss days too
+    assert any(d.visibility_m is not None for d in forecasts["a"]["mid"])
 
 
 def test_coordinates_list_all_points_in_order_with_elevation() -> None:
@@ -143,11 +173,11 @@ def test_days_beyond_the_model_horizon_have_no_data() -> None:
         "temperature_2m_max": [None],
         "snowfall_sum": [None],
         "sunshine_duration": [None],
-        "wind_speed_10m_max": [None],
+        "daylight_duration": [32000],
         "weather_code": [None],
     }
 
-    (day,) = _parse_daily(daily, {})
+    (day,) = _parse_daily(daily)
 
     assert day.sunshine_hours is None
     assert day.has_data is False
@@ -161,9 +191,12 @@ def make_forecast(day: date, sun: float | None) -> DayForecast:
         temp_max_c=None,
         snowfall_cm=None,
         sunshine_hours=sun,
-        wind_max_kmh=None,
+        daylight_hours=9,
         weather_code=None,
         visibility_m=None,
+        temp_ski_c=None,
+        gust_max_kmh=None,
+        fresh_snow_cm=None,
     )
 
 

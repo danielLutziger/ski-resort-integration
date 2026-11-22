@@ -15,14 +15,22 @@ class WeatherClass(StrEnum):
 # codes from https://open-meteo.com/en/docs
 _CLASSES: dict[WeatherClass, set[int]] = {
     WeatherClass.VERY_GOOD: {0, 1},  # clear / mainly clear
-    WeatherClass.NEUTRAL: {2, 3, 71},  # cloudy, slight snowfall
-    WeatherClass.BAD: {
-        45,  # fog
-        48,  # depositing rime fog
+    # snowfall is not bad in itself: it counts as fresh snow on the next days and
+    # as low visibility on the day itself
+    WeatherClass.NEUTRAL: {
+        2,  # partly cloudy
+        3,  # overcast
+        71,  # slight snowfall
         73,  # moderate snowfall
         75,  # heavy snowfall
         77,  # snow grains
         85,  # slight snow showers
+        86,  # heavy snow showers
+    },
+    # fog: visibility covers it for 5 days, the code is the only hint after that
+    WeatherClass.BAD: {
+        45,  # fog
+        48,  # depositing rime fog
     },
     WeatherClass.NO_GO: {
         51,  # drizzle
@@ -38,7 +46,6 @@ _CLASSES: dict[WeatherClass, set[int]] = {
         80,  # rain showers
         81,  # rain showers
         82,  # rain showers
-        86,  # heavy snow showers
         95,  # thunderstorm
         96,  # thunderstorm with slight hail
         97,  # thunderstorm
