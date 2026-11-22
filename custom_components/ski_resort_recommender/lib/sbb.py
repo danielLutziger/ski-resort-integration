@@ -109,9 +109,11 @@ def _connection(c: dict) -> Connection:
 def _leg(section: dict) -> Leg:
     """One ride: line (category + number), train number, stations, times."""
     journey = section["journey"]
-    is_train = journey["category"] not in NO_TRAIN_NUMBER
+    category = journey["category"]
+    # trains only: buses, lifts and rides without a category have trip ids
+    is_train = bool(category) and category not in NO_TRAIN_NUMBER
     return Leg(
-        line=f"{journey['category']} {journey['number']}".strip(),
+        line=" ".join(part for part in (category, journey["number"]) if part),
         train_number=(journey["name"].lstrip("0") or None) if is_train else None,
         departure_station=section["departure"]["station"]["name"],
         departure=_time(section["departure"]["departure"]),

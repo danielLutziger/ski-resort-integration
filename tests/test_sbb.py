@@ -5,7 +5,7 @@ from dataclasses import replace
 from datetime import date, time
 from pathlib import Path
 
-from custom_components.ski_resort_recommender.lib.sbb import _parse, _pick
+from custom_components.ski_resort_recommender.lib.sbb import _leg, _parse, _pick
 from custom_components.ski_resort_recommender.lib.settings import Settings
 
 FIXTURE = Path(__file__).parent / "fixtures" / "sbb_connections.json"
@@ -84,3 +84,14 @@ def test_pick_ignores_night_trips_before_departure_earliest() -> None:
     assert without_limit is not None
     assert f"{without_limit.departure:%H:%M}" == "01:05"  # arrives 06:31
     assert with_limit is None  # 04:18 -> 07:01 also leaves before 05:00
+
+
+def test_leg_without_category_has_no_none_in_its_line() -> None:
+    """Some lifts (e.g. Unterterzen-Flumserberg gondola) come without a category."""
+    section = json.loads(FIXTURE.read_text())["connections"][-1]["sections"][0]
+    section["journey"] = {**section["journey"], "category": None, "number": "2790"}
+
+    leg = _leg(section)
+
+    assert leg.line == "2790"
+    assert leg.train_number is None  # not a known train category
