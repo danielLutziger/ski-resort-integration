@@ -9,14 +9,14 @@ python -m scripts.try_forecast [--from STATION] [--all]
 import argparse
 import asyncio
 from dataclasses import replace
-from datetime import date
+from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import aiohttp
 
 from custom_components.ski_resort_recommender.lib.pipeline import (
-    TravelCache,
+    Cache,
     build_recommendations,
 )
 from custom_components.ski_resort_recommender.lib.resorts import load_resorts
@@ -39,14 +39,14 @@ async def main() -> None:
             settings, allowed_weekdays=frozenset(range(7)), max_results=200
         )
     resorts = load_resorts(Path("custom_components/ski_resort_recommender/resorts"))
-    today = date.today()  # noqa: DTZ011
+    now = datetime.now().astimezone()
     async with aiohttp.ClientSession() as session:
         result = await build_recommendations(
             session,
             resorts,
             settings,
-            today=today,
-            cache=TravelCache(),
+            now=now,
+            cache=Cache(),
             connections_for=5,
         )
 
