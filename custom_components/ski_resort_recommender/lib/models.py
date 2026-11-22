@@ -34,11 +34,15 @@ class DayForecast:
     day: date
     temp_min_c: float | None
     temp_max_c: float | None
-    snowfall_cm: float | None
+    snowfall_cm: float | None  # snowfall of the whole day
     sunshine_hours: float | None
-    wind_max_kmh: float | None
-    weather_code: int | None
-    visibility_m: float | None
+    daylight_hours: float | None
+    weather_code: int | None  # daily code = most severe condition of the day
+    # hourly values reduced to one per day
+    visibility_m: float | None  # median over the ski hours (DWD only)
+    temp_ski_c: float | None  # mean over the ski hours
+    gust_max_kmh: float | None  # max gust over the ski hours
+    fresh_snow_cm: float | None  # snowfall in the 48 h before opening
 
     @property
     def has_data(self) -> bool:

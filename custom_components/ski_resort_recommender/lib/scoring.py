@@ -22,16 +22,13 @@ class DayScore:
 
 
 def score_day(day: DayForecast, scoring: ScoringSettings | None = None) -> DayScore:
-    """Score one day at one resort from 0 (skip) to 100 (perfect)."""
+    """Score one day at one resort from 0 (skip) to 100 (bluebird powder day)."""
     s = scoring or ScoringSettings()
-    sun = min((day.sunshine_hours or 0) / s.sun_full_hours, 1.0) * s.sun_points
-    snow = min((day.snowfall_cm or 0) / s.snow_full_cm, 1.0) * s.snow_points
-    wind_over = max((day.wind_max_kmh or 0) - s.wind_limit_kmh, 0.0)
-    wind = -wind_over / s.wind_penalty_step_kmh * s.wind_penalty
     reasons = {
-        "sun": sun,
-        "snow": snow,
-        "wind": wind,
+        "sun": _sun_points(day, s),
+        "snow": _ramp(day.fresh_snow_cm or 0, 0, s.snow_full_cm) * s.snow_points,
+        "wind": -_ramp(day.gust_max_kmh or 0, s.gust_limit_kmh, s.gust_full_kmh)
+        * s.wind_penalty,
         "temp": _temp_points(day, s),
         "weather": _weather_points(day, s),
         "visibility": _visibility_points(day, s),
@@ -52,15 +49,27 @@ def combine_scores(weighted: list[tuple[float, DayScore]]) -> DayScore:
     return DayScore(total, reasons=reasons)
 
 
-def _temp_points(day: DayForecast, s: ScoringSettings) -> float:
-    """Points for the max temperature: good band, ok, or slush."""
-    if day.temp_max_c is None:
+def _ramp(value: float, start: float, full: float) -> float:
+    """0 up to start, 1 from full, linear in between."""
+    return min(max((value - start) / (full - start), 0.0), 1.0)
+
+
+def _sun_points(day: DayForecast, s: ScoringSettings) -> float:
+    """Sunshine as a share of the daylight; full points from sun_full_share."""
+    if not day.sunshine_hours or not day.daylight_hours:
         return 0.0
-    if s.temp_good_min_c <= day.temp_max_c <= s.temp_good_max_c:
-        return s.temp_good_points
-    if day.temp_max_c > s.temp_slush_c:  # slush... we dislike slush
-        return s.temp_slush_points
-    return s.temp_ok_points
+    share = day.sunshine_hours / day.daylight_hours
+    return _ramp(share, 0, s.sun_full_share) * s.sun_points
+
+
+def _temp_points(day: DayForecast, s: ScoringSettings) -> float:
+    """Penalty for slush (growing) or deep cold; unknown temperature is neutral."""
+    if day.temp_ski_c is None:
+        return 0.0
+    if day.temp_ski_c < s.temp_cold_c:
+        return -s.temp_cold_penalty
+    slush = _ramp(day.temp_ski_c, s.temp_slush_start_c, s.temp_slush_full_c)
+    return -slush * s.temp_slush_penalty
 
 
 def _weather_points(day: DayForecast, s: ScoringSettings) -> float:
@@ -77,7 +86,6 @@ def _visibility_points(day: DayForecast, s: ScoringSettings) -> float:
     """Penalty for fog / flat light; unknown visibility counts as neutral."""
     if day.visibility_m is None:
         return 0.0
-    share_bad = (s.visibility_good_m - day.visibility_m) / (
-        s.visibility_good_m - s.visibility_bad_m
-    )
-    return -min(max(share_bad, 0.0), 1.0) * s.visibility_penalty
+    # ramp from good (no penalty) down to bad (full penalty)
+    share_bad = _ramp(-day.visibility_m, -s.visibility_good_m, -s.visibility_bad_m)
+    return -share_bad * s.visibility_penalty
