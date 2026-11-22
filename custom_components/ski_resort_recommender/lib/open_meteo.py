@@ -99,13 +99,18 @@ def _parse_daily(d: dict, visibility: dict[date, float]) -> list[DayForecast]:
             temp_min_c=d["temperature_2m_min"][i],
             temp_max_c=d["temperature_2m_max"][i],
             snowfall_cm=d["snowfall_sum"][i],
-            sunshine_hours=(d["sunshine_duration"][i] or 0) / 3600,  # api gives seconds
+            sunshine_hours=_seconds_to_hours(d["sunshine_duration"][i]),
             wind_max_kmh=d["wind_speed_10m_max"][i],
             weather_code=d["weather_code"][i],
             visibility_m=visibility.get(day),
         )
         for i, day in enumerate(days)
     ]
+
+
+def _seconds_to_hours(seconds: float | None) -> float | None:
+    """Convert the API's sunshine seconds; keep None (no forecast) as None."""
+    return None if seconds is None else seconds / 3600
 
 
 def _ski_hours_visibility(h: dict) -> dict[date, float]:
