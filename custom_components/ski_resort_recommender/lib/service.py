@@ -32,6 +32,11 @@ class Recommendation:
     is_good: bool
     point: WeatherPoint  # best point of the resort on that day
     connection: Connection | None = None  # morning train, None = none found
+    tags: tuple[str, ...] = ()  # e.g. SNOW_N_RAIL_TAG
+
+
+# resort has an SBB Snow'n'Rail offer (per-day availability: issue #19)
+SNOW_N_RAIL_TAG = "snow-n-rail"
 
 
 class RecommendationStatus(StrEnum):
@@ -116,7 +121,10 @@ def pick_recommendations(  # noqa: PLR0913 (optional keyword-only inputs)
                 "price": price_points.get(resort.key, 0.0),
             }
             recommendation = _recommend(resort, points, settings, extras)
-            target.append(replace(recommendation, connection=travel.get(resort.key)))
+            tags = (SNOW_N_RAIL_TAG,) if resort.snow_n_rail else ()
+            target.append(
+                replace(recommendation, connection=travel.get(resort.key), tags=tags)
+            )
     ranked.sort(key=lambda r: r.score.total, reverse=True)
     return RecommendationResult(
         tuple(ranked[: settings.max_results]),

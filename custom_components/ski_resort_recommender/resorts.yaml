@@ -3,6 +3,9 @@
   meteoswiss_point_id:
   station: Flims Dorf, Bergbahnen
   day_price_chf: 92
+  snow_n_rail:
+    offer: snownrail-flims-laax-falera
+    up_to_pct: 10
 #  price_api:
 #  https://api.pricenow.dev/api/booking/products/1190144/journey/validities?from=2027-01-01T00%3A00%3A00.000%2B01%3A00&to=2027-01-31T23%3A59%3A59.999%2B01%3A00&formState=%7B%22attributes%22%3A%7B%22duration%22%3A%221d%22%7D%2C%22allocation%22%3A%7B%22kind%22%3A%22persontype%22%2C%22values%22%3A%5B%7B%22kind%22%3A%22anonymous%22%2C%22personType%22%3A%22adult%22%2C%22quantity%22%3A1%7D%5D%7D%7D
 #  https://api.pricenow.dev/api/booking/products/1190144/journey/validities?from={YYYY-MM-DD}T00%3A00%3A00.000%2B01%3A00&to={YYYY-MM-DD}T23%3A59%3A59.999%2B01%3A00&formState=%7B%22attributes%22%3A%7B%22duration%22%3A%22{number_of_days}d%22%7D%2C%22allocation%22%3A%7B%22kind%22%3A%22persontype%22%2C%22values%22%3A%5B%7B%22kind%22%3A%22anonymous%22%2C%22personType%22%3A%22adult%22%2C%22quantity%22%3A1%7D%5D%7D%7D
@@ -39,6 +42,9 @@
   meteoswiss_point_id:
   station: Flumserberg, Tannenboden
   day_price_chf: 76
+  snow_n_rail:
+    offer: snownrail-flumserberg
+    up_to_pct: 30
   points:
     - name: Maschgenkamm
       lat: 47.0698
@@ -120,6 +126,9 @@
   meteoswiss_point_id:
   station: Andermatt
   day_price_chf: 99
+  snow_n_rail:
+    offer: snownrail-andermatt-sedrun-disentis
+    up_to_pct: 30
   points:
     - name: Gütsch
       lat: 46.6564
@@ -152,6 +161,9 @@
   meteoswiss_point_id:
   station: Engelberg, Titlisbahn
   day_price_chf: 78
+  snow_n_rail:
+    offer: snownrail-engelberg-titlis
+    up_to_pct: 30
   points:
     - name: Trübsee
       lat: 46.7932
@@ -179,6 +191,9 @@
   meteoswiss_point_id:
   station: Wangs Talstation Pizolbahnen
   day_price_chf: 74
+  snow_n_rail:
+    offer: snownrail-pizol
+    up_to_pct: 30
   points:
     - name: Pizolhütte
       lat: 46.9792
@@ -206,6 +221,9 @@
   meteoswiss_point_id:
   station: Davos Platz (Jakobshorn)
   day_price_chf: 87
+  snow_n_rail:
+    offer: snownrail-davos-klosters
+    up_to_pct: 10
   points:
     - name: Ischalp
       lat: 46.7868
@@ -265,6 +283,9 @@
   meteoswiss_point_id:
   station: Stöckalp
   day_price_chf: 69
+  snow_n_rail:
+    offer: snownrail-melchsee-frutt
+    up_to_pct: 30
   points:
     - name: Melchsee-Frutt
       lat: 46.7759
@@ -341,6 +362,9 @@
   meteoswiss_point_id:
   station: Scuol (pendicularas)
   day_price_chf: 69
+  snow_n_rail:
+    offer: snownrail-scuol-motta-naluns
+    up_to_pct: 10
   points:
     - name: Motta Naluns
       lat: 46.8109
@@ -454,6 +478,9 @@
   meteoswiss_point_id:
   station: Lenzerheide/Lai, Rothornbahn
   day_price_chf: 89
+  snow_n_rail:
+    offer: snownrail-arosa-lenzerheide
+    up_to_pct: 10
   points:
     - name: Scharmoin
       lat: 46.7428
@@ -513,6 +540,9 @@
   meteoswiss_point_id:
   station: Adelboden Oey (Sillerenbahn)
   day_price_chf: 80
+  snow_n_rail:
+    offer: snownrail-adelboden-lenk
+    up_to_pct: 20
   points:
     - name: Hahnenmoos
       lat: 46.4533
@@ -545,6 +575,9 @@
   meteoswiss_point_id:
   station: Grindelwald Terminal
   day_price_chf: 83
+  snow_n_rail:
+    offer: snownrail-jungfrau-ski-region
+    up_to_pct: 10
   points:
     - name: Kleine Scheidegg
       lat: 46.5868
@@ -577,6 +610,9 @@
   meteoswiss_point_id:
   station: Le Châble VS
   day_price_chf: 94
+  snow_n_rail:
+    offer: snownrail-4-vallees
+    up_to_pct: 30
   points:
     - name: Les Ruinettes
       lat: 46.0912
@@ -609,6 +645,9 @@
   meteoswiss_point_id:
   station: Crans-Montana, télé Cry d'Er
   day_price_chf: 94
+  snow_n_rail:
+    offer: snownrail-crans-montana
+    up_to_pct: 10
   points:
     - name: Cry d'Er
       lat: 46.3343

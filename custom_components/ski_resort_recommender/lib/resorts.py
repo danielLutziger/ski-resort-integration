@@ -4,7 +4,11 @@ from typing import TYPE_CHECKING
 
 import yaml
 
-from custom_components.ski_resort_recommender.lib.models import Resort, WeatherPoint
+from custom_components.ski_resort_recommender.lib.models import (
+    Resort,
+    SnowRailOffer,
+    WeatherPoint,
+)
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -25,4 +29,6 @@ def _resort(entry: dict) -> Resort:
     if not 1 <= len(points) <= MAX_POINTS or len(set(names)) != len(names):
         msg = f"{entry['key']}: needs 1-{MAX_POINTS} points with unique names"
         raise ValueError(msg)
-    return Resort(**entry, points=points)
+    offer = entry.pop("snow_n_rail", None)
+    snow_n_rail = SnowRailOffer(**offer) if offer else None
+    return Resort(**entry, points=points, snow_n_rail=snow_n_rail)

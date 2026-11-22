@@ -15,6 +15,19 @@ class WeatherPoint:
     weight: float = 1.0  # share in the resort's weighted average
 
 
+@dataclass(frozen=True, slots=True)
+class SnowRailOffer:
+    """SBB Snow'n'Rail offer (train + ski pass); availability is not checked yet."""
+
+    offer: str  # slug of the SBB RailAway story, e.g. "snownrail-pizol"
+    up_to_pct: int  # maximum discount as advertised
+
+    @property
+    def url(self) -> str:
+        """SBB RailAway page of the offer."""
+        return f"https://freizeit.sbb.ch/en/stories/{self.offer}"
+
+
 @dataclass(frozen=True)
 class Resort:
     """Every resort follows the same logic."""
@@ -25,6 +38,7 @@ class Resort:
     meteoswiss_point_id: int | None
     station: str  # train connection (base station)
     day_price_chf: float | None
+    snow_n_rail: SnowRailOffer | None = None
 
 
 @dataclass(frozen=True, slots=True)

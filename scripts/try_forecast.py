@@ -80,6 +80,8 @@ def print_line(r: Recommendation) -> None:
         f"{r.day.day:%a %d.%m}  {r.resort.name:<26} {r.point.name:<18} "
         f"{r.score.total:5.1f}  {'GOOD' if r.is_good else '----'}  {reasons}"
     )
+    if offer := r.resort.snow_n_rail:
+        print(f"      [{', '.join(r.tags)}] up to {offer.up_to_pct} % - {offer.url}")
     if c := r.connection:
         legs = ", ".join(
             f"{leg.line}"

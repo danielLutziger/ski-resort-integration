@@ -9,10 +9,12 @@ from custom_components.ski_resort_recommender.lib.models import (
     DayForecast,
     Forecasts,
     Resort,
+    SnowRailOffer,
     WeatherPoint,
 )
 from custom_components.ski_resort_recommender.lib.scoring import score_day
 from custom_components.ski_resort_recommender.lib.service import (
+    SNOW_N_RAIL_TAG,
     RecommendationResult,
     RecommendationStatus,
     attach_connections,
@@ -587,3 +589,16 @@ def test_travel_and_price_count_towards_a_good_day() -> None:
 
     good = {r.resort.key: r.is_good for r in result.recommendations}
     assert good == {"near": True, "far": False}
+
+
+def test_resorts_with_a_snow_n_rail_offer_get_the_tag() -> None:
+    """Tag "snow-n-rail" for resorts with an offer (availability: issue #19)."""
+    offer = SnowRailOffer(offer="snownrail-pizol", up_to_pct=30)
+    resorts = [replace(make_resort("pizol"), snow_n_rail=offer), make_resort("other")]
+    forecasts = {k: {MAIN: [make_day(SATURDAY)]} for k in ("pizol", "other")}
+
+    result = pick_recommendations(resorts, forecasts, SETTINGS, today=TODAY)
+
+    tags = {r.resort.key: r.tags for r in result.recommendations}
+    assert tags == {"pizol": (SNOW_N_RAIL_TAG,), "other": ()}
+    assert SNOW_N_RAIL_TAG == "snow-n-rail"

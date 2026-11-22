@@ -230,7 +230,8 @@ and imports so that the integration still loads and tests/ruff stay green.
 
 ## Next steps (suggested order)
 
-1. Live ticket prices (issue #17). Static prices and the relative price score are done.
+1. Live ticket prices (issue #17) and the per-day Snow'n'Rail availability (issue #19). Static prices,
+   the relative price score and the static `snow-n-rail` tag are done.
 2. Coordinator (hourly poll, `UpdateFailed`), sensor (state = headline, attributes = recommendations incl.
    connection), config flow (weekdays, number of results, min score, scoring weights, home station,
    arrival window), then a Markdown dashboard card. Cache the SBB travel times (once a day).
@@ -268,6 +269,12 @@ and imports so that the integration still loads and tests/ruff stay green.
   Arosa Lenzerheide 89, Saas-Fee 84, Adelboden-Lenk 80 (no official individual list; group rate 68),
   Grindelwald-Wengen 83, Verbier 4 Vallées 94 (official), Crans-Montana 94 (desk), Hoch-Ybrig 62.
   Live prices: issue #17 (pricenow etc. are private booking APIs: only with permission).
+- Snow'n'Rail (SBB RailAway train + ski pass): `Resort.snow_n_rail` (offer slug + "up to" discount) in
+  `resorts.yaml`; recommendations of such resorts get the tag `snow-n-rail` (`SNOW_N_RAIL_TAG`). The
+  discounted tickets are limited per month (discount steps down, then none); the per-day availability check
+  is issue #19 (no public API; the RailAway shop API is private -> only with SBB's permission). Offers
+  2026/27 from skiboard.ch / deinskigebiet.ch; Andermatt Gemsstock left out (not named in the ASD offer),
+  Davos Jakobshorn 10 % (sources say 10 or 30 %).
 - SBB: `https://transport.opendata.ch/v1/connections` (free, no key, no rate-limit headers; keep calls
   few, `MAX_PARALLEL` 4). `journey.name` is the train number for trains, an internal trip id for buses.
   Not in the Swiss timetable: Ischgl (station left empty). St. Anton returned no plausible morning
