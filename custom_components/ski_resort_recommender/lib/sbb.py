@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from custom_components.ski_resort_recommender.lib.settings import Settings
 
 URL = "https://transport.opendata.ch/v1/connections"
+LOCATIONS_URL = "https://transport.opendata.ch/v1/locations"
 LIMIT = 6  # connections arriving before arrival_latest, enough to cover the window
 MAX_PARALLEL = 4  # be gentle with the free API
 # not trains: their journey "name" is an internal trip id, not a train number
@@ -82,6 +83,23 @@ class SbbProvider:
             ):
                 raise result
         return found
+
+
+async def find_stations(session: aiohttp.ClientSession, query: str) -> list[str]:
+    """Station names matching query (for checking the home station in the form)."""
+    params = {"query": query, "type": "station"}
+    try:
+        async with session.get(
+            LOCATIONS_URL, params=params, timeout=aiohttp.ClientTimeout(total=10)
+        ) as response:
+            response.raise_for_status()
+            payload = await response.json()
+    except (aiohttp.ClientError, TimeoutError) as error:
+        raise SkiApiConnectionError(str(error)) from error
+    try:
+        return [station["name"] for station in payload["stations"]]
+    except (KeyError, TypeError) as error:
+        raise SkiApiParseError(str(error)) from error
 
 
 def _parse(payload: dict) -> list[Connection]:

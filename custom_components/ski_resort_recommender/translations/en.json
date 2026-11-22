@@ -2,11 +2,43 @@
     "config": {
         "step": {
             "user": {
-                "description": "Add the Ski Resort Recommender. Weekdays, number of results and scoring can be changed later in the options."
+                "description": "Add the Ski Resort Recommender. Afterwards, set your home station, ski days and the other settings with **Configure**."
             }
         },
         "abort": {
             "single_instance_allowed": "The Ski Resort Recommender is already set up."
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Ski Resort Recommender settings",
+                "description": "Train connections come from the SBB timetable (transport.opendata.ch), the weather from Open-Meteo.",
+                "data": {
+                    "home_station": "Home station",
+                    "weekdays": "Ski days",
+                    "max_results": "Number of recommendations",
+                    "min_good_score": "Minimum score for a good day",
+                    "arrival_earliest": "Arrive at the gondola from",
+                    "arrival_target": "Preferred arrival",
+                    "arrival_latest": "Arrive at the gondola until",
+                    "weather_interval_hours": "Weather update interval"
+                },
+                "data_description": {
+                    "home_station": "Your train station as in the SBB timetable, e.g. Zürich HB. Leave empty for no train connections.",
+                    "weekdays": "Only these weekdays are recommended.",
+                    "max_results": "How many days are shown (an outlook for days 6-7 comes on top).",
+                    "min_good_score": "Days with at least this score (0-100) count as good.",
+                    "arrival_target": "The connection arriving closest to this time wins.",
+                    "weather_interval_hours": "Open-Meteo is asked at most this often. Raise it if the weather service rate-limits."
+                }
+            }
+        },
+        "error": {
+            "station_not_found": "Station not found in the SBB timetable. Did you mean: {suggestions}",
+            "arrival_window": "The arrival times must be in order: from <= preferred <= until.",
+            "no_weekday": "Choose at least one ski day.",
+            "cannot_connect": "The SBB timetable could not be reached to check the station. Try again later."
         }
     }
 }
