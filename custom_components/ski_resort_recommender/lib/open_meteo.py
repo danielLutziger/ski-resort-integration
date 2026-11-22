@@ -45,6 +45,10 @@ HOURLY = [
 # DWD ICON fills what MeteoSwiss lacks: daily values after today + 4 (MeteoSwiss
 # horizon) and hourly visibility (metres, about 5 days; MeteoSwiss has none).
 FALLBACK_MODEL = "icon_seamless"
+# DWD forecasts far too much sun in the Alps. Checked 22.11.2026 against measured
+# sunshine at 12 SwissMetNet mountain stations (30 days): DWD 5 days ahead = 1.72x the
+# measurement, MeteoSwiss = 1.05x. DWD days therefore get sunshine * 1 / 1.72.
+DWD_SUN_FACTOR = 0.6
 SKI_HOURS = range(9, 17)  # hourly values from 09:00 to 16:00 local time
 # fresh snow and rain (icy slope) count in this window before the lifts open
 BEFORE_OPENING = timedelta(hours=48)
@@ -124,7 +128,7 @@ def _combine(
             visibility = _ski_hours(dwd_loc["hourly"], "visibility", median)
             forecasts[resort.key][point.name] = _merge(
                 _parse_location(ms_loc, visibility),
-                _parse_location(dwd_loc, visibility),
+                _parse_location(dwd_loc, visibility, sun_factor=DWD_SUN_FACTOR),
             )
     except (KeyError, IndexError, TypeError, ValueError) as error:
         raise SkiApiParseError(str(error)) from error
@@ -138,7 +142,9 @@ def _merge(meteoswiss: list[DayForecast], dwd: list[DayForecast]) -> list[DayFor
     return sorted(by_day.values(), key=lambda day: day.day)
 
 
-def _parse_location(loc: dict, visibility: dict[date, float]) -> list[DayForecast]:
+def _parse_location(
+    loc: dict, visibility: dict[date, float], *, sun_factor: float = 1.0
+) -> list[DayForecast]:
     """Daily values plus the ski-hours values of one location and one model."""
     h = loc["hourly"]
     temp_ski = _ski_hours(h, "temperature_2m", mean)
@@ -151,6 +157,9 @@ def _parse_location(loc: dict, visibility: dict[date, float]) -> list[DayForecas
     return [
         replace(
             day,
+            sunshine_hours=None
+            if day.sunshine_hours is None
+            else day.sunshine_hours * sun_factor,
             temp_ski_c=temp_ski.get(day.day),
             gust_max_kmh=gust_max.get(day.day),
             fresh_snow_cm=fresh_snow.get(day.day),

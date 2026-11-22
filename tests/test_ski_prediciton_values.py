@@ -294,7 +294,3 @@ def test_bluebird_day_on_covered_ice_is_still_the_top() -> None:
     )
 
     assert score_day(day, SCORING).total == 85
-
-
-# test ideas:
-# good vision bad weather > high wind speed + slush
