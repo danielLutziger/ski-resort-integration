@@ -104,3 +104,21 @@ def test_combine_matches_both_responses_to_resorts_by_position() -> None:
 
     assert list(forecasts) == ["a", "b"]
     assert len(forecasts["a"]) == len(daily[0]["daily"]["time"])
+
+
+def test_days_beyond_the_model_horizon_have_no_data() -> None:
+    """All-None days from the API stay None, so the service can skip them."""
+    daily = {
+        "time": ["2026-11-27"],
+        "temperature_2m_min": [None],
+        "temperature_2m_max": [None],
+        "snowfall_sum": [None],
+        "sunshine_duration": [None],
+        "wind_speed_10m_max": [None],
+        "weather_code": [None],
+    }
+
+    (day,) = _parse_daily(daily, {})
+
+    assert day.sunshine_hours is None
+    assert day.has_data is False
