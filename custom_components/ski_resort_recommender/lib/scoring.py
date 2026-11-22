@@ -1,36 +1,18 @@
 from dataclasses import dataclass
 
+from custom_components.ski_resort_recommender.lib.weather_codes import (
+    WeatherClass,
+    classify,
+)
+
 from .models import DayForecast
 
-# bad weather codes according to documentation
-# https://open-meteo.com/en/docs
-WEATHER_CODES = {
-    "very_good": [
-        0,  # clear sky
-        1,  # mainly clear
-    ],
-    "good": [
-        2,  # partly cloudy
-        3,  # overcast
-        71,  # slight snowfall
-    ],
-    "bad": [
-        45,  # fog (cant see.)
-        *range(73, 78),  # snowfall in general
-        85,  # slight snow showers
-    ],
-    "nogo": [
-        *range(50, 68),  # rain in different variants
-        *range(80, 83),  # heavy rain showers
-        *range(86, 100),  # heavy snowshowers and thunderstorm
-    ],
+_WEATHER_POINTS = {
+    WeatherClass.VERY_GOOD: 0.0,
+    WeatherClass.NEUTRAL: 0.0,
+    WeatherClass.BAD: -15.0,
+    WeatherClass.NO_GO: -50.0,
 }
-# TODO: we also need vision scores (how far can you see - more important than weather)
-_BAD_CODES = {
-    *range(51, 68),
-    *range(80, 83),
-    *range(95, 100),
-}  # rain, showers, thunderstorm
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,7 +33,9 @@ def score_day(day: DayForecast) -> DayScore:
         -max(((day.wind_max_kmh or 0) - 30) / 30, 0.0) * 25
     )  # wind gets 30 points (30kmh wind is ok - this is for the village, on the mountains itself up to 60 would be ok)
     temp = _temp_points(day)
-    weather = -50 if day.weather_code in _BAD_CODES else 0.0
+
+    # TODO: one resort multiple weather points, so weather needs a different scoring
+    weather = _WEATHER_POINTS[classify(day.weather_code)]
     reasons = {"sun": sun, "snow": snow, "wind": wind, "temp": temp, "weather": weather}
     total = max(0.0, sum(reasons.values()))
     return DayScore(total, reasons=reasons)

@@ -3,27 +3,19 @@
   lat: 46.8383
   lon: 9.2103
   meteoswiss_point_id:
-  station: Chur
+  station: Flims Dorf, Bergbahnen
   day_price_chf: 99
-  price_api:
-  https://api.pricenow.dev/api/booking/products/1190144/journey/validities?from=2027-01-01T00%3A00%3A00.000%2B01%3A00&to=2027-01-31T23%3A59%3A59.999%2B01%3A00&formState=%7B%22attributes%22%3A%7B%22duration%22%3A%221d%22%7D%2C%22allocation%22%3A%7B%22kind%22%3A%22persontype%22%2C%22values%22%3A%5B%7B%22kind%22%3A%22anonymous%22%2C%22personType%22%3A%22adult%22%2C%22quantity%22%3A1%7D%5D%7D%7D
-  https://api.pricenow.dev/api/booking/products/1190144/journey/validities?from={YYYY-MM-DD}T00%3A00%3A00.000%2B01%3A00&to={YYYY-MM-DD}T23%3A59%3A59.999%2B01%3A00&formState=%7B%22attributes%22%3A%7B%22duration%22%3A%22{number_of_days}d%22%7D%2C%22allocation%22%3A%7B%22kind%22%3A%22persontype%22%2C%22values%22%3A%5B%7B%22kind%22%3A%22anonymous%22%2C%22personType%22%3A%22adult%22%2C%22quantity%22%3A1%7D%5D%7D%7D
-  uuid: e3570742-351d-420b-8f86-ab31a1363e10
-
-- key: flims_laax_peak
-  name: Flims Laax Crap Sogn Gion
-  lat: 46.8383
-  lon: 9.2103
-  meteoswiss_point_id:
-  station: Chur
-  day_price_chf: 99
+#  price_api:
+#  https://api.pricenow.dev/api/booking/products/1190144/journey/validities?from=2027-01-01T00%3A00%3A00.000%2B01%3A00&to=2027-01-31T23%3A59%3A59.999%2B01%3A00&formState=%7B%22attributes%22%3A%7B%22duration%22%3A%221d%22%7D%2C%22allocation%22%3A%7B%22kind%22%3A%22persontype%22%2C%22values%22%3A%5B%7B%22kind%22%3A%22anonymous%22%2C%22personType%22%3A%22adult%22%2C%22quantity%22%3A1%7D%5D%7D%7D
+#  https://api.pricenow.dev/api/booking/products/1190144/journey/validities?from={YYYY-MM-DD}T00%3A00%3A00.000%2B01%3A00&to={YYYY-MM-DD}T23%3A59%3A59.999%2B01%3A00&formState=%7B%22attributes%22%3A%7B%22duration%22%3A%22{number_of_days}d%22%7D%2C%22allocation%22%3A%7B%22kind%22%3A%22persontype%22%2C%22values%22%3A%5B%7B%22kind%22%3A%22anonymous%22%2C%22personType%22%3A%22adult%22%2C%22quantity%22%3A1%7D%5D%7D%7D
+#  uuid: e3570742-351d-420b-8f86-ab31a1363e10
 
 - key: flumserberg
   name: Flumserberg
   lat: 47.0923
   lon: 9.2806
   meteoswiss_point_id:
-  station: Tannenboden
+  station: Flumserberg, Tannenboden
   day_price_chf: 72
 
 - key: zermatt
@@ -34,6 +26,115 @@
   station: Zermatt
   day_price_chf: 120
 
+- key: andermatt
+  name: Andermatt
+  lat: 46.632894
+  lon: 8.594822
+  meteoswiss_point_id: null
+  station: Andermatt Gemsstock
+  day_price_chf:
 
+- key: andermatt_sedrun_disentis
+  name: Andermatt Sedrun Disentis
+  lat: 46.679996
+  lon: 8.774718
+  meteoswiss_point_id: null
+  station: Andermatt
+  day_price_chf:
 
+- key: engelberg
+  name: Engelberg Titlis
+  lat: 46.4620
+  lon: 8.2616
+  meteoswiss_point_id: null
+  station: Engelberg, Titlisbahn
+  day_price_chf:
+
+- key: pizol
+  name: Pizol
+  lat: 46.95917
+  lon: 9.38675
+  meteoswiss_point_id: null
+  station: Wangs Talstation Pizolbahnen
+  day_price_chf:
+
+- key: davos_jackobshorn
+  name: Davos Jackobshorn
+  lat: 46.4620
+  lon: 9.5056
+  meteoswiss_point_id: null
+  station: Davos Platz (Jakobshorn)
+  day_price_chf:
+
+- key: davos_parsenn
+  name: Davos Klosters Parsenn
+  lat: 46.501594
+  lon: 9.474054
+  meteoswiss_point_id: null
+  station: Klosters Dorf, Bahnhof
+  day_price_chf:
+
+- key: melchsee_frutt
+  name: Melchsee Frutt
+  lat: 46.7733
+  lon: 8.2683
+  meteoswiss_point_id: null
+  station:
+  day_price_chf:
+
+- key: st_moritz_corviglia
+  name: St. Moritz Corviglia
+  lat: 46.508
+  lon: 9.819
+  meteoswiss_point_id: null
+  station: St. Moritz (Standseilbahn)
+  day_price_chf:
+
+- key: st_moritz_corvatsch
+  name: St. Moritz Corvatsch
+  lat: 46.42
+  lon: 9.82
+  meteoswiss_point_id: null
+  station: St. Moritz, Corvatsch, Via Tegiatscha
+  day_price_chf:
+
+- key: scuol
+  name: Scuol
+  lat: 46.7969
+  lon: 10.2977
+  meteoswiss_point_id: null
+  station: Scuol (pendicularas)
+  day_price_chf: 80
+
+- key: samnaun
+  name: Samnaun
+  lat: 46.5638
+  lon: 10.2138
+  meteoswiss_point_id: null
+  station: Samnaun
+  day_price_chf: 100
+
+- key: ischgl
+  name: Ischgl
+  lat: 47.0131
+  lon: 10.2881
+  meteoswiss_point_id: null
+  station: Ischgl, Silvrettabahn
+  day_price_chf: 100
+
+- key: st_anton
+  name: St. Anton
+  lat: 47.1296
+  lon: 10.2682
+  meteoswiss_point_id: null
+  station: St. Anton am Arlberg
+  day_price_chf: 100
+
+- key: arosa_lenzerheide
+  name: Arosa Lenzerheide
+  lat: 46.726963
+  lon: 9.557741
+  meteoswiss_point_id: null
+  station: Lenzerheide/Lai, Rothornbahn
+  day_price_chf: 100
 

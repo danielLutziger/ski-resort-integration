@@ -28,3 +28,12 @@ class DayForecast:
     sunshine_hours: float | None
     wind_max_kmh: float | None
     weather_code: int | None
+    vision: int | None
+
+    @property
+    def has_data(self) -> bool:
+        """Return True if the forecast has usable values (False beyond the model horizon)."""
+        return any(
+            value is not None
+            for value in (self.weather_code, self.sunshine_hours, self.temp_max_c)
+        )

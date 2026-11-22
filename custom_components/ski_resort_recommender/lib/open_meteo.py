@@ -26,7 +26,7 @@ class OpenMeteoProvider:  # noqa: D101
         self._session = session
 
     async def get_forecast(
-        self, resorts: list[Resort], days: int = 7
+        self, resorts: list[Resort], days: int = 10
     ) -> dict[str, list[DayForecast]]:
         """Get the weather forecast for the list of ski resorts in our data."""
         params = {
@@ -72,6 +72,7 @@ def _parse_daily(d: dict) -> list[DayForecast]:
             sunshine_hours=(d["sunshine_duration"][i] or 0) / 3600,  # api gives seconds
             wind_max_kmh=d["wind_speed_10m_max"][i],
             weather_code=d["weather_code"][i],
+            vision=None,
         )
         for i in range(len(d["time"]))
     ]

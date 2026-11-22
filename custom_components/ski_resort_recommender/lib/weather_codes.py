@@ -1,5 +1,9 @@
 from enum import StrEnum
 
+# bad weather codes according to documentation
+# https://open-meteo.com/en/docs
+# TODO: we also need vision scores (how far can you see - more important than weather)
+
 
 class WeatherClass(StrEnum):
     VERY_GOOD = "very_good"
