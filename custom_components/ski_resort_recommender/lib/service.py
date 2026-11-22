@@ -20,6 +20,10 @@ from custom_components.ski_resort_recommender.lib.scoring import (
     with_reason,
 )
 from custom_components.ski_resort_recommender.lib.settings import Settings
+from custom_components.ski_resort_recommender.lib.weather_codes import (
+    WeatherIcon,
+    weather_icon,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -33,6 +37,7 @@ class Recommendation:
     point: WeatherPoint  # best point of the resort on that day
     connection: Connection | None = None  # morning train, None = none found
     tags: tuple[str, ...] = ()  # e.g. SNOW_N_RAIL_TAG
+    weather_icon: WeatherIcon = WeatherIcon.UNKNOWN  # over all points and ski hours
 
 
 # resort has an SBB Snow'n'Rail offer (per-day availability: issue #19)
@@ -148,9 +153,26 @@ def _recommend(
     is_good = score.total >= settings.min_good_score and not is_no_go(
         best_day, settings.scoring
     )
-    return Recommendation(
-        resort=resort, day=best_day, score=score, is_good=is_good, point=best_point
+    icon = weather_icon(
+        [
+            (point.weight, day.weather_codes_ski or _daily_code(day))
+            for point, day in points
+        ],
+        sun_share=_sun_share(points),
     )
+    return Recommendation(
+        resort=resort,
+        day=best_day,
+        score=score,
+        is_good=is_good,
+        point=best_point,
+        weather_icon=icon,
+    )
+
+
+def _daily_code(day: DayForecast) -> tuple[int, ...]:
+    """Fallback without hourly codes: the daily code (if any)."""
+    return () if day.weather_code is None else (day.weather_code,)
 
 
 def _relative_points(values: dict[str, float], points: float) -> dict[str, float]:
@@ -179,3 +201,15 @@ def attach_connections(
         tuple(attach(r) for r in result.recommendations),
         outlook=attach(result.outlook) if result.outlook else None,
     )
+
+
+def _sun_share(points: list[tuple[WeatherPoint, DayForecast]]) -> float | None:
+    """Weighted sunshine / daylight over the points (None without data)."""
+    shares = [
+        (point.weight, min(day.sunshine_hours / day.daylight_hours, 1.0))
+        for point, day in points
+        if day.sunshine_hours is not None and day.daylight_hours
+    ]
+    if not shares:
+        return None
+    return sum(w * share for w, share in shares) / sum(w for w, _ in shares)
