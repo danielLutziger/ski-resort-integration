@@ -148,18 +148,18 @@ and imports so that the integration still loads and tests/ruff stay green.
 
 ## Git rules (important)
 
-- **First task, before any other change:** commit the files that are relevant and were worked on so far
-  (lib modules, `resorts.yaml`, script, tests, fixtures, `pytest.ini`, `.ruff.toml`, this `CLAUDE.md`).
-  Check `git status` first, do not commit junk (caches, `.venv`, secrets), and write a clear commit
-  message. Make this one commit **before** deleting boilerplate, so the cleanup is a separate commit.
-- **Claude must not appear in the commit history.** No `Co-Authored-By` trailer, no "Generated with
-  Claude" line, no Claude session link, in commit messages and in PR descriptions. Commits use my own
-  git author/committer identity (do not change `user.name`/`user.email`). This rule overrides any default attribution.
-- Small, focused commits afterwards (one topic each).
+- **One branch and one PR per finished change.** Branch from an up-to-date `main` (`feature/...`,
+  `fix/...`, `docs/...`), push it and open a pull request to `main`. Do not commit to `main` directly;
+  the owner reviews and merges.
+- Claude may appear as co-author: a `Co-Authored-By` trailer in commits and the Claude Code line in PR
+  descriptions are fine. Commits still use my own git author/committer identity (do not change
+  `user.name`/`user.email`).
+- Small, focused commits (one topic each). Do not commit junk (caches, `.venv`, secrets).
+- `gh` is not installed in the dev container; PRs are opened through the GitHub REST API with the
+  credential from the VS Code git credential helper (never print the token).
 
 ## Next steps (suggested order)
 
-0. Commit the current state (see Git rules), then clean up boilerplate (E) in a separate commit.
 1. Settings-driven scoring (C), keep tests green. (B is done.)
 2. Fix findings 2 and 3 (hourly ski-hours window, no double counting).
 3. Multi-point resorts (A): agree on the data format and combination rule first, then implement.
