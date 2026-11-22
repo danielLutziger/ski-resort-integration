@@ -40,6 +40,7 @@ HOURLY = [
     "showers",
     "wind_gusts_10m",
     "weather_code",
+    "snow_depth",
 ]
 # DWD ICON fills what MeteoSwiss lacks: daily values after today + 4 (MeteoSwiss
 # horizon) and hourly visibility (metres, about 5 days; MeteoSwiss has none).
@@ -149,6 +150,7 @@ def _parse_location(
     temp_ski = _ski_hours(h, "temperature_2m", mean)
     gust_max = _ski_hours(h, "wind_gusts_10m", max)
     weather_codes = _ski_hours(h, "weather_code", tuple)
+    snow_depth = _ski_hours(h, "snow_depth", _at_opening_cm)
     fresh_snow = _before_opening(h, ("snowfall",))
     recent_rain = _before_opening(h, RAIN)
     snow_after_rain = _snow_after_rain(h)
@@ -162,6 +164,7 @@ def _parse_location(
             gust_max_kmh=gust_max.get(day.day),
             fresh_snow_cm=fresh_snow.get(day.day),
             weather_codes_ski=weather_codes.get(day.day, ()),
+            snow_depth_cm=snow_depth.get(day.day),
             recent_rain_mm=recent_rain.get(day.day),
             snow_after_rain_cm=snow_after_rain.get(day.day),
         )
@@ -213,6 +216,11 @@ def _ski_hours[T](
         if moment.hour in SKI_HOURS:
             per_day[moment.date()].append(value)
     return {day: aggregate(values) for day, values in per_day.items()}
+
+
+def _at_opening_cm(depths_m: list[float]) -> float:
+    """Snow depth at the first ski hour (09:00), converted from m to cm."""
+    return depths_m[0] * 100
 
 
 def _per_hour(h: dict, keys: tuple[str, ...]) -> dict[datetime, float]:

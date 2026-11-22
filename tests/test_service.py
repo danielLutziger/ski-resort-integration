@@ -92,6 +92,7 @@ def make_day(
         temp_ski_c=temp,
         gust_max_kmh=gust,
         fresh_snow_cm=snow,
+        snow_depth_cm=100,
         weather_codes_ski=hourly_codes,
         recent_rain_mm=rain,
     )
@@ -407,7 +408,7 @@ def test_outlook_alone_does_not_change_the_status() -> None:
 def test_scoring_settings_are_used_by_the_service() -> None:
     """pick_recommendations scores with settings.scoring."""
     forecasts = {"laax": [make_day(SATURDAY, sun=8)]}
-    doubled_sun = replace(SETTINGS, scoring=replace(SCORING, sun_points=90))
+    doubled_sun = replace(SETTINGS, scoring=replace(SCORING, sun_points=70))
 
     normal = pick([make_resort("laax")], forecasts, SETTINGS, today=TODAY)
     sunnier = pick([make_resort("laax")], forecasts, doubled_sun, today=TODAY)

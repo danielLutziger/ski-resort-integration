@@ -77,14 +77,17 @@ Done and tested (pytest green at last check):
 - Resort YAML loader; ~15 resorts in `resorts.yaml`; `scripts/try_forecast.py` prints the ranking.
 - `weather_codes.py` + coverage test; `scoring.py` + tests (rating review 22.11, see below); `service.py` + tests (weekday filter, future-only,
   max results, same resort twice, no-go never good, missing resort, status).
-- Rating review (done 22.11), max 100:
-  - sun 0..60: sunshine / daylight, full from 80 % (DWD reports ~24 % more sun than MeteoSwiss on the
+- Rating (22.11), weather part max 85; travel time 10 and price 5 follow (max 100):
+  - sun 0..40: sunshine / daylight, full from 80 % (DWD reports ~24 % more sun than MeteoSwiss on the
     same point-day; with the share both reach full points on clear days)
-  - fresh snow 0..40: snowfall in the 48 h before opening, full from 30 cm (bluebird day = 100)
+  - fresh snow 0..25: snowfall in the 48 h before opening, full from 30 cm
+  - snow depth 0..20: model snow depth at opening (09:00), 0 up to 20 cm, full from 1 m; counts all
+    season (both models have `snow_depth`; close to measured station depths)
   - wind 0..-30: max gust in ski hours, from 40 km/h, full at 80 km/h
   - temp 0..-20: mean in ski hours; -10 below -15 °C, slush penalty from +2 to +6 °C
   - weather: averaged over the ski hours; NO_GO (rain/freezing/thunder) -50, BAD (fog) -15, snowfall neutral
-  - visibility 0..-30 as before. A clear day without penalties = 60 = `min_good_score`.
+  - visibility 0..-30 as before. A clear day on a 1 m base without penalties = 60 = `min_good_score`;
+    on a thin base 40. Bluebird powder day on a good base = 85.
   - icy 0..-40: rain + showers (liquid, mm) in the 48 h before opening refreeze into an icy slope;
     no penalty up to 0.5 mm, full from 5 mm. Applies to every point (all points are ski-area
     stations; a village point would be the only place where rain is acceptable). Real data last 30
@@ -124,7 +127,8 @@ Not started: coordinator, sensor, config flow, dashboard card, ticket prices, tr
 4. **Elevation.** Temperature/precipitation come from the village coordinate. Add `elevation_m` to
    `Resort` (mid-station) and pass Open-Meteo's `elevation` parameter. Also consider hourly `snow_depth`
    (base matters more than fresh snow in early season).
-   Done 22.11: every weather point has `elevation_m`, passed to Open-Meteo. `snow_depth` still open.
+   Done 22.11: every weather point has `elevation_m`, passed to Open-Meteo. Snow depth added too (see the
+   rating below).
 5. Wind and temperature barely discriminate between resorts on the same day; they act as penalties/gates.
    Ranking is mostly sun + snow right now. That is expected in a dry November, tune again in season.
    22.11: wind now uses gusts (daily mean wind max was median 13 km/h, gusts up to 127 km/h).

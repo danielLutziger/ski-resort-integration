@@ -22,11 +22,12 @@ class DayScore:
 
 
 def score_day(day: DayForecast, scoring: ScoringSettings | None = None) -> DayScore:
-    """Score one day at one resort from 0 (skip) to 100 (bluebird powder day)."""
+    """Score the weather of one day at one point: 0 (skip) to 85 (bluebird day)."""
     s = scoring or ScoringSettings()
     reasons = {
         "sun": _sun_points(day, s),
         "snow": _ramp(day.fresh_snow_cm or 0, 0, s.snow_full_cm) * s.snow_points,
+        "depth": _depth_points(day, s),
         "wind": -_ramp(day.gust_max_kmh or 0, s.gust_limit_kmh, s.gust_full_kmh)
         * s.wind_penalty,
         "temp": _temp_points(day, s),
@@ -64,6 +65,12 @@ def combine_scores(weighted: list[tuple[float, DayScore]]) -> DayScore:
 def _ramp(value: float, start: float, full: float) -> float:
     """0 up to start, 1 from full, linear in between."""
     return min(max((value - start) / (full - start), 0.0), 1.0)
+
+
+def _depth_points(day: DayForecast, s: ScoringSettings) -> float:
+    """Snow on the ground (base): counts all season, unknown depth is 0."""
+    depth = _ramp(day.snow_depth_cm or 0, s.snow_depth_min_cm, s.snow_depth_full_cm)
+    return depth * s.snow_depth_points
 
 
 def _sun_points(day: DayForecast, s: ScoringSettings) -> float:

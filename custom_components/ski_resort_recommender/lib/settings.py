@@ -11,11 +11,16 @@ class ScoringSettings:
     """Weights and thresholds of score_day(); flat numbers for the HA options."""
 
     # sun: up to sun_points, full points from sun_full_share of the daylight
-    sun_points: float = 60
+    sun_points: float = 40
     sun_full_share: float = 0.8
     # fresh snow (48 h before opening): up to snow_points, full from snow_full_cm
-    snow_points: float = 40
+    snow_points: float = 25
     snow_full_cm: float = 30
+    # snow depth (base) at opening, all season: 0 up to snow_depth_min_cm, full
+    # snow_depth_points from snow_depth_full_cm
+    snow_depth_points: float = 20
+    snow_depth_min_cm: float = 20
+    snow_depth_full_cm: float = 100
     # gusts in ski hours: no penalty up to gust_limit_kmh, full wind_penalty from
     # gust_full_kmh (lifts start to close)
     gust_limit_kmh: float = 40
