@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -11,24 +10,18 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
-from .const import (
-    CONF_HOME_STATION,
-    CONF_WEATHER_INTERVAL_HOURS,
-    DEFAULT_WEATHER_INTERVAL_HOURS,
-    DOMAIN,
-    LOGGER,
-    UPDATE_INTERVAL,
-)
+from .const import DOMAIN, LOGGER, UPDATE_INTERVAL
 from .lib.errors import SkiApiError
+from .lib.options import settings_from_options
 from .lib.pipeline import Cache, build_recommendations
 from .lib.resorts import load_resorts
 from .lib.service import RecommendationResult
-from .lib.settings import Settings
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
     from .lib.models import Resort
+    from .lib.settings import Settings
 
 RESORTS_DIR = Path(__file__).parent / "resorts"  # one <key>.yaml per resort
 
@@ -55,13 +48,8 @@ class SkiResortCoordinator(DataUpdateCoordinator[RecommendationResult]):
 
     @property
     def settings(self) -> Settings:
-        """Settings from the config entry options (config flow follows later)."""
-        options = self.config_entry.options
-        hours = options.get(CONF_WEATHER_INTERVAL_HOURS, DEFAULT_WEATHER_INTERVAL_HOURS)
-        return Settings(
-            home_station=options.get(CONF_HOME_STATION) or None,
-            weather_interval=timedelta(hours=max(1, hours)),
-        )
+        """Settings from the options form (defaults until it is saved once)."""
+        return settings_from_options(self.config_entry.options)
 
     async def _async_update_data(self) -> RecommendationResult:
         """Run one update; API problems become UpdateFailed."""

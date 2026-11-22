@@ -1,12 +1,22 @@
 """Tests for the SBB connection parsing and the choice of the morning connection."""
 
+import asyncio
 import json
 from dataclasses import replace
 from datetime import date, time
 from pathlib import Path
 
-from custom_components.ski_resort_recommender.lib.sbb import _leg, _parse, _pick
+import pytest
+
+from custom_components.ski_resort_recommender.lib.errors import SkiApiConnectionError
+from custom_components.ski_resort_recommender.lib.sbb import (
+    _leg,
+    _parse,
+    _pick,
+    find_stations,
+)
 from custom_components.ski_resort_recommender.lib.settings import Settings
+from tests.fakes import FakeResponse, FakeSession
 
 FIXTURE = Path(__file__).parent / "fixtures" / "sbb_connections.json"
 SATURDAY = date(2026, 11, 28)
@@ -95,3 +105,22 @@ def test_leg_without_category_has_no_none_in_its_line() -> None:
 
     assert leg.line == "2790"
     assert leg.train_number is None  # not a known train category
+
+
+def test_find_stations_returns_the_station_names() -> None:
+    """The SBB station search gives the names in API order."""
+    payload = {"stations": [{"name": "Zürich HB"}, {"name": "Zürich Oerlikon"}]}
+    session = FakeSession(lambda _url, _params: FakeResponse(payload))
+
+    names = asyncio.run(find_stations(session, "Zürich"))
+
+    assert names == ["Zürich HB", "Zürich Oerlikon"]
+    assert session.calls == [{"query": "Zürich", "type": "station"}]
+
+
+def test_find_stations_network_error_is_a_connection_error() -> None:
+    """The options form shows "cannot connect" instead of crashing."""
+    session = FakeSession(lambda _url, _params: FakeResponse(status=503))
+
+    with pytest.raises(SkiApiConnectionError):
+        asyncio.run(find_stations(session, "Zürich"))
