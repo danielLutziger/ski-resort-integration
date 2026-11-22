@@ -2,6 +2,7 @@
 
 import asyncio
 from collections import defaultdict
+from dataclasses import replace
 from datetime import date, datetime, timedelta
 from statistics import mean, median
 from typing import TYPE_CHECKING
@@ -32,7 +33,7 @@ DAILY = [
     "daylight_duration",
     "weather_code",
 ]
-HOURLY = ["temperature_2m", "snowfall", "wind_gusts_10m"]
+HOURLY = ["temperature_2m", "snowfall", "wind_gusts_10m", "weather_code"]
 # DWD ICON fills what MeteoSwiss lacks: daily values after today + 4 (MeteoSwiss
 # horizon) and hourly visibility (metres, about 5 days; MeteoSwiss has none).
 FALLBACK_MODEL = "icon_seamless"
@@ -128,25 +129,27 @@ def _merge(meteoswiss: list[DayForecast], dwd: list[DayForecast]) -> list[DayFor
 
 def _parse_location(loc: dict, visibility: dict[date, float]) -> list[DayForecast]:
     """Daily values plus the ski-hours values of one location and one model."""
-    hourly = loc["hourly"]
-    return _parse_daily(
-        loc["daily"],
-        visibility=visibility,
-        temp_ski=_ski_hours(hourly, "temperature_2m", mean),
-        gust_max=_ski_hours(hourly, "wind_gusts_10m", max),
-        fresh_snow=_fresh_snow(hourly),
-    )
+    h = loc["hourly"]
+    temp_ski = _ski_hours(h, "temperature_2m", mean)
+    gust_max = _ski_hours(h, "wind_gusts_10m", max)
+    weather_codes = _ski_hours(h, "weather_code", tuple)
+    fresh_snow = _fresh_snow(h)
+    return [
+        replace(
+            day,
+            temp_ski_c=temp_ski.get(day.day),
+            gust_max_kmh=gust_max.get(day.day),
+            fresh_snow_cm=fresh_snow.get(day.day),
+            weather_codes_ski=weather_codes.get(day.day, ()),
+        )
+        for day in _parse_daily(loc["daily"], visibility=visibility)
+    ]
 
 
 def _parse_daily(
-    d: dict,
-    *,
-    visibility: dict[date, float] | None = None,
-    temp_ski: dict[date, float] | None = None,
-    gust_max: dict[date, float] | None = None,
-    fresh_snow: dict[date, float] | None = None,
+    d: dict, *, visibility: dict[date, float] | None = None
 ) -> list[DayForecast]:
-    """Turn the `daily` block into DayForecasts, adding the per-day hourly values."""
+    """Turn the `daily` block into DayForecasts (hourly values are added later)."""
     days = [date.fromisoformat(t) for t in d["time"]]
     return [
         DayForecast(
@@ -158,9 +161,9 @@ def _parse_daily(
             daylight_hours=_seconds_to_hours(d["daylight_duration"][i]),
             weather_code=d["weather_code"][i],
             visibility_m=(visibility or {}).get(day),
-            temp_ski_c=(temp_ski or {}).get(day),
-            gust_max_kmh=(gust_max or {}).get(day),
-            fresh_snow_cm=(fresh_snow or {}).get(day),
+            temp_ski_c=None,
+            gust_max_kmh=None,
+            fresh_snow_cm=None,
         )
         for i, day in enumerate(days)
     ]
@@ -178,9 +181,9 @@ def _hours(h: dict, key: str) -> Iterable[tuple[datetime, float]]:
             yield datetime.fromisoformat(time), value
 
 
-def _ski_hours(
-    h: dict, key: str, aggregate: Callable[[list[float]], float]
-) -> dict[date, float]:
+def _ski_hours[T](
+    h: dict, key: str, aggregate: Callable[[list[float]], T]
+) -> dict[date, T]:
     """Aggregate one hourly variable per day over the ski hours."""
     per_day: dict[date, list[float]] = defaultdict(list)
     for moment, value in _hours(h, key):

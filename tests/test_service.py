@@ -75,6 +75,7 @@ def make_day(
     gust: float = 20,
     temp: float = -5,
     code: int = 0,
+    hourly_codes: tuple[int, ...] = (),
     visibility: float | None = None,
 ) -> DayForecast:
     """Create a forecast for day (snow = fresh snow before opening)."""
@@ -90,6 +91,7 @@ def make_day(
         temp_ski_c=temp,
         gust_max_kmh=gust,
         fresh_snow_cm=snow,
+        weather_codes_ski=hourly_codes,
     )
 
 
@@ -412,3 +414,14 @@ def test_scoring_settings_are_used_by_the_service() -> None:
         sunnier.recommendations[0].score.total - normal.recommendations[0].score.total
     )
     assert gain == 30
+
+
+def test_a_short_shower_does_not_block_a_good_day() -> None:
+    """Only rain in several ski hours makes a day NO_GO."""
+    shower = make_day(SATURDAY, code=63, hourly_codes=(63, 0, 0, 0, 0, 0, 0, 0))
+
+    (rec,) = pick(
+        [make_resort("laax")], {"laax": [shower]}, SETTINGS, today=TODAY
+    ).recommendations
+
+    assert rec.is_good is True

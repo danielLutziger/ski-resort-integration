@@ -51,6 +51,7 @@ def test_parse_location_returns_one_forecast_per_day() -> None:
         assert d.weather_code is not None
         assert d.temp_ski_c is not None
         assert d.gust_max_kmh is not None
+        assert len(d.weather_codes_ski) == 8  # 09:00-16:00
     # the first two (past) days have no full 48 h window before opening
     assert [d.fresh_snow_cm is None for d in days] == [True, True, False, False, False]
 
