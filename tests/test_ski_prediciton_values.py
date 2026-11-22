@@ -47,6 +47,7 @@ def test_clear_day_without_penalties_scores_the_sun_points() -> None:
         "temp": 0,
         "weather": 0,
         "visibility": 0,
+        "icy": 0,
     }
 
 
@@ -226,6 +227,25 @@ def test_daily_code_is_the_fallback_without_hourly_codes() -> None:
 
     assert score_day(rainy, SCORING).reasons["weather"] == -50
     assert is_no_go(rainy, SCORING) is True
+
+
+@pytest.mark.parametrize(
+    ("rain", "points"), [(None, 0), (0, 0), (0.5, 0), (2.75, -20), (5, -40), (20, -40)]
+)
+def test_rain_before_opening_means_an_icy_slope(
+    rain: float | None, points: float
+) -> None:
+    """Rain in the 48 h before opening refreezes: penalty from 0.5 mm, full at 5 mm."""
+    day = replace(CLEAR_DAY, recent_rain_mm=rain)
+
+    assert score_day(day, SCORING).reasons["icy"] == points
+
+
+def test_sunny_day_after_rain_is_not_good() -> None:
+    """Sun on an icy slope stays below min_good_score (60)."""
+    icy = replace(CLEAR_DAY, recent_rain_mm=5)
+
+    assert score_day(icy, SCORING).total < 60
 
 
 # test ideas:

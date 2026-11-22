@@ -32,6 +32,8 @@ def score_day(day: DayForecast, scoring: ScoringSettings | None = None) -> DaySc
         "temp": _temp_points(day, s),
         "weather": _weather_points(day, s),
         "visibility": _visibility_points(day, s),
+        "icy": -_ramp(day.recent_rain_mm or 0, s.rain_limit_mm, s.rain_full_mm)
+        * s.icy_penalty,
     }
     total = max(0.0, sum(reasons.values()))
     return DayScore(total, reasons=reasons)

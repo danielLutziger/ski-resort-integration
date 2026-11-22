@@ -11,9 +11,9 @@ from custom_components.ski_resort_recommender.lib.models import (
     WeatherPoint,
 )
 from custom_components.ski_resort_recommender.lib.open_meteo import (
+    _before_opening,
     _combine,
     _coordinates,
-    _fresh_snow,
     _merge,
     _parse_daily,
     _parse_location,
@@ -54,6 +54,7 @@ def test_parse_location_returns_one_forecast_per_day() -> None:
         assert len(d.weather_codes_ski) == 8  # 09:00-16:00
     # the first two (past) days have no full 48 h window before opening
     assert [d.fresh_snow_cm is None for d in days] == [True, True, False, False, False]
+    assert [d.recent_rain_mm is None for d in days] == [True, True, False, False, False]
 
 
 def test_parse_daily_attaches_visibility_per_day() -> None:
@@ -125,7 +126,7 @@ def test_fresh_snow_sums_the_48_hours_before_opening() -> None:
     snow[times.index("2026-11-28T09:00")] = 2  # 08-09: just before opening
     snow[times.index("2026-11-28T10:00")] = 7  # 09-10: falls during ski hours
 
-    result = _fresh_snow({"time": times, "snowfall": snow})
+    result = _before_opening({"time": times, "snowfall": snow}, ("snowfall",))
 
     assert result == {date(2026, 11, 28): 13}  # 26th and 27th lack a full window
 
@@ -210,3 +211,19 @@ def test_merge_prefers_meteoswiss_and_fills_gaps_from_dwd() -> None:
     merged = _merge(meteoswiss, dwd)
 
     assert [(d.day, d.sunshine_hours) for d in merged] == [(thu, 5), (fri, 2), (sat, 3)]
+
+
+def test_rain_before_opening_adds_rain_and_showers() -> None:
+    """Liquid precipitation = large-scale rain + convective showers (mm)."""
+    times = [f"2026-11-{d}T{h:02d}:00" for d in (26, 27, 28) for h in range(24)]
+    rain = [0.0] * len(times)
+    showers = [0.0] * len(times)
+    rain[times.index("2026-11-27T12:00")] = 1.5
+    showers[times.index("2026-11-27T13:00")] = 2.0
+    showers[times.index("2026-11-28T12:00")] = 9.0  # during ski hours: not before
+
+    result = _before_opening(
+        {"time": times, "rain": rain, "showers": showers}, ("rain", "showers")
+    )
+
+    assert result == {date(2026, 11, 28): 3.5}

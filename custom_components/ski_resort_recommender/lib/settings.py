@@ -35,6 +35,11 @@ class ScoringSettings:
     weather_no_go_points: float = -50
     # a day is NO_GO (never good) with NO_GO weather in at least this many ski hours
     no_go_min_hours: int = 2
+    # rain (mm) in the 48 h before opening refreezes into an icy slope: no penalty
+    # up to rain_limit_mm (traces), full icy_penalty from rain_full_mm
+    rain_limit_mm: float = 0.5
+    rain_full_mm: float = 5
+    icy_penalty: float = 40
     # visibility in ski hours (WMO: fog below 1 km, mist 1-5 km): no penalty from
     # visibility_good_m up, full penalty from visibility_bad_m down
     visibility_good_m: float = 5000
