@@ -2,7 +2,7 @@
 
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from enum import StrEnum
 
 from custom_components.ski_resort_recommender.lib.models import (
@@ -46,7 +46,8 @@ class RecommendationStatus(StrEnum):
 class RecommendationResult:
     """Class object that we visualize in HA."""
 
-    recommendations: tuple[Recommendation, ...]
+    recommendations: tuple[Recommendation, ...]  # ranked days, best first
+    outlook: Recommendation | None = None  # best day after the ranking window
 
     @property
     def has_good_day(self) -> bool:
@@ -70,10 +71,13 @@ def pick_recommendations(
     *,
     today: date | None = None,
 ) -> RecommendationResult:
-    """Score all allowed future days and return the best ones first."""
-    candidates: list[Recommendation] = []
+    """Score all allowed future days; rank days 1..ranking_days, outlook after."""
+    ranked: list[Recommendation] = []
+    outlook: list[Recommendation] = []
     settings = settings or Settings()
     today = today or date.today()  # noqa: DTZ011
+    ranking_end = today + timedelta(days=settings.ranking_days)
+    outlook_end = today + timedelta(days=settings.outlook_days)
 
     for resort in resorts:
         point_days: dict[date, list[tuple[WeatherPoint, DayForecast]]] = defaultdict(
@@ -81,18 +85,21 @@ def pick_recommendations(
         )
         for point in resort.points:
             for day in forecasts.get(resort.key, {}).get(point.name, []):
-                if day.day <= today:  # not today, not the past
+                if not today < day.day <= outlook_end:  # not today, not the past
                     continue
                 if day.day.weekday() not in settings.allowed_weekdays:
                     continue
                 if not day.has_data:
                     continue
                 point_days[day.day].append((point, day))
-        candidates.extend(
-            _recommend(resort, points, settings) for points in point_days.values()
-        )
-    candidates.sort(key=lambda r: r.score.total, reverse=True)
-    return RecommendationResult(tuple(candidates[: settings.max_results]))
+        for day, points in point_days.items():
+            target = ranked if day <= ranking_end else outlook
+            target.append(_recommend(resort, points, settings))
+    ranked.sort(key=lambda r: r.score.total, reverse=True)
+    return RecommendationResult(
+        tuple(ranked[: settings.max_results]),
+        outlook=max(outlook, key=lambda r: r.score.total, default=None),
+    )
 
 
 def _recommend(

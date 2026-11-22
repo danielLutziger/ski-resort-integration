@@ -14,3 +14,7 @@ class Settings:
     max_results: int = 3
     # below this score the day is not considered a good day
     min_good_score: float = 60.0
+    # days 1..ranking_days are ranked (visibility data reaches about 5 days)
+    ranking_days: int = 5
+    # the best day after the ranking window, up to outlook_days, is a 4th entry
+    outlook_days: int = 7
