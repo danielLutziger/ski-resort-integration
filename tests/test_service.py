@@ -16,6 +16,7 @@ from custom_components.ski_resort_recommender.lib.service import (
     pick_recommendations,
 )
 from custom_components.ski_resort_recommender.lib.settings import Settings
+from tests.scoring_values import SCORING
 
 SATURDAY = date(2026, 11, 28)
 SUNDAY = date(2026, 11, 29)
@@ -30,6 +31,7 @@ SETTINGS = Settings(
     min_good_score=50.0,
     ranking_days=5,
     outlook_days=7,
+    scoring=SCORING,
 )
 
 
@@ -273,7 +275,9 @@ def test_points_are_combined_by_weighted_average() -> None:
 
     result = pick_recommendations([resort], forecasts, SETTINGS, today=TODAY)
 
-    expected = (3 * score_day(sunny).total + score_day(cloudy).total) / 4
+    expected = (
+        3 * score_day(sunny, SCORING).total + score_day(cloudy, SCORING).total
+    ) / 4
     assert result.recommendations[0].score.total == expected
 
 
@@ -301,7 +305,7 @@ def test_point_without_data_is_left_out_of_the_average() -> None:
         [resort], forecasts, SETTINGS, today=TODAY
     ).recommendations
 
-    assert rec.score.total == score_day(sunny).total
+    assert rec.score.total == score_day(sunny, SCORING).total
 
 
 def test_no_go_at_another_point_does_not_block_a_good_day() -> None:
@@ -388,3 +392,17 @@ def test_outlook_alone_does_not_change_the_status() -> None:
     assert result.recommendations == ()
     assert result.outlook is not None
     assert result.status is RecommendationStatus.NO_FORECAST
+
+
+def test_scoring_settings_are_used_by_the_service() -> None:
+    """pick_recommendations scores with settings.scoring."""
+    forecasts = {"laax": [make_day(SATURDAY, sun=8)]}
+    doubled_sun = replace(SETTINGS, scoring=replace(SCORING, sun_points=60))
+
+    normal = pick([make_resort("laax")], forecasts, SETTINGS, today=TODAY)
+    sunnier = pick([make_resort("laax")], forecasts, doubled_sun, today=TODAY)
+
+    gain = (
+        sunnier.recommendations[0].score.total - normal.recommendations[0].score.total
+    )
+    assert gain == 30

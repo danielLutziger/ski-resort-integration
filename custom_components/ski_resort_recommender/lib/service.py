@@ -108,7 +108,7 @@ def _recommend(
     settings: Settings,
 ) -> Recommendation:
     """Combine the point scores of one resort-day into one recommendation."""
-    scored = [(point, day, score_day(day)) for point, day in points]
+    scored = [(point, day, score_day(day, settings.scoring)) for point, day in points]
     score = combine_scores([(point.weight, s) for point, _, s in scored])
     best_point, best_day, _ = max(scored, key=lambda item: item[2].total)
     # NO_GO only counts at the best point: a shower at one side area is fine
