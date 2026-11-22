@@ -2,7 +2,7 @@
   name: Flims Laax
   meteoswiss_point_id:
   station: Flims Dorf, Bergbahnen
-  day_price_chf: 99
+  day_price_chf: 92
 #  price_api:
 #  https://api.pricenow.dev/api/booking/products/1190144/journey/validities?from=2027-01-01T00%3A00%3A00.000%2B01%3A00&to=2027-01-31T23%3A59%3A59.999%2B01%3A00&formState=%7B%22attributes%22%3A%7B%22duration%22%3A%221d%22%7D%2C%22allocation%22%3A%7B%22kind%22%3A%22persontype%22%2C%22values%22%3A%5B%7B%22kind%22%3A%22anonymous%22%2C%22personType%22%3A%22adult%22%2C%22quantity%22%3A1%7D%5D%7D%7D
 #  https://api.pricenow.dev/api/booking/products/1190144/journey/validities?from={YYYY-MM-DD}T00%3A00%3A00.000%2B01%3A00&to={YYYY-MM-DD}T23%3A59%3A59.999%2B01%3A00&formState=%7B%22attributes%22%3A%7B%22duration%22%3A%22{number_of_days}d%22%7D%2C%22allocation%22%3A%7B%22kind%22%3A%22persontype%22%2C%22values%22%3A%5B%7B%22kind%22%3A%22anonymous%22%2C%22personType%22%3A%22adult%22%2C%22quantity%22%3A1%7D%5D%7D%7D
@@ -38,7 +38,7 @@
   name: Flumserberg
   meteoswiss_point_id:
   station: Flumserberg, Tannenboden
-  day_price_chf: 72
+  day_price_chf: 76
   points:
     - name: Maschgenkamm
       lat: 47.0698
@@ -65,7 +65,7 @@
   name: Zermatt
   meteoswiss_point_id:
   station: Zermatt
-  day_price_chf: 120
+  day_price_chf: 104
   points:
     - name: Trockener Steg
       lat: 45.9718
@@ -97,7 +97,7 @@
   name: Andermatt
   meteoswiss_point_id:
   station: Andermatt, Gemsstockbahn
-  day_price_chf:
+  day_price_chf: 99
   points:
     - name: Geissgrat
       lat: 46.6166
@@ -119,7 +119,7 @@
   name: Andermatt Sedrun Disentis
   meteoswiss_point_id:
   station: Andermatt
-  day_price_chf:
+  day_price_chf: 99
   points:
     - name: Gütsch
       lat: 46.6564
@@ -151,7 +151,7 @@
   name: Engelberg Titlis
   meteoswiss_point_id:
   station: Engelberg, Titlisbahn
-  day_price_chf:
+  day_price_chf: 78
   points:
     - name: Trübsee
       lat: 46.7932
@@ -178,7 +178,7 @@
   name: Pizol
   meteoswiss_point_id:
   station: Wangs Talstation Pizolbahnen
-  day_price_chf:
+  day_price_chf: 74
   points:
     - name: Pizolhütte
       lat: 46.9792
@@ -205,7 +205,7 @@
   name: Davos Jakobshorn
   meteoswiss_point_id:
   station: Davos Platz (Jakobshorn)
-  day_price_chf:
+  day_price_chf: 87
   points:
     - name: Ischalp
       lat: 46.7868
@@ -232,7 +232,7 @@
   name: Davos Klosters Parsenn
   meteoswiss_point_id:
   station: Klosters Dorf, Bahnhof
-  day_price_chf:
+  day_price_chf: 87
   points:
     - name: Weissfluhjoch
       lat: 46.8335
@@ -264,7 +264,7 @@
   name: Melchsee Frutt
   meteoswiss_point_id:
   station: Stöckalp
-  day_price_chf:
+  day_price_chf: 69
   points:
     - name: Melchsee-Frutt
       lat: 46.7759
@@ -286,7 +286,7 @@
   name: St. Moritz Corviglia
   meteoswiss_point_id:
   station: St. Moritz (Standseilbahn)
-  day_price_chf:
+  day_price_chf: 95
   points:
     - name: Corviglia
       lat: 46.508
@@ -313,7 +313,7 @@
   name: St. Moritz Corvatsch
   meteoswiss_point_id:
   station: Surlej, Corvatschbahn
-  day_price_chf:
+  day_price_chf: 88
   points:
     - name: Murtèl
       lat: 46.4317
@@ -340,7 +340,7 @@
   name: Scuol
   meteoswiss_point_id:
   station: Scuol (pendicularas)
-  day_price_chf: 80
+  day_price_chf: 69
   points:
     - name: Motta Naluns
       lat: 46.8109
@@ -367,7 +367,7 @@
   name: Samnaun
   meteoswiss_point_id:
   station: Samnaun-Ravaisch, Bergbahnen
-  day_price_chf: 100
+  day_price_chf: 82
   points:
     - name: Alp Trida
       lat: 46.9786
@@ -394,7 +394,7 @@
   name: Ischgl
   meteoswiss_point_id:
   station:
-  day_price_chf: 100
+  day_price_chf: 82
   points:
     - name: Idalp
       lat: 46.9825
@@ -426,7 +426,7 @@
   name: St. Anton
   meteoswiss_point_id:
   station: St. Anton am Arlberg, Bahnhof
-  day_price_chf: 100
+  day_price_chf: 78
   points:
     - name: Galzig
       lat: 47.1309
@@ -453,7 +453,7 @@
   name: Arosa Lenzerheide
   meteoswiss_point_id:
   station: Lenzerheide/Lai, Rothornbahn
-  day_price_chf: 100
+  day_price_chf: 89
   points:
     - name: Scharmoin
       lat: 46.7428
@@ -479,4 +479,191 @@
       lat: 46.7671
       lon: 9.6209
       elevation_m: 2500
+      weight: 1
+
+- key: saas_fee
+  name: Saas-Fee
+  meteoswiss_point_id:
+  station: Saas-Fee, Busterminal
+  day_price_chf: 84
+  points:
+    - name: Morenia
+      lat: 46.0854
+      lon: 7.9134
+      elevation_m: 2392
+      weight: 2
+    - name: Felskinn
+      lat: 46.069
+      lon: 7.9161
+      elevation_m: 2947
+      weight: 1
+    - name: Längfluh
+      lat: 46.092
+      lon: 7.8994
+      elevation_m: 2461
+      weight: 1
+    - name: Plattjen
+      lat: 46.0906
+      lon: 7.943
+      elevation_m: 2554
+      weight: 1
+
+- key: adelboden_lenk
+  name: Adelboden-Lenk
+  meteoswiss_point_id:
+  station: Adelboden Oey (Sillerenbahn)
+  day_price_chf: 80
+  points:
+    - name: Hahnenmoos
+      lat: 46.4533
+      lon: 7.4954
+      elevation_m: 1955
+      weight: 2
+    - name: Sillerenbühl
+      lat: 46.4718
+      lon: 7.5179
+      elevation_m: 1975
+      weight: 1
+    - name: Metschstand
+      lat: 46.4444
+      lon: 7.4951
+      elevation_m: 2097
+      weight: 1
+    - name: Tschentenalp
+      lat: 46.4987
+      lon: 7.5459
+      elevation_m: 1941
+      weight: 1
+    - name: Höchsthorn
+      lat: 46.4683
+      lon: 7.5473
+      elevation_m: 1885
+      weight: 1
+
+- key: grindelwald_wengen
+  name: Grindelwald-Wengen
+  meteoswiss_point_id:
+  station: Grindelwald Terminal
+  day_price_chf: 83
+  points:
+    - name: Kleine Scheidegg
+      lat: 46.5868
+      lon: 7.9612
+      elevation_m: 2061
+      weight: 2
+    - name: Männlichen
+      lat: 46.6132
+      lon: 7.9409
+      elevation_m: 2230
+      weight: 1
+    - name: Lauberhornschulter
+      lat: 46.5866
+      lon: 7.947
+      elevation_m: 2323
+      weight: 1
+    - name: Fallboden
+      lat: 46.5782
+      lon: 7.9674
+      elevation_m: 2144
+      weight: 1
+    - name: First
+      lat: 46.6614
+      lon: 8.053
+      elevation_m: 2164
+      weight: 1
+
+- key: verbier
+  name: Verbier 4 Vallées
+  meteoswiss_point_id:
+  station: Le Châble VS
+  day_price_chf: 94
+  points:
+    - name: Les Ruinettes
+      lat: 46.0912
+      lon: 7.2529
+      elevation_m: 2192
+      weight: 2
+    - name: Les Attelas
+      lat: 46.0997
+      lon: 7.269
+      elevation_m: 2712
+      weight: 1
+    - name: Lac des Vaux
+      lat: 46.1045
+      lon: 7.2696
+      elevation_m: 2545
+      weight: 1
+    - name: Col des Gentianes
+      lat: 46.0847
+      lon: 7.301
+      elevation_m: 2912
+      weight: 1
+    - name: Savoleyres
+      lat: 46.1227
+      lon: 7.219
+      elevation_m: 2295
+      weight: 1
+
+- key: crans_montana
+  name: Crans-Montana
+  meteoswiss_point_id:
+  station: Crans-Montana, télé Cry d'Er
+  day_price_chf: 94
+  points:
+    - name: Cry d'Er
+      lat: 46.3343
+      lon: 7.4795
+      elevation_m: 2253
+      weight: 2
+    - name: Plaine-Morte
+      lat: 46.37
+      lon: 7.4889
+      elevation_m: 2887
+      weight: 1
+    - name: Bellalui
+      lat: 46.3456
+      lon: 7.4855
+      elevation_m: 2521
+      weight: 1
+    - name: Les Violettes
+      lat: 46.3423
+      lon: 7.4981
+      elevation_m: 2224
+      weight: 1
+    - name: Mont Bonvin
+      lat: 46.3555
+      lon: 7.5099
+      elevation_m: 2542
+      weight: 1
+
+- key: hoch_ybrig
+  name: Hoch-Ybrig
+  meteoswiss_point_id:
+  station: Hoch-Ybrig, Talst. Weglosen
+  day_price_chf: 62
+  points:
+    - name: Seebli
+      lat: 47.0106
+      lon: 8.7863
+      elevation_m: 1437
+      weight: 2
+    - name: Hesisbol
+      lat: 46.9966
+      lon: 8.7911
+      elevation_m: 1831
+      weight: 1
+    - name: Spirstock
+      lat: 47.0012
+      lon: 8.7715
+      elevation_m: 1765
+      weight: 1
+    - name: Laucheren
+      lat: 47.0076
+      lon: 8.7679
+      elevation_m: 1752
+      weight: 1
+    - name: Sternen
+      lat: 46.9999
+      lon: 8.7978
+      elevation_m: 1811
       weight: 1
