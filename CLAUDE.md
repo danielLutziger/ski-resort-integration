@@ -30,7 +30,7 @@ Requirements agreed so far:
 ```
 custom_components/ski_resort_recommender/
   __init__.py manifest.json config_flow.py const.py coordinator.py sensor.py   # HA glue only (mostly TODO)
-  resorts.yaml                  # resorts as DATA (one file, list of entries)
+  resorts/<key>.yaml            # resorts as DATA: one file per resort, file name = resort key
   lib/                          # NO homeassistant imports, testable alone
     models.py                   # Resort, WeatherPoint, DayForecast (frozen dataclasses), Forecasts alias; imports nothing from lib
     errors.py                   # SkiApiError (base, Exception) -> SkiApiConnectionError, SkiApiParseError
@@ -43,7 +43,7 @@ custom_components/ski_resort_recommender/
     settings.py                 # Settings (weekdays, max_results, min_good_score, ranking_days, outlook_days, scoring)
                                 # and ScoringSettings (all weights/thresholds of score_day, flat numbers)
     service.py                  # pick_recommendations(); Recommendation, RecommendationResult, RecommendationStatus
-    resorts.py                  # load_resorts(path) -> list[Resort]; checks 1-5 points with unique names
+    resorts.py                  # load_resorts(folder) -> list[Resort] sorted by key; 1-5 points, unique names
 scripts/try_forecast.py         # runs the whole chain on the real API and prints the ranking
 tests/                          # pytest; fixtures in tests/fixtures
 ```
@@ -243,6 +243,9 @@ and imports so that the integration still loads and tests/ruff stay green.
    Weather icon = most frequent weather over all points and ski hours (weighted, ties -> worse); for
    dry weather the sunshine share decides (sunny from 60 %, partly cloudy from 25 %).
    Open-Meteo answered 429 Too Many Requests on 22.11 after many manual runs with 101 points.
+   Weather interval: the coordinator runs hourly, Open-Meteo only every `Settings.weather_interval`
+   (entry option `weather_interval_hours`, default 3); on errors (429) the last forecast is used up to
+   `weather_max_age` (12 h). Raise the interval if Open-Meteo rate limits.
    Coordinator done: every 3 h (`UPDATE_INTERVAL`), `build_recommendations` from `lib/pipeline.py`, SBB
    travel times cached once a day, exact connections only for the shown results, `SkiApiError` ->
    `UpdateFailed`, local date as today; home station from the entry option `home_station` for now.
@@ -250,6 +253,15 @@ and imports so that the integration still loads and tests/ruff stay green.
    be ~7000+ weighted calls/day (free limit 10 000) -> poll every 2-3 h or reduce variables.
 3. Tune wind and temperature in season (Jan/Feb); re-check `DWD_SUN_FACTOR` in winter.
    (Done: A, B, C, findings 1–4, 6, 7, snow depth, SBB connection, static prices, 23 resorts.)
+
+## Adding a resort
+
+Add `custom_components/ski_resort_recommender/resorts/<key>.yaml` (the file name is the key, lower case with
+underscores) with `name`, `meteoswiss_point_id` (empty), `station` (the SBB stop at the gondola, exactly as
+transport.opendata.ch names it, or empty), `day_price_chf` (adult high-season day price), optional
+`snow_n_rail: {offer, up_to_pct}` and `points:` (1-5 lift stations with `name`, `lat`, `lon`,
+`elevation_m`, `weight`). Check coordinates against the terrain height (Open-Meteo elevation API) and the
+station with `/v1/locations`. Every point adds a location to each Open-Meteo request (rate limit).
 
 ## Data sources / facts
 
