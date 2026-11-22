@@ -36,15 +36,16 @@ custom_components/ski_resort_recommender/
     errors.py                   # SkiApiError (base, Exception) -> SkiApiConnectionError, SkiApiParseError
     open_meteo.py               # OpenMeteoProvider (aiohttp); pure _combine/_parse_daily/_ski_hours_visibility
     weather_codes.py            # WeatherClass (StrEnum), _CLASSES, classify()
-    scoring.py                  # score_day(DayForecast) -> DayScore(total, reasons)
-    settings.py                 # Settings dataclass (weekdays, max_results, min_good_score, ranking_days, outlook_days)
+    scoring.py                  # score_day(DayForecast, ScoringSettings) -> DayScore(total, reasons); combine_scores()
+    settings.py                 # Settings (weekdays, max_results, min_good_score, ranking_days, outlook_days, scoring)
+                                # and ScoringSettings (all weights/thresholds of score_day, flat numbers)
     service.py                  # pick_recommendations(); Recommendation, RecommendationResult, RecommendationStatus
     resorts.py                  # load_resorts(path) -> list[Resort]; checks 1-5 points with unique names
 scripts/try_forecast.py         # runs the whole chain on the real API and prints the ranking
 tests/                          # pytest; fixtures in tests/fixtures
 ```
 
-Import direction: `models` <- `weather_codes` <- `scoring` <- `service` (and `settings`). Never import
+Import direction: `models` <- `weather_codes` <- `settings` <- `scoring` <- `service`. Never import
 upwards (this caused a circular import once: `Recommendation` therefore lives in `service.py`).
 
 Design decisions:
@@ -147,6 +148,12 @@ wind and temperature limits, class points) should not be hard-coded constants. P
 defaults, so config flow options can change them later. `score_day` takes them as a parameter
 (default = current behaviour), so tests can pass explicit values.
 
+Done 22.11.2026: `ScoringSettings` in `settings.py` (flat number fields, current values as defaults),
+held as `Settings.scoring`; `score_day(day, scoring)` reads every weight and threshold from it and the
+service passes `settings.scoring`. Tests use `tests/scoring_values.py` (`SCORING`, every value written
+out); `test_defaults_are_the_documented_values` fails when a default changes, so a weight change is
+always a visible decision. Same real-data scores before and after the refactor (576 point-days).
+
 **D. Coding style: keep what we have, no over-engineering.**
 Keep the style established in the existing files: small modules, frozen dataclasses, plain functions
 for pure logic, classes only where there is I/O or state. No abstraction without a second use case,
@@ -174,12 +181,11 @@ and imports so that the integration still loads and tests/ruff stay green.
 
 ## Next steps (suggested order)
 
-1. Settings-driven scoring (C), keep tests green. (B is done.)
-2. Fix findings 2 and 3 (hourly ski-hours window, no double counting).
+1. Fix findings 2 and 3 (hourly ski-hours window, no double counting).
    (Multi-point resorts (A), per-point `elevation_m` and the outlook entry are done.)
-3. Coordinator (hourly poll, `UpdateFailed`), sensor (state = headline, attributes = recommendations),
+2. Coordinator (hourly poll, `UpdateFailed`), sensor (state = headline, attributes = recommendations),
    config flow (weekdays, number of results, min score, scoring weights), then a Markdown dashboard card.
-4. Later: train connection (Swiss public transport integration is already installed in my HA), ticket
+3. Later: train connection (Swiss public transport integration is already installed in my HA), ticket
    prices (no public API; many Swiss resorts use dynamic pricing — start with a static price per resort,
    never rely on scraping blindly).
 
