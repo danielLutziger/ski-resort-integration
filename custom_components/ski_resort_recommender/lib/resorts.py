@@ -1,4 +1,4 @@
-"""Load the resort list from resorts.yaml."""
+"""Load the resorts: one YAML file per resort, the file name is the resort key."""
 
 from typing import TYPE_CHECKING
 
@@ -16,10 +16,17 @@ if TYPE_CHECKING:
 MAX_POINTS = 5  # every point is one location in each Open-Meteo request
 
 
-def load_resorts(file: Path) -> list[Resort]:
-    """Read the YAML file and return one Resort per entry."""
-    with file.open(encoding="utf-8") as f:
-        return [_resort(entry) for entry in yaml.safe_load(f)]
+def load_resorts(directory: Path) -> list[Resort]:
+    """Read every <key>.yaml in directory (sorted by key) and return the resorts."""
+    resorts = []
+    for file in sorted(directory.glob("*.yaml")):
+        with file.open(encoding="utf-8") as f:
+            entry = yaml.safe_load(f)
+        if not isinstance(entry, dict):
+            msg = f"{file.name}: expected one resort (a mapping)"
+            raise ValueError(msg)  # noqa: TRY004 (bad file content, not a bad argument)
+        resorts.append(_resort({"key": file.stem, **entry}))
+    return resorts
 
 
 def _resort(entry: dict) -> Resort:

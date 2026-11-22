@@ -1,0 +1,28 @@
+name: Pizol
+meteoswiss_point_id:
+station: Wangs Talstation Pizolbahnen
+day_price_chf: 74
+snow_n_rail:
+  offer: snownrail-pizol
+  up_to_pct: 30
+points:
+  - name: Pizolhütte
+    lat: 46.9792
+    lon: 9.417
+    elevation_m: 2221
+    weight: 2
+  - name: Laufböden
+    lat: 46.9797
+    lon: 9.4364
+    elevation_m: 2224
+    weight: 1
+  - name: Furt
+    lat: 47.0017
+    lon: 9.4183
+    elevation_m: 1523
+    weight: 1
+  - name: Pardiel
+    lat: 46.9896
+    lon: 9.4642
+    elevation_m: 1627
+    weight: 1

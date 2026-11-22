@@ -1,0 +1,33 @@
+name: Andermatt Sedrun Disentis
+meteoswiss_point_id:
+station: Andermatt
+day_price_chf: 99
+snow_n_rail:
+  offer: snownrail-andermatt-sedrun-disentis
+  up_to_pct: 30
+points:
+  - name: Gütsch
+    lat: 46.6564
+    lon: 8.622
+    elevation_m: 2344
+    weight: 1
+  - name: Schneehüenerstock
+    lat: 46.6695
+    lon: 8.6556
+    elevation_m: 2595
+    weight: 1
+  - name: Oberalppass
+    lat: 46.6601
+    lon: 8.672
+    elevation_m: 2036
+    weight: 1
+  - name: Cuolm Val
+    lat: 46.667
+    lon: 8.7033
+    elevation_m: 2199
+    weight: 1
+  - name: Caischavedra
+    lat: 46.7035
+    lon: 8.813
+    elevation_m: 1894
+    weight: 1

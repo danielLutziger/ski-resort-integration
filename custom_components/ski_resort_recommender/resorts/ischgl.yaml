@@ -1,0 +1,30 @@
+name: Ischgl
+meteoswiss_point_id:
+station:
+day_price_chf: 82
+points:
+  - name: Idalp
+    lat: 46.9825
+    lon: 10.3169
+    elevation_m: 2335
+    weight: 2
+  - name: Pardatschgrat
+    lat: 46.9915
+    lon: 10.3241
+    elevation_m: 2637
+    weight: 1
+  - name: Palinkopf
+    lat: 46.9629
+    lon: 10.3186
+    elevation_m: 2420
+    weight: 1
+  - name: Paznauner Thaya
+    lat: 46.9723
+    lon: 10.3074
+    elevation_m: 2277
+    weight: 1
+  - name: Viderjoch
+    lat: 46.9752
+    lon: 10.3376
+    elevation_m: 2766
+    weight: 1

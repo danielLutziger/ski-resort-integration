@@ -1,0 +1,28 @@
+name: Davos Jakobshorn
+meteoswiss_point_id:
+station: Davos Platz (Jakobshorn)
+day_price_chf: 87
+snow_n_rail:
+  offer: snownrail-davos-klosters
+  up_to_pct: 10
+points:
+  - name: Ischalp
+    lat: 46.7868
+    lon: 9.8326
+    elevation_m: 1931
+    weight: 2
+  - name: Jakobshorn
+    lat: 46.7724
+    lon: 9.8483
+    elevation_m: 2571
+    weight: 1
+  - name: Jatzhorn
+    lat: 46.7665
+    lon: 9.8511
+    elevation_m: 2500
+    weight: 1
+  - name: Brämabüel
+    lat: 46.7806
+    lon: 9.849
+    elevation_m: 2492
+    weight: 1

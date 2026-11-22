@@ -1,0 +1,33 @@
+name: Arosa Lenzerheide
+meteoswiss_point_id:
+station: Lenzerheide/Lai, Rothornbahn
+day_price_chf: 89
+snow_n_rail:
+  offer: snownrail-arosa-lenzerheide
+  up_to_pct: 10
+points:
+  - name: Scharmoin
+    lat: 46.7428
+    lon: 9.5731
+    elevation_m: 1906
+    weight: 1
+  - name: Rothorn
+    lat: 46.7426
+    lon: 9.5973
+    elevation_m: 2857
+    weight: 1
+  - name: Scalottas
+    lat: 46.7219
+    lon: 9.511
+    elevation_m: 2323
+    weight: 1
+  - name: Weisshorn
+    lat: 46.7893
+    lon: 9.6392
+    elevation_m: 2646
+    weight: 1
+  - name: Hörnli
+    lat: 46.7671
+    lon: 9.6209
+    elevation_m: 2500
+    weight: 1

@@ -1,0 +1,25 @@
+name: Samnaun
+meteoswiss_point_id:
+station: Samnaun-Ravaisch, Bergbahnen
+day_price_chf: 82
+points:
+  - name: Alp Trida
+    lat: 46.9786
+    lon: 10.3739
+    elevation_m: 2274
+    weight: 2
+  - name: Alp Trider Sattel
+    lat: 46.97
+    lon: 10.3663
+    elevation_m: 2511
+    weight: 1
+  - name: Muller
+    lat: 46.9841
+    lon: 10.3777
+    elevation_m: 2516
+    weight: 1
+  - name: Greitspitz
+    lat: 46.9696
+    lon: 10.3521
+    elevation_m: 2460
+    weight: 1

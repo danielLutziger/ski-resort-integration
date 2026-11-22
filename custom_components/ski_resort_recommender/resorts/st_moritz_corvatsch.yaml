@@ -1,0 +1,25 @@
+name: St. Moritz Corvatsch
+meteoswiss_point_id:
+station: Surlej, Corvatschbahn
+day_price_chf: 88
+points:
+  - name: Murtèl
+    lat: 46.4317
+    lon: 9.8229
+    elevation_m: 2702
+    weight: 2
+  - name: Corvatsch
+    lat: 46.418
+    lon: 9.8214
+    elevation_m: 3303
+    weight: 1
+  - name: Furtschellas
+    lat: 46.4224
+    lon: 9.7839
+    elevation_m: 2312
+    weight: 1
+  - name: Alp Surlej
+    lat: 46.4457
+    lon: 9.8115
+    elevation_m: 2079
+    weight: 1

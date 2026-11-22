@@ -1,0 +1,25 @@
+name: St. Anton
+meteoswiss_point_id:
+station: St. Anton am Arlberg, Bahnhof
+day_price_chf: 78
+points:
+  - name: Galzig
+    lat: 47.1309
+    lon: 10.2303
+    elevation_m: 2185
+    weight: 2
+  - name: Valluga
+    lat: 47.1576
+    lon: 10.213
+    elevation_m: 2809
+    weight: 1
+  - name: Gampen
+    lat: 47.1376
+    lon: 10.2484
+    elevation_m: 1852
+    weight: 1
+  - name: Rendl (Riffel II)
+    lat: 47.1011
+    lon: 10.285
+    elevation_m: 2649
+    weight: 1

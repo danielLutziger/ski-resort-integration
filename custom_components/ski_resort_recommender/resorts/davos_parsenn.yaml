@@ -1,0 +1,30 @@
+name: Davos Klosters Parsenn
+meteoswiss_point_id:
+station: Klosters Dorf, Bahnhof
+day_price_chf: 87
+points:
+  - name: Weissfluhjoch
+    lat: 46.8335
+    lon: 9.8054
+    elevation_m: 2666
+    weight: 2
+  - name: Weissfluhgipfel
+    lat: 46.8343
+    lon: 9.7962
+    elevation_m: 2844
+    weight: 1
+  - name: Parsennhütte
+    lat: 46.8506
+    lon: 9.8251
+    elevation_m: 2200
+    weight: 1
+  - name: Höhenweg
+    lat: 46.8194
+    lon: 9.8229
+    elevation_m: 2216
+    weight: 1
+  - name: Gotschnagrat
+    lat: 46.8574
+    lon: 9.8448
+    elevation_m: 2285
+    weight: 1

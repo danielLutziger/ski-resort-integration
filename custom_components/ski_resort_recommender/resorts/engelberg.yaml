@@ -1,0 +1,28 @@
+name: Engelberg Titlis
+meteoswiss_point_id:
+station: Engelberg, Titlisbahn
+day_price_chf: 78
+snow_n_rail:
+  offer: snownrail-engelberg-titlis
+  up_to_pct: 30
+points:
+  - name: Trübsee
+    lat: 46.7932
+    lon: 8.3987
+    elevation_m: 1802
+    weight: 2
+  - name: Stand
+    lat: 46.7825
+    lon: 8.4174
+    elevation_m: 2428
+    weight: 1
+  - name: Titlis
+    lat: 46.7707
+    lon: 8.4229
+    elevation_m: 3020
+    weight: 1
+  - name: Jochpass
+    lat: 46.7788
+    lon: 8.3868
+    elevation_m: 2213
+    weight: 1

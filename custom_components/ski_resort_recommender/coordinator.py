@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
     from .lib.models import Resort
 
-RESORTS_FILE = Path(__file__).parent / "resorts.yaml"
+RESORTS_DIR = Path(__file__).parent / "resorts"  # one <key>.yaml per resort
 
 type SkiResortConfigEntry = ConfigEntry[SkiResortCoordinator]
 
@@ -54,7 +54,7 @@ class SkiResortCoordinator(DataUpdateCoordinator[RecommendationResult]):
         """Run one update; API problems become UpdateFailed."""
         if self._resorts is None:  # file I/O: not in the event loop
             self._resorts = await self.hass.async_add_executor_job(
-                load_resorts, RESORTS_FILE
+                load_resorts, RESORTS_DIR
             )
         try:
             return await build_recommendations(

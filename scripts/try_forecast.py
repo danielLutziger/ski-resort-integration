@@ -38,9 +38,7 @@ async def main() -> None:
         settings = replace(
             settings, allowed_weekdays=frozenset(range(7)), max_results=200
         )
-    resorts = load_resorts(
-        Path("custom_components/ski_resort_recommender/resorts.yaml")
-    )
+    resorts = load_resorts(Path("custom_components/ski_resort_recommender/resorts"))
     today = date.today()  # noqa: DTZ011
     async with aiohttp.ClientSession() as session:
         result = await build_recommendations(
