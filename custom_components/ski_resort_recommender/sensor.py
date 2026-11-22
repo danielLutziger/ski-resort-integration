@@ -1,57 +1,46 @@
-"""Sensor platform for integration_blueprint."""
+"""Sensor that shows the ski recommendation headline."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .entity import IntegrationBlueprintEntity
+from .const import ATTRIBUTION, DOMAIN, NAME
+from .coordinator import SkiResortConfigEntry, SkiResortCoordinator
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
-    from .coordinator import BlueprintDataUpdateCoordinator
-    from .data import IntegrationBlueprintConfigEntry
-
-ENTITY_DESCRIPTIONS = (
-    SensorEntityDescription(
-        key="ski_resort_recommender",
-        name="Ski Resort Recommender",
-        icon="mdi:format-quote-close",
-    ),
-)
+    from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,  # noqa: ARG001 Unused function argument: `hass`
-    entry: IntegrationBlueprintConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    hass: HomeAssistant,  # noqa: ARG001
+    entry: SkiResortConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Set up the sensor platform."""
-    async_add_entities(
-        IntegrationBlueprintSensor(
-            coordinator=entry.runtime_data.coordinator,
-            entity_description=entity_description,
-        )
-        for entity_description in ENTITY_DESCRIPTIONS
-    )
+    """Set up the recommendation sensor."""
+    async_add_entities([RecommendationSensor(entry.runtime_data)])
 
 
-class IntegrationBlueprintSensor(IntegrationBlueprintEntity, SensorEntity):
-    """integration_blueprint Sensor class."""
+class RecommendationSensor(CoordinatorEntity[SkiResortCoordinator], SensorEntity):
+    """State = headline, attributes = recommendations (filled in step 5)."""
 
-    def __init__(
-        self,
-        coordinator: BlueprintDataUpdateCoordinator,
-        entity_description: SensorEntityDescription,
-    ) -> None:
-        """Initialize the sensor class."""
+    _attr_attribution = ATTRIBUTION
+    _attr_has_entity_name = True
+    _attr_name = None  # the entity takes the device name
+    _attr_icon = "mdi:ski"
+
+    def __init__(self, coordinator: SkiResortCoordinator) -> None:
+        """Initialize the sensor."""
         super().__init__(coordinator)
-        self.entity_description = entity_description
+        entry_id = coordinator.config_entry.entry_id
+        self._attr_unique_id = entry_id
+        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, entry_id)}, name=NAME)
 
     @property
     def native_value(self) -> str | None:
-        """Return the native value of the sensor."""
-        return self.coordinator.data.get("body")
+        """Return the headline (None until the coordinator delivers data)."""
+        return None

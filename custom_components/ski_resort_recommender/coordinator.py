@@ -1,38 +1,38 @@
-"""DataUpdateCoordinator for integration_blueprint."""
+"""Data update coordinator for the Ski Resort Recommender."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from datetime import timedelta
+from typing import TYPE_CHECKING
 
-from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .api import (
-    IntegrationBlueprintApiClientAuthenticationError,
-    IntegrationBlueprintApiClientError,
-    IntegrationBlueprintApiClientRateLimitError,
-)
+from .const import DOMAIN, LOGGER
 
 if TYPE_CHECKING:
-    from .data import IntegrationBlueprintConfigEntry
+    from homeassistant.core import HomeAssistant
+
+type SkiResortConfigEntry = ConfigEntry[SkiResortCoordinator]
 
 
-# https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
-class BlueprintDataUpdateCoordinator(DataUpdateCoordinator):
-    """Class to manage fetching data from the API."""
+class SkiResortCoordinator(DataUpdateCoordinator[None]):
+    """Fetch forecasts once per hour and compute the recommendations."""
 
-    config_entry: IntegrationBlueprintConfigEntry
+    # Stub for now: fetching and scoring are wired in later (CLAUDE.md, step 5).
 
-    async def _async_update_data(self) -> Any:
-        """Update data via library."""
-        try:
-            return await self.config_entry.runtime_data.client.async_get_data()
-        except IntegrationBlueprintApiClientAuthenticationError as exception:
-            raise ConfigEntryAuthFailed(exception) from exception
-        except IntegrationBlueprintApiClientRateLimitError as exception:
-            raise UpdateFailed(
-                exception,
-                retry_after=exception.retry_after,
-            ) from exception
-        except IntegrationBlueprintApiClientError as exception:
-            raise UpdateFailed(exception) from exception
+    config_entry: SkiResortConfigEntry
+
+    def __init__(self, hass: HomeAssistant, entry: SkiResortConfigEntry) -> None:
+        """Initialize the coordinator."""
+        super().__init__(
+            hass,
+            LOGGER,
+            config_entry=entry,
+            name=DOMAIN,
+            update_interval=timedelta(hours=1),
+        )
+
+    async def _async_update_data(self) -> None:
+        """Return no data until the forecast provider is wired in."""
+        return

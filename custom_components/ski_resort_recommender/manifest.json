@@ -8,5 +8,7 @@
   "documentation": "https://github.com/danielLutziger/ski-resort-integration",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/danielLutziger/ski-resort-integration/issues",
+  "requirements": [],
+  "single_config_entry": true,
   "version": "0.1.0"
 }
