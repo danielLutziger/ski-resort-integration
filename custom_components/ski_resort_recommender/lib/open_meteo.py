@@ -28,9 +28,9 @@ DAILY = [
     "wind_speed_10m_max",
     "weather_code",
 ]
-# MeteoSwiss ICON has no visibility in Open-Meteo; DWD ICON has it (hourly, metres,
-# about 5 days ahead). Later days come back as None.
-VISIBILITY_MODEL = "icon_seamless"
+# DWD ICON fills what MeteoSwiss lacks: daily values after today + 4 (MeteoSwiss
+# horizon) and hourly visibility (metres, about 5 days; MeteoSwiss has none).
+FALLBACK_MODEL = "icon_seamless"
 SKI_HOURS = range(9, 17)  # hourly values from 09:00 to 16:00 local time
 
 
@@ -41,7 +41,7 @@ class OpenMeteoProvider:
         """Use the injected aiohttp session (HA: async_get_clientsession)."""
         self._session = session
 
-    async def get_forecast(self, resorts: list[Resort], days: int = 10) -> Forecasts:
+    async def get_forecast(self, resorts: list[Resort], days: int = 8) -> Forecasts:
         """Get the weather forecast for all points of the given resorts."""
         coordinates = {
             **_coordinates(resorts),
@@ -49,13 +49,18 @@ class OpenMeteoProvider:
             "timezone": TIMEZONE,
         }
         # two models -> two requests, each batched over all points
-        daily, hourly = await asyncio.gather(
+        meteoswiss, dwd = await asyncio.gather(
             self._get({**coordinates, "daily": ",".join(DAILY), "models": MODEL}),
             self._get(
-                {**coordinates, "hourly": "visibility", "models": VISIBILITY_MODEL}
+                {
+                    **coordinates,
+                    "daily": ",".join(DAILY),
+                    "hourly": "visibility",
+                    "models": FALLBACK_MODEL,
+                }
             ),
         )
-        return _combine(resorts, daily, hourly)
+        return _combine(resorts, meteoswiss, dwd)
 
     async def _get(self, params: dict) -> list[dict]:
         """Run one request; always return a list of locations."""
@@ -82,24 +87,35 @@ def _coordinates(resorts: list[Resort]) -> dict[str, str]:
     }
 
 
-def _combine(resorts: list[Resort], daily: list[dict], hourly: list[dict]) -> Forecasts:
+def _combine(
+    resorts: list[Resort], meteoswiss: list[dict], dwd: list[dict]
+) -> Forecasts:
     """Match both responses to the points by position and build the forecasts."""
     pairs = [(resort, point) for resort in resorts for point in resort.points]
-    if not len(daily) == len(hourly) == len(pairs):
+    if not len(meteoswiss) == len(dwd) == len(pairs):
         msg = "Location count differs from point count"
         raise SkiApiParseError(msg)
 
     forecasts: Forecasts = {resort.key: {} for resort in resorts}
     try:
-        for (resort, point), day_loc, hour_loc in zip(
-            pairs, daily, hourly, strict=True
+        for (resort, point), ms_loc, dwd_loc in zip(
+            pairs, meteoswiss, dwd, strict=True
         ):
-            forecasts[resort.key][point.name] = _parse_daily(
-                day_loc["daily"], _ski_hours_visibility(hour_loc["hourly"])
+            visibility = _ski_hours_visibility(dwd_loc["hourly"])
+            forecasts[resort.key][point.name] = _merge(
+                _parse_daily(ms_loc["daily"], visibility),
+                _parse_daily(dwd_loc["daily"], visibility),
             )
     except (KeyError, IndexError, TypeError, ValueError) as error:
         raise SkiApiParseError(str(error)) from error
     return forecasts
+
+
+def _merge(meteoswiss: list[DayForecast], dwd: list[DayForecast]) -> list[DayForecast]:
+    """Use MeteoSwiss where it has data and DWD for every other day."""
+    by_day = {day.day: day for day in dwd}
+    by_day.update({day.day: day for day in meteoswiss if day.has_data})
+    return sorted(by_day.values(), key=lambda day: day.day)
 
 
 def _parse_daily(d: dict, visibility: dict[date, float]) -> list[DayForecast]:

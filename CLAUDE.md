@@ -37,7 +37,7 @@ custom_components/ski_resort_recommender/
     open_meteo.py               # OpenMeteoProvider (aiohttp); pure _combine/_parse_daily/_ski_hours_visibility
     weather_codes.py            # WeatherClass (StrEnum), _CLASSES, classify()
     scoring.py                  # score_day(DayForecast) -> DayScore(total, reasons)
-    settings.py                 # Settings dataclass (weekdays, max_results, min_good_score)
+    settings.py                 # Settings dataclass (weekdays, max_results, min_good_score, ranking_days, outlook_days)
     service.py                  # pick_recommendations(); Recommendation, RecommendationResult, RecommendationStatus
     resorts.py                  # load_resorts(path) -> list[Resort]; checks 1-5 points with unique names
 scripts/try_forecast.py         # runs the whole chain on the real API and prints the ranking
@@ -77,6 +77,10 @@ Done and tested (pytest green at last check):
 - `weather_codes.py` + coverage test; `scoring.py` (sun 30, fresh snow 20, wind penalty above 30 km/h,
   temperature band, weather class points) + tests; `service.py` + tests (weekday filter, future-only,
   max results, same resort twice, no-go never good, missing resort, status).
+- Horizon / outlook (done 22.11): 8 forecast days. MeteoSwiss where it has data, DWD `icon_seamless`
+  for the rest (`_merge`). Days 1..`ranking_days` (5) are ranked; the best allowed day up to
+  `outlook_days` (7) is `RecommendationResult.outlook`, a separate 4th entry. The status only looks at
+  the ranked days (outlook only -> "No forecast yet").
 - Visibility (B, done): `DayForecast.visibility_m` = median of hourly visibility 09:00–16:00, from a second
   batched request with model `icon_seamless`; scored as a penalty (0 at >= 5 km, −30 at <= 1 km, None = 0).
 
@@ -170,14 +174,12 @@ and imports so that the integration still loads and tests/ruff stay green.
 
 ## Next steps (suggested order)
 
-0. Commit the current state (see Git rules), then clean up boilerplate (E) in a separate commit.
 1. Settings-driven scoring (C), keep tests green. (B is done.)
 2. Fix findings 2 and 3 (hourly ski-hours window, no double counting).
-3. Outlook: days beyond MeteoSwiss from DWD `icon_seamless`; best of days 6/7 as a 4th entry.
-   (Multi-point resorts (A) and per-point `elevation_m` are done.)
-5. Coordinator (hourly poll, `UpdateFailed`), sensor (state = headline, attributes = recommendations),
+   (Multi-point resorts (A), per-point `elevation_m` and the outlook entry are done.)
+3. Coordinator (hourly poll, `UpdateFailed`), sensor (state = headline, attributes = recommendations),
    config flow (weekdays, number of results, min score, scoring weights), then a Markdown dashboard card.
-6. Later: train connection (Swiss public transport integration is already installed in my HA), ticket
+4. Later: train connection (Swiss public transport integration is already installed in my HA), ticket
    prices (no public API; many Swiss resorts use dynamic pricing — start with a static price per resort,
    never rely on scraping blindly).
 

@@ -1,5 +1,6 @@
 """Tests for pick_recommendations()."""
 
+from dataclasses import replace
 from datetime import date
 
 from custom_components.ski_resort_recommender.lib.models import (
@@ -19,11 +20,17 @@ from custom_components.ski_resort_recommender.lib.settings import Settings
 SATURDAY = date(2026, 11, 28)
 SUNDAY = date(2026, 11, 29)
 WEDNESDAY = date(2026, 11, 25)
-TODAY = date(2026, 11, 22)
+TODAY = date(2026, 11, 24)  # Tuesday: the weekend is inside the 5 ranked days
 
 WEEKEND = frozenset({5, 6})
 
-SETTINGS = Settings(allowed_weekdays=WEEKEND, max_results=3, min_good_score=50.0)
+SETTINGS = Settings(
+    allowed_weekdays=WEEKEND,
+    max_results=3,
+    min_good_score=50.0,
+    ranking_days=5,
+    outlook_days=7,
+)
 
 
 MAIN = "main"
@@ -155,7 +162,7 @@ def test_no_go_weather_is_never_good_even_with_high_score() -> None:
     result = pick(
         [resort],
         forecasts,
-        Settings(allowed_weekdays=WEEKEND, max_results=3, min_good_score=0.0),
+        replace(SETTINGS, min_good_score=0.0),
         today=TODAY,
     )
 
@@ -176,9 +183,7 @@ def test_custom_weekdays_setting() -> None:
     """Only the configured weekdays are returned."""
     resort = make_resort("laax")
     forecasts = {"laax": [make_day(WEDNESDAY), make_day(SATURDAY)]}
-    settings = Settings(
-        allowed_weekdays=frozenset({2}), max_results=3, min_good_score=50.0
-    )
+    settings = replace(SETTINGS, allowed_weekdays=frozenset({2}))
 
     result = pick([resort], forecasts, settings, today=TODAY)
 
@@ -305,7 +310,7 @@ def test_no_go_at_another_point_does_not_block_a_good_day() -> None:
     forecasts: Forecasts = {
         "laax": {"top": [make_day(SATURDAY)], "mid": [make_day(SATURDAY, code=95)]}
     }
-    settings = Settings(allowed_weekdays=WEEKEND, max_results=3, min_good_score=0.0)
+    settings = replace(SETTINGS, min_good_score=0.0)
 
     (rec,) = pick_recommendations(
         [resort], forecasts, settings, today=TODAY
@@ -328,3 +333,58 @@ def test_points_can_cover_different_days() -> None:
         (SATURDAY, "top"),
         (SUNDAY, "mid"),
     ]
+
+
+MONDAY_AFTER = date(2026, 11, 30)  # today + 6
+TUESDAY_AFTER = date(2026, 12, 1)  # today + 7
+WEDNESDAY_AFTER = date(2026, 12, 2)  # today + 8
+ALL_DAYS = replace(SETTINGS, allowed_weekdays=frozenset(range(7)))
+
+
+def test_days_after_the_ranking_window_go_to_the_outlook() -> None:
+    """Days 6-7 are not ranked; the best of them is the outlook entry."""
+    forecasts = {
+        "laax": [
+            make_day(SATURDAY, sun=2),
+            make_day(MONDAY_AFTER, sun=4),
+            make_day(TUESDAY_AFTER, sun=8),
+        ]
+    }
+
+    result = pick([make_resort("laax")], forecasts, ALL_DAYS, today=TODAY)
+
+    assert [r.day.day for r in result.recommendations] == [SATURDAY]
+    assert result.outlook is not None
+    assert result.outlook.day.day == TUESDAY_AFTER
+
+
+def test_days_after_the_outlook_window_are_ignored() -> None:
+    """Nothing beyond outlook_days is shown."""
+    forecasts = {"laax": [make_day(WEDNESDAY_AFTER)]}
+
+    result = pick([make_resort("laax")], forecasts, ALL_DAYS, today=TODAY)
+
+    assert result.recommendations == ()
+    assert result.outlook is None
+
+
+def test_outlook_respects_allowed_weekdays() -> None:
+    """A great outlook day on a disallowed weekday is not shown."""
+    forecasts = {"laax": [make_day(MONDAY_AFTER, sun=8)]}
+
+    result = pick([make_resort("laax")], forecasts, SETTINGS, today=TODAY)
+
+    assert result.outlook is None
+
+
+def test_outlook_alone_does_not_change_the_status() -> None:
+    """Only ranked days count for the headline: outlook only -> no forecast yet."""
+    sunday = date(2026, 11, 29)
+    forecasts = {"laax": [make_day(sunday)]}
+
+    # seen from Sunday 22.11: next Sunday is day 7, so outlook only
+    result = pick([make_resort("laax")], forecasts, SETTINGS, today=date(2026, 11, 22))
+
+    assert result.recommendations == ()
+    assert result.outlook is not None
+    assert result.status is RecommendationStatus.NO_FORECAST
