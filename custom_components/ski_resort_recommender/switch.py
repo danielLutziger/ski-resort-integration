@@ -17,8 +17,8 @@ if TYPE_CHECKING:
 
 ENTITY_DESCRIPTIONS = (
     SwitchEntityDescription(
-        key="integration_blueprint",
-        name="Integration Switch",
+        key="ski_resort_recommender",
+        name="Ski Resort Recommender Switch",
         icon="mdi:format-quote-close",
     ),
 )

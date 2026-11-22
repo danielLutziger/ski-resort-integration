@@ -17,8 +17,8 @@ if TYPE_CHECKING:
 
 ENTITY_DESCRIPTIONS = (
     SensorEntityDescription(
-        key="integration_blueprint",
-        name="Integration Sensor",
+        key="ski_resort_recommender",
+        name="Ski Resort Recommender",
         icon="mdi:format-quote-close",
     ),
 )
