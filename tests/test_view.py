@@ -21,6 +21,8 @@ from custom_components.ski_resort_recommender.lib.view import (
     entry,
     headline,
     render_table,
+    sensor_state,
+    sensor_table,
 )
 from custom_components.ski_resort_recommender.lib.weather_codes import WeatherIcon
 
@@ -162,3 +164,29 @@ def test_table_has_the_three_rows_per_recommendation() -> None:
 def test_table_without_results() -> None:
     """Nothing to show: the headline only."""
     assert render_table(RecommendationResult(())) == "No forecast yet"
+
+
+ERROR = "Forecast update failed: Open-Meteo rate limit (HTTP 429 Too Many Requests)"
+
+
+def test_without_data_the_state_says_no_data_yet() -> None:
+    """First update failed: a visible state instead of a missing sensor."""
+    assert sensor_state(None) == "No data yet"
+    assert sensor_state(RecommendationResult(())) == "No forecast yet"
+
+
+def test_without_data_the_table_shows_the_reason() -> None:
+    """The dashboard card explains why it is empty."""
+    assert sensor_table(None, ERROR) == f"⚠️ No data yet: {ERROR}"
+    assert sensor_table(None, None) == "⚠️ No data yet"
+
+
+def test_a_failed_update_keeps_the_last_result_with_a_note() -> None:
+    """Older data stays visible; the note says the last update failed."""
+    result = RecommendationResult((make_recommendation(),))
+
+    table = sensor_table(result, ERROR)
+
+    assert table.startswith(render_table(result))
+    assert table.endswith(f"⚠️ Last update failed: {ERROR}. Showing the last result.")
+    assert sensor_table(result, None) == render_table(result)

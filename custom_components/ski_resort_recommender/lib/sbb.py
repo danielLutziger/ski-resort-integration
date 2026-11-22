@@ -10,6 +10,7 @@ from custom_components.ski_resort_recommender.lib.errors import (
     SkiApiConnectionError,
     SkiApiError,
     SkiApiParseError,
+    describe,
 )
 from custom_components.ski_resort_recommender.lib.models import Connection, Leg
 
@@ -55,7 +56,7 @@ class SbbProvider:
                 response.raise_for_status()
                 payload = await response.json()
         except (aiohttp.ClientError, TimeoutError) as error:
-            raise SkiApiConnectionError(str(error)) from error
+            raise SkiApiConnectionError(describe("SBB", error)) from error
         return _pick(_parse(payload), day, settings)
 
     async def connections(
@@ -95,7 +96,7 @@ async def find_stations(session: aiohttp.ClientSession, query: str) -> list[str]
             response.raise_for_status()
             payload = await response.json()
     except (aiohttp.ClientError, TimeoutError) as error:
-        raise SkiApiConnectionError(str(error)) from error
+        raise SkiApiConnectionError(describe("SBB", error)) from error
     try:
         return [station["name"] for station in payload["stations"]]
     except (KeyError, TypeError) as error:

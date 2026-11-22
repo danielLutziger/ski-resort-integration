@@ -12,6 +12,7 @@ import aiohttp
 from custom_components.ski_resort_recommender.lib.errors import (
     SkiApiConnectionError,
     SkiApiParseError,
+    describe,
 )
 from custom_components.ski_resort_recommender.lib.models import (
     DayForecast,
@@ -95,7 +96,7 @@ class OpenMeteoProvider:
                 response.raise_for_status()
                 payload = await response.json()
         except (aiohttp.ClientError, TimeoutError) as error:
-            raise SkiApiConnectionError(str(error)) from error
+            raise SkiApiConnectionError(describe("Open-Meteo", error)) from error
 
         # one location comes back as an object, several as a list
         return payload if isinstance(payload, list) else [payload]

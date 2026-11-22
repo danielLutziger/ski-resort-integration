@@ -1,5 +1,6 @@
 """A fake aiohttp session for the provider tests (no network)."""
 
+from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Self
 
 import aiohttp
@@ -40,7 +41,7 @@ class FakeResponse:
             url = URL("https://example.invalid")
             info = aiohttp.RequestInfo(url, "GET", CIMultiDictProxy(CIMultiDict()), url)
             raise aiohttp.ClientResponseError(
-                info, (), status=self._status, message="error"
+                info, (), status=self._status, message=HTTPStatus(self._status).phrase
             )
 
     async def json(self) -> Any:

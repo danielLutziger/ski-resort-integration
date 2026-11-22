@@ -17,11 +17,27 @@ HEADLINES = {
     RecommendationStatus.NO_FORECAST: "No forecast yet",
 }
 NO_VALUE = "-"
+NO_DATA = "No data yet"
 
 
 def headline(result: RecommendationResult) -> str:
     """Sensor state: Good day / No good day / No forecast yet."""
     return HEADLINES[result.status]
+
+
+def sensor_state(result: RecommendationResult | None) -> str:
+    """Headline, or "No data yet" before the first successful update."""
+    return NO_DATA if result is None else headline(result)
+
+
+def sensor_table(result: RecommendationResult | None, error: str | None) -> str:
+    """Table for the card; explains a missing or outdated result."""
+    if result is None:
+        return f"⚠️ {NO_DATA}: {error}" if error else f"⚠️ {NO_DATA}"
+    table = render_table(result)
+    if error:
+        table += f"\n\n⚠️ Last update failed: {error}. Showing the last result."
+    return table
 
 
 def entry(r: Recommendation, *, outlook: bool = False) -> dict:

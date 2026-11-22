@@ -66,5 +66,6 @@ class SkiResortCoordinator(DataUpdateCoordinator[RecommendationResult]):
                 cache=self._cache,
             )
         except SkiApiError as error:
-            msg = f"Forecast update failed: {error}"
+            minutes = int(UPDATE_INTERVAL.total_seconds() // 60)
+            msg = f"{error} (next try in {minutes} min)"
             raise UpdateFailed(msg) from error

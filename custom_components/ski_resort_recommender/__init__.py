@@ -17,7 +17,9 @@ PLATFORMS: list[Platform] = [Platform.SENSOR]
 async def async_setup_entry(hass: HomeAssistant, entry: SkiResortConfigEntry) -> bool:
     """Set up the integration from a config entry."""
     coordinator = SkiResortCoordinator(hass, entry)
-    await coordinator.async_config_entry_first_refresh()
+    # no first_refresh: a failing first update (e.g. Open-Meteo 429) must not stop
+    # the setup, the sensor shows the reason and the coordinator retries hourly
+    await coordinator.async_refresh()
     entry.runtime_data = coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
