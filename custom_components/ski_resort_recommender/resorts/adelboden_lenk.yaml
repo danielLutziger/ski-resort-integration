@@ -1,0 +1,33 @@
+name: Adelboden-Lenk
+meteoswiss_point_id:
+station: Adelboden Oey (Sillerenbahn)
+day_price_chf: 80
+snow_n_rail:
+  offer: snownrail-adelboden-lenk
+  up_to_pct: 20
+points:
+  - name: Hahnenmoos
+    lat: 46.4533
+    lon: 7.4954
+    elevation_m: 1955
+    weight: 2
+  - name: Sillerenbühl
+    lat: 46.4718
+    lon: 7.5179
+    elevation_m: 1975
+    weight: 1
+  - name: Metschstand
+    lat: 46.4444
+    lon: 7.4951
+    elevation_m: 2097
+    weight: 1
+  - name: Tschentenalp
+    lat: 46.4987
+    lon: 7.5459
+    elevation_m: 1941
+    weight: 1
+  - name: Höchsthorn
+    lat: 46.4683
+    lon: 7.5473
+    elevation_m: 1885
+    weight: 1

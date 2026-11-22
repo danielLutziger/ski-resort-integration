@@ -1,0 +1,33 @@
+name: Grindelwald-Wengen
+meteoswiss_point_id:
+station: Grindelwald Terminal
+day_price_chf: 83
+snow_n_rail:
+  offer: snownrail-jungfrau-ski-region
+  up_to_pct: 10
+points:
+  - name: Kleine Scheidegg
+    lat: 46.5868
+    lon: 7.9612
+    elevation_m: 2061
+    weight: 2
+  - name: Männlichen
+    lat: 46.6132
+    lon: 7.9409
+    elevation_m: 2230
+    weight: 1
+  - name: Lauberhornschulter
+    lat: 46.5866
+    lon: 7.947
+    elevation_m: 2323
+    weight: 1
+  - name: Fallboden
+    lat: 46.5782
+    lon: 7.9674
+    elevation_m: 2144
+    weight: 1
+  - name: First
+    lat: 46.6614
+    lon: 8.053
+    elevation_m: 2164
+    weight: 1

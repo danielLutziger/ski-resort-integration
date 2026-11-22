@@ -1,0 +1,23 @@
+name: Melchsee Frutt
+meteoswiss_point_id:
+station: Stöckalp
+day_price_chf: 69
+snow_n_rail:
+  offer: snownrail-melchsee-frutt
+  up_to_pct: 30
+points:
+  - name: Melchsee-Frutt
+    lat: 46.7759
+    lon: 8.2692
+    elevation_m: 1910
+    weight: 2
+  - name: Bonistock
+    lat: 46.7776
+    lon: 8.2927
+    elevation_m: 2166
+    weight: 1
+  - name: Glogghüs
+    lat: 46.7634
+    lon: 8.2589
+    elevation_m: 2429
+    weight: 1

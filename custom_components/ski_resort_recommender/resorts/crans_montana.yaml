@@ -1,0 +1,33 @@
+name: Crans-Montana
+meteoswiss_point_id:
+station: Crans-Montana, télé Cry d'Er
+day_price_chf: 94
+snow_n_rail:
+  offer: snownrail-crans-montana
+  up_to_pct: 10
+points:
+  - name: Cry d'Er
+    lat: 46.3343
+    lon: 7.4795
+    elevation_m: 2253
+    weight: 2
+  - name: Plaine-Morte
+    lat: 46.37
+    lon: 7.4889
+    elevation_m: 2887
+    weight: 1
+  - name: Bellalui
+    lat: 46.3456
+    lon: 7.4855
+    elevation_m: 2521
+    weight: 1
+  - name: Les Violettes
+    lat: 46.3423
+    lon: 7.4981
+    elevation_m: 2224
+    weight: 1
+  - name: Mont Bonvin
+    lat: 46.3555
+    lon: 7.5099
+    elevation_m: 2542
+    weight: 1

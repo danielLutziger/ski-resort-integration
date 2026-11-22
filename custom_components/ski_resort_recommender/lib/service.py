@@ -89,7 +89,7 @@ def pick_recommendations(  # noqa: PLR0913 (optional keyword-only inputs)
     travel: one morning connection per resort key (reference day); its duration
     gives the relative travel points. Without it travel scores 0 everywhere.
     prices: day ticket price per resort key (e.g. live prices); default is
-    Resort.day_price_chf from resorts.yaml. Cheaper = more price points.
+    Resort.day_price_chf from the resort files. Cheaper = more price points.
     """
     ranked: list[Recommendation] = []
     outlook: list[Recommendation] = []

@@ -1,0 +1,30 @@
+name: Zermatt
+meteoswiss_point_id:
+station: Zermatt
+day_price_chf: 104
+points:
+  - name: Trockener Steg
+    lat: 45.9718
+    lon: 7.7222
+    elevation_m: 2929
+    weight: 2
+  - name: Schwarzsee
+    lat: 45.9922
+    lon: 7.7091
+    elevation_m: 2588
+    weight: 1
+  - name: Riffelberg
+    lat: 45.9941
+    lon: 7.7548
+    elevation_m: 2560
+    weight: 1
+  - name: Gornergrat
+    lat: 45.9861
+    lon: 7.7752
+    elevation_m: 2935
+    weight: 1
+  - name: Blauherd
+    lat: 46.0166
+    lon: 7.7883
+    elevation_m: 2576
+    weight: 1

@@ -1,0 +1,28 @@
+name: Flumserberg
+meteoswiss_point_id:
+station: Flumserberg, Tannenboden
+day_price_chf: 76
+snow_n_rail:
+  offer: snownrail-flumserberg
+  up_to_pct: 30
+points:
+  - name: Maschgenkamm
+    lat: 47.0698
+    lon: 9.2537
+    elevation_m: 2020
+    weight: 2
+  - name: Leist
+    lat: 47.0651
+    lon: 9.2332
+    elevation_m: 2222
+    weight: 1
+  - name: Prodkamm
+    lat: 47.0738
+    lon: 9.268
+    elevation_m: 1944
+    weight: 1
+  - name: Chrüz
+    lat: 47.083
+    lon: 9.27
+    elevation_m: 1639
+    weight: 1

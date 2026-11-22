@@ -1,0 +1,25 @@
+name: St. Moritz Corviglia
+meteoswiss_point_id:
+station: St. Moritz (Standseilbahn)
+day_price_chf: 95
+points:
+  - name: Corviglia
+    lat: 46.508
+    lon: 9.8185
+    elevation_m: 2490
+    weight: 2
+  - name: Piz Nair
+    lat: 46.5054
+    lon: 9.7877
+    elevation_m: 3057
+    weight: 1
+  - name: Marguns
+    lat: 46.5158
+    lon: 9.8258
+    elevation_m: 2272
+    weight: 1
+  - name: Randolins
+    lat: 46.4912
+    lon: 9.8093
+    elevation_m: 2211
+    weight: 1

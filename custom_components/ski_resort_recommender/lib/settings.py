@@ -1,7 +1,7 @@
 """User settings for the recommendation."""
 
 from dataclasses import dataclass
-from datetime import time
+from datetime import time, timedelta
 
 SATURDAY = 5
 SUNDAY = 6
@@ -81,3 +81,7 @@ class Settings:
     arrival_latest: time = time(9, 30)
     # no night trips: the morning connection must not leave before this
     departure_earliest: time = time(5, 0)
+    # Open-Meteo: fetch the forecast at most this often (rate limit with ~100 points)
+    weather_interval: timedelta = timedelta(hours=3)
+    # if Open-Meteo fails (e.g. 429), keep using the last forecast up to this age
+    weather_max_age: timedelta = timedelta(hours=12)

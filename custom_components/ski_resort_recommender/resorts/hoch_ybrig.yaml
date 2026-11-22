@@ -1,0 +1,30 @@
+name: Hoch-Ybrig
+meteoswiss_point_id:
+station: Hoch-Ybrig, Talst. Weglosen
+day_price_chf: 62
+points:
+  - name: Seebli
+    lat: 47.0106
+    lon: 8.7863
+    elevation_m: 1437
+    weight: 2
+  - name: Hesisbol
+    lat: 46.9966
+    lon: 8.7911
+    elevation_m: 1831
+    weight: 1
+  - name: Spirstock
+    lat: 47.0012
+    lon: 8.7715
+    elevation_m: 1765
+    weight: 1
+  - name: Laucheren
+    lat: 47.0076
+    lon: 8.7679
+    elevation_m: 1752
+    weight: 1
+  - name: Sternen
+    lat: 46.9999
+    lon: 8.7978
+    elevation_m: 1811
+    weight: 1

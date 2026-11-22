@@ -1,0 +1,28 @@
+name: Scuol
+meteoswiss_point_id:
+station: Scuol (pendicularas)
+day_price_chf: 69
+snow_n_rail:
+  offer: snownrail-scuol-motta-naluns
+  up_to_pct: 10
+points:
+  - name: Motta Naluns
+    lat: 46.8109
+    lon: 10.2735
+    elevation_m: 2152
+    weight: 2
+  - name: Prui
+    lat: 46.8054
+    lon: 10.2513
+    elevation_m: 2068
+    weight: 1
+  - name: Schlivera
+    lat: 46.8193
+    lon: 10.2589
+    elevation_m: 2414
+    weight: 1
+  - name: Mot da Ri
+    lat: 46.8264
+    lon: 10.2532
+    elevation_m: 2579
+    weight: 1

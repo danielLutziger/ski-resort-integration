@@ -537,7 +537,7 @@ def price_points(result: RecommendationResult) -> dict[str, float]:
 
 
 def test_price_points_are_relative_cheapest_5_most_expensive_0() -> None:
-    """Day price from resorts.yaml: cheapest price_points, most expensive 0."""
+    """Day price from the resort file: cheapest price_points, most expensive 0."""
     resorts = [
         make_resort("cheap", price=60),
         make_resort("mid", price=80),

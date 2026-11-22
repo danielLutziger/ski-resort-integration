@@ -3,8 +3,9 @@
 import asyncio
 import json
 from dataclasses import replace
-from datetime import date
+from datetime import date, datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -17,7 +18,7 @@ from custom_components.ski_resort_recommender.lib.open_meteo import (
     URL as OPEN_METEO_URL,
 )
 from custom_components.ski_resort_recommender.lib.pipeline import (
-    TravelCache,
+    Cache,
     build_recommendations,
 )
 from custom_components.ski_resort_recommender.lib.settings import Settings
@@ -28,11 +29,14 @@ MS = json.loads((FIXTURES / "open_meteo_response.json").read_text())
 DWD = json.loads((FIXTURES / "open_meteo_dwd_response.json").read_text())
 SBB = (FIXTURES / "sbb_connections.json").read_text()  # Sat 28.11
 TODAY = date(2026, 11, 21)  # the fixtures hold 20.-24.11
+NOW = datetime(2026, 11, 21, 10, 0, tzinfo=ZoneInfo("Europe/Zurich"))
 SETTINGS = Settings(
     allowed_weekdays=frozenset(range(7)),
     max_results=3,
     min_good_score=60,
     home_station="Zürich HB",
+    weather_interval=timedelta(hours=3),
+    weather_max_age=timedelta(hours=12),
 )
 
 
@@ -80,7 +84,7 @@ def test_recommendations_get_travel_points_and_the_connection_of_their_day() -> 
 
     result = asyncio.run(
         build_recommendations(
-            fake, [make_resort("laax")], SETTINGS, today=TODAY, cache=TravelCache()
+            fake, [make_resort("laax")], SETTINGS, now=NOW, cache=Cache()
         )
     )
 
@@ -94,21 +98,17 @@ def test_recommendations_get_travel_points_and_the_connection_of_their_day() -> 
 def test_travel_times_are_fetched_once_per_day() -> None:
     """A second update on the same day reuses the cached travel times."""
     fake = session()
-    cache = TravelCache()
+    cache = Cache()
     resorts = [make_resort("laax")]
     only_travel = replace(SETTINGS, max_results=0)  # no exact connections
 
-    asyncio.run(
-        build_recommendations(fake, resorts, only_travel, today=TODAY, cache=cache)
-    )
+    asyncio.run(build_recommendations(fake, resorts, only_travel, now=NOW, cache=cache))
     first = len(sbb_calls(fake))
-    asyncio.run(
-        build_recommendations(fake, resorts, only_travel, today=TODAY, cache=cache)
-    )
+    asyncio.run(build_recommendations(fake, resorts, only_travel, now=NOW, cache=cache))
     again = len(sbb_calls(fake)) - first
     asyncio.run(
         build_recommendations(
-            fake, resorts, only_travel, today=date(2026, 11, 22), cache=cache
+            fake, resorts, only_travel, now=NOW + timedelta(days=1), cache=cache
         )
     )
     next_day = len(sbb_calls(fake)) - first - again
@@ -125,8 +125,8 @@ def test_without_home_station_there_are_no_sbb_requests() -> None:
             fake,
             [make_resort("laax")],
             replace(SETTINGS, home_station=None),
-            today=TODAY,
-            cache=TravelCache(),
+            now=NOW,
+            cache=Cache(),
         )
     )
 
@@ -141,7 +141,7 @@ def test_weather_errors_reach_the_caller() -> None:
     with pytest.raises(SkiApiConnectionError):
         asyncio.run(
             build_recommendations(
-                fake, [make_resort("laax")], SETTINGS, today=TODAY, cache=TravelCache()
+                fake, [make_resort("laax")], SETTINGS, now=NOW, cache=Cache()
             )
         )
 
@@ -163,10 +163,66 @@ def test_a_failing_exact_connection_keeps_the_reference_connection() -> None:
             FakeSession(respond),
             [make_resort("laax")],
             SETTINGS,
-            today=TODAY,
-            cache=TravelCache(),
+            now=NOW,
+            cache=Cache(),
         )
     )
 
     assert result.recommendations
     assert all(r.connection is not None for r in result.recommendations)
+
+
+def update(
+    fake: FakeSession,
+    resorts: list[Resort],
+    settings: Settings,
+    now: datetime,
+    cache: Cache,
+) -> None:
+    """Run one update (result not needed)."""
+    asyncio.run(build_recommendations(fake, resorts, settings, now=now, cache=cache))
+
+
+def weather_calls(fake: FakeSession) -> int:
+    """Count the Open-Meteo requests (two per forecast: MeteoSwiss + DWD)."""
+    return sum("models" in c for c in fake.calls)
+
+
+def test_forecasts_are_reused_within_the_weather_interval() -> None:
+    """Hourly updates, weather only every weather_interval (Open-Meteo budget)."""
+    fake = session()
+    cache = Cache()
+    resorts = [make_resort("laax")]
+    no_train = replace(SETTINGS, home_station=None)
+
+    for hours in (0, 1, 2):  # within 3 h: one forecast
+        update(fake, resorts, no_train, NOW + timedelta(hours=hours), cache)
+    within = weather_calls(fake)
+    update(fake, resorts, no_train, NOW + timedelta(hours=3), cache)
+
+    assert (within, weather_calls(fake)) == (2, 4)
+
+
+def test_rate_limited_weather_keeps_the_last_forecast_for_a_while() -> None:
+    """429 after a good update: the last forecast is used up to weather_max_age."""
+    cache = Cache()
+    resorts = [make_resort("laax")]
+    no_train = replace(SETTINGS, home_station=None)
+    asyncio.run(
+        build_recommendations(session(), resorts, no_train, now=NOW, cache=cache)
+    )
+    limited = FakeSession(lambda _url, _params: FakeResponse(status=429))
+
+    later = asyncio.run(
+        build_recommendations(
+            limited, resorts, no_train, now=NOW + timedelta(hours=5), cache=cache
+        )
+    )
+
+    assert later.recommendations  # ranked from the cached forecast
+    with pytest.raises(SkiApiConnectionError):  # too old after 12 h
+        asyncio.run(
+            build_recommendations(
+                limited, resorts, no_train, now=NOW + timedelta(hours=13), cache=cache
+            )
+        )

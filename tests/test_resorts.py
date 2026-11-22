@@ -1,4 +1,4 @@
-"""Tests for resorts.yaml and its loader."""
+"""Tests for the resort files (resorts/<key>.yaml) and their loader."""
 
 from pathlib import Path
 
@@ -10,17 +10,17 @@ from custom_components.ski_resort_recommender.lib.resorts import (
     load_resorts,
 )
 
-RESORTS_FILE = (
+RESORTS_DIR = (
     Path(__file__).parent.parent
     / "custom_components"
     / "ski_resort_recommender"
-    / "resorts.yaml"
+    / "resorts"
 )
 
 
 def test_every_resort_has_valid_points() -> None:
     """Points: 1-5 per resort, unique names, plausible Alpine positions."""
-    resorts = load_resorts(RESORTS_FILE)
+    resorts = load_resorts(RESORTS_DIR)
 
     assert len({r.key for r in resorts}) == len(resorts)
     for resort in resorts:
@@ -33,18 +33,18 @@ def test_every_resort_has_valid_points() -> None:
             assert point.weight > 0, (resort.key, point.name)
 
 
-def write_resort(tmp_path: Path, points: str) -> Path:
-    """Write a one-resort YAML file with the given points block."""
-    file = tmp_path / "resorts.yaml"
-    file.write_text(
-        "- key: test\n"
-        "  name: Test\n"
-        "  meteoswiss_point_id:\n"
-        "  station: Chur\n"
-        "  day_price_chf:\n"
-        f"  points:{points}\n"
+def write_resort(tmp_path: Path, points: str, extra: str = "") -> Path:
+    """Write test.yaml (one resort) with the given points block; return the folder."""
+    tmp_path.mkdir(exist_ok=True)
+    (tmp_path / "test.yaml").write_text(
+        "name: Test\n"
+        "meteoswiss_point_id:\n"
+        "station: Chur\n"
+        "day_price_chf:\n"
+        f"points:{points}\n"
+        f"{extra}"
     )
-    return file
+    return tmp_path
 
 
 def test_weight_defaults_to_one(tmp_path: Path) -> None:
@@ -104,9 +104,9 @@ SNOW_N_RAIL = {  # resorts with an SBB Snow'n'Rail offer 2026/27 (issue #19)
 }
 
 
-def test_snow_n_rail_offers_in_resorts_yaml() -> None:
+def test_snow_n_rail_offers_in_the_resort_files() -> None:
     """The resorts with an SBB Snow'n'Rail offer have one, the others none."""
-    resorts = {r.key: r for r in load_resorts(RESORTS_FILE)}
+    resorts = {r.key: r for r in load_resorts(RESORTS_DIR)}
 
     with_offer = {key for key, r in resorts.items() if r.snow_n_rail}
 
@@ -120,20 +120,45 @@ def test_snow_n_rail_offers_in_resorts_yaml() -> None:
 
 def test_snow_n_rail_is_parsed_and_optional(tmp_path: Path) -> None:
     """snow_n_rail: {offer, up_to_pct} becomes a SnowRailOffer; missing = None."""
-    file = write_resort(
-        tmp_path, "\n    - {name: a, lat: 46.8, lon: 9.3, elevation_m: 2000}"
+    point = "\n  - {name: a, lat: 46.8, lon: 9.3, elevation_m: 2000}"
+    (without,) = load_resorts(write_resort(tmp_path / "plain", point))
+    (resort,) = load_resorts(
+        write_resort(
+            tmp_path / "offer",
+            point,
+            "snow_n_rail:\n  offer: snownrail-pizol\n  up_to_pct: 30\n",
+        )
     )
-    with_offer = tmp_path / "with_offer.yaml"
-    with_offer.write_text(
-        file.read_text()
-        + "  snow_n_rail:\n    offer: snownrail-pizol\n    up_to_pct: 30\n"
-    )
-
-    (without,) = load_resorts(file)
-    (resort,) = load_resorts(with_offer)
 
     assert without.snow_n_rail is None
     assert resort.snow_n_rail == SnowRailOffer(offer="snownrail-pizol", up_to_pct=30)
     assert (
         resort.snow_n_rail.url == "https://freizeit.sbb.ch/en/stories/snownrail-pizol"
     )
+
+
+def test_the_file_name_is_the_resort_key(tmp_path: Path) -> None:
+    """Adding a resort = adding <key>.yaml; other files are ignored."""
+    point = "\n  - {name: a, lat: 46.8, lon: 9.3, elevation_m: 2000}"
+    folder = write_resort(tmp_path, point)
+    (folder / "notes.txt").write_text("not a resort")
+
+    (resort,) = load_resorts(folder)
+
+    assert resort.key == "test"
+
+
+def test_resorts_are_sorted_by_key() -> None:
+    """Stable order (the Open-Meteo request matches answers by position)."""
+    keys = [r.key for r in load_resorts(RESORTS_DIR)]
+
+    assert keys == sorted(keys)
+    assert len(keys) == 23
+
+
+def test_a_file_with_a_list_is_rejected(tmp_path: Path) -> None:
+    """Each file holds exactly one resort (no old-style list)."""
+    (tmp_path / "old.yaml").write_text("- name: A\n- name: B\n")
+
+    with pytest.raises(ValueError, match=r"old\.yaml"):
+        load_resorts(tmp_path)
