@@ -8,6 +8,7 @@ from enum import StrEnum
 from custom_components.ski_resort_recommender.lib.models import (
     Connection,
     DayForecast,
+    Drive,
     Forecasts,
     Resort,
     WeatherPoint,
@@ -45,6 +46,7 @@ class Recommendation:
     is_good: bool
     point: WeatherPoint  # best point of the resort on that day
     connection: Connection | None = None  # morning train, None = none found
+    drive: Drive | None = None  # car to the closest access point (car mode)
     tags: tuple[str, ...] = ()  # e.g. SNOW_N_RAIL_TAG
     weather_icon: WeatherIcon = WeatherIcon.UNKNOWN  # over all points and ski hours
     points: tuple[PointResult, ...] = ()  # every point of the resort that day
@@ -98,12 +100,15 @@ def pick_recommendations(  # noqa: PLR0913 (optional keyword-only inputs)
     today: date | None = None,
     travel: dict[str, Connection] | None = None,
     prices: dict[str, float] | None = None,
+    drives: dict[str, Drive] | None = None,
 ) -> RecommendationResult:
     """
     Score all allowed future days; rank days 1..ranking_days, outlook after.
 
     travel: one morning connection per resort key (reference day); its duration
     gives the relative travel points. Without it travel scores 0 everywhere.
+    drives: drive to the closest access point per resort key (car mode). With
+    train and car, the faster of the two counts for the travel points.
     prices: day ticket price per resort key (e.g. live prices); default is
     Resort.day_price_chf from the resort files. Cheaper = more price points.
     """
@@ -114,10 +119,11 @@ def pick_recommendations(  # noqa: PLR0913 (optional keyword-only inputs)
     ranking_end = today + timedelta(days=settings.ranking_days)
     outlook_end = today + timedelta(days=settings.outlook_days)
     travel = travel or {}
-    travel_points = _relative_points(
-        {key: c.duration_min for key, c in travel.items()},
-        settings.scoring.travel_points,
-    )
+    drives = drives or {}
+    minutes = {key: c.duration_min for key, c in travel.items()}
+    for key, drive in drives.items():
+        minutes[key] = min(minutes.get(key, drive.duration_min), drive.duration_min)
+    travel_points = _relative_points(minutes, settings.scoring.travel_points)
     if prices is None:
         prices = {r.key: r.day_price_chf for r in resorts if r.day_price_chf}
     price_points = _relative_points(prices, settings.scoring.price_points)
@@ -148,6 +154,7 @@ def pick_recommendations(  # noqa: PLR0913 (optional keyword-only inputs)
                 replace(
                     recommendation,
                     connection=travel.get(resort.key),
+                    drive=drives.get(resort.key),
                     tags=tags,
                     outlook=in_outlook,
                 )

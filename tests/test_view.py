@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 from custom_components.ski_resort_recommender.lib.models import (
     Connection,
     DayForecast,
+    Drive,
     Leg,
     Resort,
     SnowRailOffer,
@@ -349,3 +350,44 @@ def test_a_good_outlook_day_is_marked_good_for_the_color_mode() -> None:
 
     assert (e["classification"], e["is_good"]) == ("Outlook", True)
     assert entry(make_recommendation(good=False))["is_good"] is False
+
+
+DRIVE = Drive(access="Tannenboden", duration_min=65, distance_km=72.4)
+
+
+def test_entry_car_has_access_point_time_and_distance() -> None:
+    """The card shows where to drive, how long and how far."""
+    car = entry(replace(make_recommendation(), drive=DRIVE))["car"]
+
+    assert car == {
+        "access": "Tannenboden",
+        "duration_min": 65,
+        "distance_km": 72.4,
+        "summary": "Tannenboden · 1:05 h · 72 km",
+    }
+    assert entry(make_recommendation())["car"] is None
+
+
+def test_table_adds_a_car_row_and_drops_no_train_in_car_mode() -> None:
+    """Train + car: four rows; car only: the date moves to the car row."""
+    both = rows(
+        render_table(
+            RecommendationResult((replace(make_recommendation(), drive=DRIVE),))
+        )
+    )
+    car_only = rows(
+        render_table(
+            RecommendationResult(
+                (replace(make_recommendation(train=False), drive=DRIVE),)
+            )
+        )
+    )
+
+    assert len(both) == 4
+    assert 'rowspan="4"' in both[0]
+    assert "Car" in both[3]
+    assert "Tannenboden · 1:05 h · 72 km" in both[3]
+    assert len(car_only) == 2
+    assert "Sat 28.11" in car_only[1]
+    assert "Car" in car_only[1]
+    assert "No train" not in "".join(car_only)

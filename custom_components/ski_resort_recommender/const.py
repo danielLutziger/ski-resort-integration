@@ -9,7 +9,8 @@ DOMAIN = "ski_resort_recommender"
 NAME = "Ski Resort Recommender"
 ATTRIBUTION = (
     "Weather data by Open-Meteo.com; snow depth by the WSL Institute for Snow and"
-    " Avalanche Research SLF (www.slf.ch, CC BY 4.0)"
+    " Avalanche Research SLF (www.slf.ch, CC BY 4.0); drive times by OSRM, map data"
+    " © OpenStreetMap contributors"
 )
 # the coordinator runs hourly (new day, SBB); Open-Meteo only every weather interval
 UPDATE_INTERVAL = timedelta(hours=1)

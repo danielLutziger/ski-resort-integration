@@ -13,7 +13,10 @@ from custom_components.ski_resort_recommender.lib.service import (
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from custom_components.ski_resort_recommender.lib.models import Connection
+    from custom_components.ski_resort_recommender.lib.models import (
+        Connection,
+        Drive,
+    )
     from custom_components.ski_resort_recommender.lib.service import PointResult
     from custom_components.ski_resort_recommender.lib.settings import Settings
 
@@ -84,6 +87,7 @@ def entry(r: Recommendation, *, outlook: bool | None = None) -> dict:
         "weather_icon": r.weather_icon.mdi,
         "price_chf": r.resort.day_price_chf,
         "train": _train(r.connection) if r.connection else None,
+        "car": _car(r.drive) if r.drive else None,
         "snow_n_rail": {"up_to_pct": offer.up_to_pct, "url": offer.url}
         if offer
         else None,
@@ -157,11 +161,12 @@ def _point(p: PointResult) -> dict:
 
 def render_table(result: RecommendationResult) -> str:
     """
-    Compact HTML table for the Markdown card, one block of three rows per result.
+    Compact HTML table for the Markdown card, one block of rows per result.
 
      52         | Hoch-Ybrig · Spirstock                        |  62.-
      Not good ⛅ | Sat 28.11 | Dep. Zürich HB, 07:15 · S5 · Pl. 3 | [SnR]
                 |           | Arr. Hoch-Ybrig, 09:10             |
+                |           | Car  Weglosen · 0:58 h · 52 km     |   (car mode)
 
     Only HTML the Markdown card allows (no CSS): font size, rowspan/colspan,
     column widths. No borders and the SnR badge style come from card-mod.
@@ -177,10 +182,16 @@ def render_table(result: RecommendationResult) -> str:
 
 
 def _rows(r: Recommendation, *, outlook: bool) -> list[str]:
-    """Three rows: score/resort/price, date + departure, arrival."""
+    """Score/resort/price, then date + travel lines (train Dep./Arr., car)."""
+    lines: list[tuple[str, str]] = []
+    if r.connection or not r.drive:  # car only: no "No train" line
+        lines.extend(_departure_arrival(r.connection))
+    if r.drive:
+        lines.append((_small("Car"), _small(escape(_car(r.drive)["summary"]))))
+    span = len(lines) + 1
     label = escape(_classification(r, outlook=outlook))
     score = (
-        f'<td rowspan="3" align="center"><font size="5"><b>{round(r.score.total)}'
+        f'<td rowspan="{span}" align="center"><font size="5"><b>{round(r.score.total)}'
         f"</b></font><br>{_small(f'{label} {r.weather_icon.emoji}')}</td>"
     )
     resort = (
@@ -190,13 +201,16 @@ def _rows(r: Recommendation, *, outlook: bool) -> list[str]:
     side = [_price(r.resort.day_price_chf)]
     if r.resort.snow_n_rail:
         side.append(f"<code>{SNOW_N_RAIL_SHORT}</code>")
-    price = f'<td rowspan="3" align="right">{"<br>".join(p for p in side if p)}</td>'
-    (dep_label, departure), (arr_label, arrival) = _departure_arrival(r.connection)
+    price = (
+        f'<td rowspan="{span}" align="right">{"<br>".join(p for p in side if p)}</td>'
+    )
     day = _small(f"{r.day.day:%a %d.%m}")
     return [
         f"<tr>{score}{resort}{price}</tr>",
-        f"<tr><td>{day}</td><td>{dep_label}</td><td>{departure}</td></tr>",
-        f"<tr><td></td><td>{arr_label}</td><td>{arrival}</td></tr>",
+        *(
+            f"<tr><td>{day if i == 0 else ''}</td><td>{lbl}</td><td>{txt}</td></tr>"
+            for i, (lbl, txt) in enumerate(lines)
+        ),
     ]
 
 
@@ -235,6 +249,17 @@ def _classification(r: Recommendation, *, outlook: bool) -> str:
     if outlook:
         return "Outlook"
     return "Good day" if r.is_good else "Not good"
+
+
+def _car(d: Drive) -> dict:
+    """Drive to the closest access point: where, how long, how far."""
+    hours, minutes = divmod(d.duration_min, 60)
+    return {
+        "access": d.access,
+        "duration_min": d.duration_min,
+        "distance_km": d.distance_km,
+        "summary": f"{d.access} · {hours}:{minutes:02d} h · {d.distance_km:.0f} km",
+    }
 
 
 def _train(c: Connection) -> dict:

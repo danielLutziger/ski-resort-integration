@@ -4,7 +4,7 @@ from dataclasses import replace
 from datetime import time, timedelta
 from typing import TYPE_CHECKING, Any
 
-from custom_components.ski_resort_recommender.lib.settings import Settings
+from custom_components.ski_resort_recommender.lib.settings import CAR, TRAIN, Settings
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -19,6 +19,7 @@ ARRIVAL_TARGET = "arrival_target"
 ARRIVAL_LATEST = "arrival_latest"
 WEATHER_INTERVAL_HOURS = "weather_interval_hours"
 SHOW_OUTLOOK = "show_outlook"
+TRAVEL_MODES = "travel_modes"
 
 
 def settings_from_options(options: Mapping[str, Any]) -> Settings:
@@ -30,6 +31,9 @@ def settings_from_options(options: Mapping[str, Any]) -> Settings:
         values["allowed_weekdays"] = frozenset(int(d) for d in options[WEEKDAYS])
     if MAX_RESULTS in options:
         values["max_results"] = int(options[MAX_RESULTS])
+    if TRAVEL_MODES in options:
+        modes = frozenset(options[TRAVEL_MODES]) & {TRAIN, CAR}
+        values["travel_modes"] = modes
     if SHOW_OUTLOOK in options:
         values["show_outlook"] = bool(options[SHOW_OUTLOOK])
     if MIN_GOOD_SCORE in options:
@@ -46,6 +50,7 @@ def settings_from_options(options: Mapping[str, Any]) -> Settings:
 def options_from_settings(settings: Settings) -> dict[str, Any]:
     """Form values for Settings (pre-fills the form with the defaults)."""
     return {
+        TRAVEL_MODES: sorted(settings.travel_modes, reverse=True),  # train, car
         HOME_STATION: settings.home_station or "",
         WEEKDAYS: [str(d) for d in sorted(settings.allowed_weekdays)],
         MAX_RESULTS: settings.max_results,

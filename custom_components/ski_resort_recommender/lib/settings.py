@@ -5,6 +5,9 @@ from datetime import time, timedelta
 
 SATURDAY = 5
 SUNDAY = 6
+# travel modes (not exclusive: with both, both are shown)
+TRAIN = "train"
+CAR = "car"
 
 
 @dataclass(frozen=True, slots=True)
@@ -76,8 +79,12 @@ class Settings:
     # off: no 4th entry (days 6-7 stay in the full list); weekends rarely need it
     show_outlook: bool = False
     scoring: ScoringSettings = ScoringSettings()
+    # how you travel: TRAIN and/or CAR; the travel score uses the faster one
+    travel_modes: frozenset[str] = frozenset({TRAIN})
     # public transport from home: None = no travel score and no connections
     home_station: str | None = None
+    # (lat, lon) where the car trip starts (HA: the home location); None = no car
+    home_location: tuple[float, float] | None = None
     # the morning connection must arrive in this window; closest to the target wins
     arrival_target: time = time(9, 0)
     arrival_earliest: time = time(8, 45)

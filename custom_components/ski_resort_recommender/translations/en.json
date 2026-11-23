@@ -15,6 +15,7 @@
                 "title": "Ski Resort Recommender settings",
                 "description": "Train connections come from the SBB timetable (transport.opendata.ch), the weather from Open-Meteo.",
                 "data": {
+                    "travel_modes": "Travel by",
                     "home_station": "Home station",
                     "weekdays": "Ski days",
                     "max_results": "Number of recommendations",
@@ -26,6 +27,7 @@
                     "weather_interval_hours": "Weather update interval"
                 },
                 "data_description": {
+                    "travel_modes": "Train, car or both (both: both are shown, the faster one counts for the score). The car trip starts at the home location of Home Assistant; drive times without traffic (OSRM).",
                     "home_station": "Your train station as in the SBB timetable, e.g. Zürich HB. Leave empty for no train connections.",
                     "weekdays": "Only these weekdays are recommended.",
                     "max_results": "How many days are shown.",

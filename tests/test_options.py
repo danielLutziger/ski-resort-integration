@@ -10,13 +10,14 @@ from custom_components.ski_resort_recommender.lib.options import (
     MAX_RESULTS,
     MIN_GOOD_SCORE,
     SHOW_OUTLOOK,
+    TRAVEL_MODES,
     WEATHER_INTERVAL_HOURS,
     WEEKDAYS,
     options_from_settings,
     settings_from_options,
     validate_options,
 )
-from custom_components.ski_resort_recommender.lib.settings import Settings
+from custom_components.ski_resort_recommender.lib.settings import CAR, TRAIN, Settings
 
 FORM = {  # what the Home Assistant form returns (strings, floats)
     HOME_STATION: "Zürich HB",
@@ -86,3 +87,12 @@ def test_arrival_window_must_be_in_order() -> None:
 def test_at_least_one_weekday() -> None:
     """Without a weekday nothing could ever be recommended."""
     assert validate_options({**FORM, WEEKDAYS: []}) == {WEEKDAYS: "no_weekday"}
+
+
+def test_travel_modes_round_trip_and_unknown_modes_are_dropped() -> None:
+    """Train and/or car; the form pre-fills train first."""
+    both = settings_from_options({TRAVEL_MODES: ["car", "train", "plane"]})
+
+    assert both.travel_modes == frozenset({TRAIN, CAR})
+    assert options_from_settings(both)[TRAVEL_MODES] == ["train", "car"]
+    assert settings_from_options({TRAVEL_MODES: []}).travel_modes == frozenset()

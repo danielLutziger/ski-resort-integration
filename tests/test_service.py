@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 from custom_components.ski_resort_recommender.lib.models import (
     Connection,
     DayForecast,
+    Drive,
     Forecasts,
     Resort,
     SnowRailOffer,
@@ -680,3 +681,39 @@ def test_outlook_is_hidden_when_switched_off() -> None:
 def test_outlook_is_off_by_default() -> None:
     """Default settings (weekends) do not show the outlook entry."""
     assert Settings().show_outlook is False
+
+
+def test_car_mode_scores_the_drive_and_keeps_it_for_the_card() -> None:
+    """Drive times are relative like train times; the drive is attached."""
+    resorts = [make_resort(k) for k in ("near", "far")]
+    forecasts = {k: {MAIN: [make_day(SATURDAY)]} for k in ("near", "far")}
+    near = Drive(access="Flims", duration_min=60, distance_km=70)
+    drives = {"near": near, "far": Drive(access="X", duration_min=120, distance_km=150)}
+
+    result = pick_recommendations(
+        resorts, forecasts, SETTINGS, today=TODAY, drives=drives
+    )
+
+    by_key = {r.resort.key: r for r in result.recommendations}
+    assert by_key["near"].score.reasons["travel"] == 5
+    assert by_key["far"].score.reasons["travel"] == 0
+    assert by_key["near"].drive == near
+
+
+def test_with_train_and_car_the_faster_one_counts() -> None:
+    """Train 180 min vs car 90 min: 90 counts; no train: the car alone."""
+    resorts = [make_resort(k) for k in ("a", "b", "c")]
+    forecasts = {k: {MAIN: [make_day(SATURDAY)]} for k in ("a", "b", "c")}
+    drive = Drive(access="P", duration_min=90, distance_km=100)
+
+    result = pick_recommendations(
+        resorts,
+        forecasts,
+        SETTINGS,
+        today=TODAY,
+        travel={"a": make_connection(180), "b": make_connection(60)},
+        drives={"a": drive, "c": replace(drive, duration_min=120)},
+    )
+
+    # minutes: a 90 (car), b 60 (train), c 120 (car) -> b 5, a 2.5, c 0
+    assert travel_points(result) == {"b": 5, "a": 2.5, "c": 0}
