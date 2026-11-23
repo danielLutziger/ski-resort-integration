@@ -16,6 +16,13 @@ const price = (chf) => {
   return Number.isInteger(chf) ? `${chf}.-` : chf.toFixed(2);
 };
 
+// lower case without accents: "vallees" finds "Vallées"
+const fold = (text) =>
+  String(text ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+// the modal's search: every word must appear in resort, point or day
+const matches = (haystack, query) => fold(query).split(/\s+/).every((word) => haystack.includes(word));
+
 const num = (value, digits = 0, unit = "") =>
   value === null || value === undefined ? "–" : `${Number(value).toFixed(digits)}${unit}`;
 
@@ -115,7 +122,7 @@ function legs(train) {
 
 function details(r, w) {
   return `
-    <details>
+    <details data-search="${esc(fold(`${r.resort} ${r.point} ${r.day}`))}">
       <summary>${block(r)}</summary>
       <div class="detail">
         <h4>Score breakdown</h4>${breakdown(r.reasons, w)}
@@ -183,8 +190,12 @@ const STYLE = `
   .head h2 { margin: 0; font-size: 18px; }
   .close { background: none; border: 0; color: inherit; font-size: 22px; cursor: pointer; }
   .body { overflow-y: auto; padding: 8px 12px 16px; }
-  details { border-top: 1px solid var(--divider-color); padding: var(--ski-gap) 0; }
-  details:first-child { border-top: 0; }
+  .filter { padding: 8px 12px 0; }
+  .filter input { width: 100%; box-sizing: border-box; padding: 6px 10px; font: inherit; font-size: 14px; color: inherit;
+                  background: var(--secondary-background-color); border: 1px solid var(--divider-color); border-radius: 6px; }
+  details[hidden] { display: none; }
+  details:not([hidden]) ~ details:not([hidden]) { border-top: 1px solid var(--divider-color); }  /* line between shown results */
+  details { padding: var(--ski-gap) 0; }
   summary { list-style: none; cursor: pointer; }
   summary::-webkit-details-marker { display: none; }
   details[open] summary { background: var(--secondary-background-color); border-radius: 6px; }
@@ -259,7 +270,9 @@ class SkiResortCard extends HTMLElement {
   async _openModal() {
     const modal = this.shadowRoot.getElementById("modal");
     modal.innerHTML = `<div class="overlay"><div class="dialog"><div class="head"><h2>Ski days</h2>
-      <button class="close" title="Close">×</button></div><div class="body"><div class="empty">Loading…</div></div></div></div>`;
+      <button class="close" title="Close">×</button></div>
+      <div class="filter"><input type="search" placeholder="Search resort, point or day" list="ski-resorts" aria-label="Search"><datalist id="ski-resorts"></datalist></div>
+      <div class="body"><div class="empty">Loading…</div></div></div></div>`;
     const close = () => {
       modal.innerHTML = "";
       document.removeEventListener("keydown", onKey);
@@ -276,10 +289,23 @@ class SkiResortCard extends HTMLElement {
       const list = data.results.length
         ? data.results.map((r) => details(r, w)).join("")
         : `<div class="empty">${esc(data.headline)}${data.last_error ? `: ${esc(data.last_error)}` : ""}</div>`;
-      body.innerHTML = list + legend(data.scoring);
+      body.innerHTML = list + `<div class="empty nomatch" hidden>No resort matches.</div>` + legend(data.scoring);
+      const names = [...new Set(data.results.map((r) => r.resort))].sort();
+      modal.querySelector("datalist").innerHTML = names.map((n) => `<option value="${esc(n)}"></option>`).join("");
+      modal.querySelector(".filter input").addEventListener("input", (e) => this._filter(body, e.target.value));
     } catch (err) {
       body.innerHTML = `<div class="error">Could not load the results: ${esc(err.message ?? err)}</div>`;
     }
+  }
+
+  // hide the results that do not match; the legend stays
+  _filter(body, query) {
+    let shown = 0;
+    for (const item of body.querySelectorAll("details")) {
+      item.hidden = !matches(item.dataset.search, query);
+      if (!item.hidden) shown += 1;
+    }
+    body.querySelector(".nomatch").hidden = shown > 0;
   }
 }
 
