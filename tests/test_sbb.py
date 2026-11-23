@@ -124,3 +124,24 @@ def test_find_stations_network_error_is_a_connection_error() -> None:
 
     with pytest.raises(SkiApiConnectionError):
         asyncio.run(find_stations(session, "Zürich"))
+
+
+def test_leg_stops_come_from_the_pass_list_else_departure_and_arrival() -> None:
+    """(lat, lon) of every stop (x = lat, y = lon); without a list the two ends."""
+    section = json.loads(FIXTURE.read_text())["connections"][0]["sections"][0]
+    stop = {"station": {"name": "Sargans", "coordinate": {"x": 47.04, "y": 9.44}}}
+    with_list = {**section, "journey": {**section["journey"], "passList": [stop] * 2}}
+    ends = {
+        **section,
+        "departure": {
+            **section["departure"],
+            "station": {"name": "A", "coordinate": {"x": 47.3, "y": 8.5}},
+        },
+        "arrival": {
+            **section["arrival"],
+            "station": {"name": "B", "coordinate": {"x": 47.0, "y": 9.4}},
+        },
+    }
+
+    assert _leg(with_list).stops == ((47.04, 9.44), (47.04, 9.44))
+    assert _leg(ends).stops == ((47.3, 8.5), (47.0, 9.4))

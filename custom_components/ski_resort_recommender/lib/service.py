@@ -4,6 +4,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field, replace
 from datetime import date, timedelta
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
 from custom_components.ski_resort_recommender.lib.models import (
     Connection,
@@ -25,6 +26,9 @@ from custom_components.ski_resort_recommender.lib.weather_codes import (
     WeatherIcon,
     weather_icon,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 @dataclass(frozen=True, slots=True)
@@ -231,11 +235,32 @@ def attach_connections(
         found = connections.get((r.resort.key, r.day.day))
         return replace(r, connection=found) if found else r
 
-    return replace(  # replace keeps every other field (e.g. the modal's list)
+    return _each(result, attach)
+
+
+def attach_routes(
+    result: RecommendationResult, routes: dict[str, tuple[tuple[float, float], ...]]
+) -> RecommendationResult:
+    """Add the road geometry (map) to the drive of every result of a resort."""
+
+    def attach(r: Recommendation) -> Recommendation:
+        route = routes.get(r.resort.key)
+        if not route or not r.drive:
+            return r
+        return replace(r, drive=replace(r.drive, route=route))
+
+    return _each(result, attach)
+
+
+def _each(
+    result: RecommendationResult, change: Callable[[Recommendation], Recommendation]
+) -> RecommendationResult:
+    """Apply change to every recommendation; replace keeps the other fields."""
+    return replace(
         result,
-        recommendations=tuple(attach(r) for r in result.recommendations),
-        outlook=attach(result.outlook) if result.outlook else None,
-        all=tuple(attach(r) for r in result.all),
+        recommendations=tuple(change(r) for r in result.recommendations),
+        outlook=change(result.outlook) if result.outlook else None,
+        all=tuple(change(r) for r in result.all),
     )
 
 

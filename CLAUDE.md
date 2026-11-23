@@ -31,7 +31,9 @@ Requirements agreed so far:
 custom_components/ski_resort_recommender/
   __init__.py manifest.json config_flow.py const.py coordinator.py sensor.py   # HA glue only (mostly TODO)
   websocket.py                  # ws command ski_resort_recommender/results (all results + details, on request)
-  frontend/ski-resort-card.js   # custom:ski-resort-card (vanilla JS, no build), served + loaded by async_setup
+  frontend/ski-resort-card.js   # custom:ski-resort-card + custom:ski-resort-map-card (vanilla JS, no build),
+                                # served + loaded by async_setup
+  frontend/leaflet/             # Leaflet 1.9.4 (BSD-2, SRI-checked from cdnjs), served at /ski_resort_recommender/leaflet
   resorts/<key>.yaml            # resorts as DATA: one file per resort, file name = resort key
   lib/                          # NO homeassistant imports, testable alone
     models.py                   # Resort, WeatherPoint, DayForecast (frozen dataclasses), Forecasts alias; imports nothing from lib
@@ -300,6 +302,11 @@ and imports so that the integration still loads and tests/ruff stay green.
    Color mode (card options `color_mode`, default on; `good_color`, default pastel green #c8f2cf):
    blocks of good days (`entry.is_good`, also outlook days) get that background with dark text, in the card
    and the modal; `:host([color-mode])` + CSS variable `--ski-good-color` (set with `style.setProperty`).
+   Map card (23.11): `custom:ski-resort-map-card` (Leaflet, CARTO tiles like HA's map card): home marker, one pin
+   per resort = its best day (score + date, colour mode, recommended = thick border), click = `openResults` with
+   that resort's days; routes of `recommended` (payload): car = OSRM `/route` simplified geometry (`Drive.route`,
+   only shown resorts, once a day, `attach_routes`), train = `Leg.stops` from the SBB passList (payload only for
+   recommended resorts). Marker at the weighted centre of the weather points (`detail.location`).
    Check the JS with VS Code's node (`--check`, render pure functions in a vm). Still open in #28: configurable
    rows/cells.
    Weather icon = most frequent weather over all points and ski hours (weighted, ties -> worse); for

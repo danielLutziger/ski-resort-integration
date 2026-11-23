@@ -61,6 +61,8 @@ class Drive:
     # electric car: power (kW) of each public charging point at the access point;
     # None = not checked or no charger data around (e.g. Austria)
     chargers_kw: tuple[float, ...] | None = None
+    # (lat, lon) along the road, for the map; only for the shown results
+    route: tuple[tuple[float, float], ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -141,6 +143,8 @@ class Leg:
     platform: str | None
     arrival_station: str
     arrival: datetime
+    # (lat, lon) of the stops along the ride, for the map; () = unknown
+    stops: tuple[tuple[float, float], ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

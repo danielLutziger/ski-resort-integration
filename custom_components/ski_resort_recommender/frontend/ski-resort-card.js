@@ -253,7 +253,7 @@ const STYLE = `
   .badge { display: inline-block; font-size: 10px; font-weight: 600; line-height: 1; padding: 2px 7px; border-radius: 10px;
            background: var(--primary-color); color: var(--text-primary-color, #fff); }
   .empty { padding: 8px; color: var(--secondary-text-color); }
-  .overlay { position: fixed; inset: 0; z-index: 10; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; cursor: default; }
+  .overlay { position: fixed; inset: 0; z-index: 2000; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; cursor: default; }
   .dialog { background: var(--card-background-color, var(--ha-card-background)); color: var(--primary-text-color);
             border-radius: var(--ha-card-border-radius, 12px); width: min(760px, 96vw); max-height: 90vh; display: flex; flex-direction: column; }
   .head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--divider-color); }
@@ -343,46 +343,60 @@ class SkiResortCard extends HTMLElement {
     this.shadowRoot.querySelector("ha-card").addEventListener("click", () => this._openModal());
   }
 
-  async _openModal() {
-    const modal = this.shadowRoot.getElementById("modal");
-    modal.innerHTML = `<div class="overlay"><div class="dialog"><div class="head"><h2>Ski days</h2>
-      <button class="close" title="Close">×</button></div>
-      <div class="filter"><input type="search" placeholder="Search resort, point or day" list="ski-resorts" aria-label="Search"><datalist id="ski-resorts"></datalist></div>
-      <div class="body"><div class="empty">Loading…</div></div></div></div>`;
-    const close = () => {
-      modal.innerHTML = "";
-      document.removeEventListener("keydown", onKey);
-    };
-    const onKey = (e) => e.key === "Escape" && close();
-    document.addEventListener("keydown", onKey);
-    modal.querySelector(".close").addEventListener("click", close);
-    modal.querySelector(".overlay").addEventListener("click", (e) => e.target === e.currentTarget && close());
-    const body = modal.querySelector(".body");
-    try {
+  _openModal() {
+    openResults(this.shadowRoot, async () => {
       const data = await this._hass.callWS({ type: RESULTS_COMMAND });
-      modal.querySelector("h2").textContent = `Ski days · ${data.headline}`;
-      const w = data.scoring.weights;
-      const list = data.results.length
-        ? data.results.map((r) => details(r, w)).join("")
-        : `<div class="empty">${esc(data.headline)}${data.last_error ? `: ${esc(data.last_error)}` : ""}</div>`;
-      body.innerHTML = list + `<div class="empty nomatch" hidden>No resort matches.</div>` + legend(data.scoring);
-      const names = [...new Set(data.results.map((r) => r.resort))].sort();
-      modal.querySelector("datalist").innerHTML = names.map((n) => `<option value="${esc(n)}"></option>`).join("");
-      modal.querySelector(".filter input").addEventListener("input", (e) => this._filter(body, e.target.value));
-    } catch (err) {
-      body.innerHTML = `<div class="error">Could not load the results: ${esc(err.message ?? err)}</div>`;
-    }
+      return {
+        title: `Ski days · ${data.headline}`,
+        results: data.results,
+        scoring: data.scoring,
+        empty: `${data.headline}${data.last_error ? `: ${data.last_error}` : ""}`,
+      };
+    });
   }
+}
 
-  // hide the results that do not match; the legend stays
-  _filter(body, query) {
-    let shown = 0;
-    for (const item of body.querySelectorAll("details")) {
-      item.hidden = !matches(item.dataset.search, query);
-      if (!item.hidden) shown += 1;
-    }
-    body.querySelector(".nomatch").hidden = shown > 0;
+// the window with results (expandable details), a search box and the legend;
+// load() returns {title, results, scoring, empty} (all results or one resort's)
+async function openResults(root, load) {
+  const modal = root.getElementById("modal");
+  modal.innerHTML = `<div class="overlay"><div class="dialog"><div class="head"><h2>Ski days</h2>
+    <button class="close" title="Close">×</button></div>
+    <div class="filter"><input type="search" placeholder="Search resort, point or day" list="ski-resorts" aria-label="Search"><datalist id="ski-resorts"></datalist></div>
+    <div class="body"><div class="empty">Loading…</div></div></div></div>`;
+  const close = () => {
+    modal.innerHTML = "";
+    document.removeEventListener("keydown", onKey);
+  };
+  const onKey = (e) => e.key === "Escape" && close();
+  document.addEventListener("keydown", onKey);
+  modal.querySelector(".close").addEventListener("click", close);
+  modal.querySelector(".overlay").addEventListener("click", (e) => e.target === e.currentTarget && close());
+  const body = modal.querySelector(".body");
+  try {
+    const data = await load();
+    modal.querySelector("h2").textContent = data.title;
+    const w = data.scoring.weights;
+    const list = data.results.length
+      ? data.results.map((r) => details(r, w)).join("")
+      : `<div class="empty">${esc(data.empty)}</div>`;
+    body.innerHTML = list + `<div class="empty nomatch" hidden>No resort matches.</div>` + legend(data.scoring);
+    const names = [...new Set(data.results.map((r) => r.resort))].sort();
+    modal.querySelector("datalist").innerHTML = names.map((n) => `<option value="${esc(n)}"></option>`).join("");
+    modal.querySelector(".filter input").addEventListener("input", (e) => filterResults(body, e.target.value));
+  } catch (err) {
+    body.innerHTML = `<div class="error">Could not load the results: ${esc(err.message ?? err)}</div>`;
   }
+}
+
+// hide the results that do not match; the legend stays
+function filterResults(body, query) {
+  let shown = 0;
+  for (const item of body.querySelectorAll("details")) {
+    item.hidden = !matches(item.dataset.search, query);
+    if (!item.hidden) shown += 1;
+  }
+  body.querySelector(".nomatch").hidden = shown > 0;
 }
 
 customElements.define("ski-resort-card", SkiResortCard);
@@ -391,4 +405,213 @@ window.customCards.push({
   type: "ski-resort-card",
   name: "Ski Resort Recommender",
   description: "Best ski days; click for all resorts, details and the scoring formula.",
+});
+
+// ---- map card: custom:ski-resort-map-card ---------------------------------------
+// Home, one pin per resort (its best day: score + date; click = its days) and the
+// car road / train stops of the recommended resorts. Leaflet comes with the
+// integration; tiles from CARTO (like the Home Assistant map card).
+
+const LEAFLET_URL = "/ski_resort_recommender/leaflet";
+const TILES = "https://basemaps.cartocdn.com/{style}/{z}/{x}/{y}{r}.png";
+const TILES_ATTRIBUTION =
+  '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors ' +
+  '&copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>';
+const CAR_COLOR = "#1e88e5";
+const TRAIN_COLOR = "#e53935";
+
+let leafletLoading = null;
+function loadLeaflet() {
+  if (window.L) return Promise.resolve(window.L);
+  leafletLoading ??= new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = `${LEAFLET_URL}/leaflet.js`;
+    script.onload = () => resolve(window.L);
+    script.onerror = () => {
+      leafletLoading = null;
+      reject(new Error("the map library could not be loaded"));
+    };
+    document.head.appendChild(script);
+  });
+  return leafletLoading;
+}
+
+// results (best first) grouped by resort key; the first of each is its best day
+function byResort(results) {
+  const groups = new Map();
+  for (const r of results) {
+    if (!groups.has(r.key)) groups.set(r.key, []);
+    groups.get(r.key).push(r);
+  }
+  return groups;
+}
+
+// the train as one line through every stop of every leg
+function trainLine(r) {
+  return (r.train?.legs ?? []).flatMap((leg) => leg.stops ?? []);
+}
+
+function pinHtml(r, top) {
+  const cls = `pin${r.is_good ? " good" : ""}${top ? " top" : ""}`;
+  return `<div class="${cls}"><b>${esc(r.score)}</b><span>${esc(r.day)}</span></div>`;
+}
+
+const MAP_STYLE = `
+  ha-card.mapcard { padding: 0; cursor: default; overflow: hidden; height: 100%; }
+  .map { width: 100%; height: 100%; min-height: 200px; }
+  .maperr { position: absolute; top: 8px; left: 50px; right: 8px; z-index: 1000; }
+  .pin { transform: translate(-50%, -100%); width: max-content; text-align: center; font-size: 11px; line-height: 1.15;
+         padding: 2px 6px; border-radius: 8px; cursor: pointer; white-space: nowrap;
+         background: var(--card-background-color, #fff); color: var(--primary-text-color, #222);
+         border: 2px solid var(--secondary-text-color, #777); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4); }
+  .pin b { display: block; font-size: 14px; }
+  .pin.top { border-color: var(--primary-color, #03a9f4); border-width: 3px; }
+  :host([color-mode]) .pin.good { background: var(--ski-good-color); color: #1f2d22; }
+  .home { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+          transform: translate(-50%, -50%); background: var(--primary-color, #03a9f4); color: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4); }
+  .home ha-icon { --mdc-icon-size: 18px; }
+  .maplegend { background: var(--card-background-color, #fff); color: var(--primary-text-color, #222); padding: 4px 8px;
+               border-radius: 6px; font-size: 11px; line-height: 1.5; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3); }
+  .maplegend i { display: inline-block; width: 18px; height: 0; vertical-align: middle; margin-right: 4px; border-top: 3px solid; }
+  .leaflet-container { font: inherit; background: var(--secondary-background-color, #ddd); }
+`;
+
+class SkiResortMapCard extends HTMLElement {
+  setConfig(config) {
+    this._config = { entity: DEFAULT_ENTITY, color_mode: true, good_color: DEFAULT_GOOD_COLOR, routes: true, ...config };
+    if (!this.shadowRoot) this.attachShadow({ mode: "open" });
+    this.toggleAttribute("color-mode", this._config.color_mode !== false);
+    this.style.setProperty("--ski-good-color", this._config.good_color);
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+    if (!this._built) this._build();
+    // new results: the sensor changed (hourly) or the theme switched
+    const stamp = `${hass.states[this._config.entity]?.last_updated}|${hass.themes?.darkMode}`;
+    if (stamp !== this._stamp) {
+      this._stamp = stamp;
+      this._load();
+    }
+  }
+
+  getCardSize() {
+    return 8;
+  }
+
+  getGridOptions() {
+    return { columns: 12, rows: 6, min_rows: 4 };
+  }
+
+  static getStubConfig() {
+    return { entity: DEFAULT_ENTITY };
+  }
+
+  _build() {
+    this._built = true;
+    this.shadowRoot.innerHTML = `<link rel="stylesheet" href="${LEAFLET_URL}/leaflet.css">
+      <style>${STYLE}${MAP_STYLE}</style>
+      <ha-card class="mapcard"><div class="map"></div><div class="maperr"></div></ha-card><div id="modal"></div>`;
+  }
+
+  async _load() {
+    const err = this.shadowRoot.querySelector(".maperr");
+    try {
+      const [L, data] = await Promise.all([loadLeaflet(), this._hass.callWS({ type: RESULTS_COMMAND })]);
+      err.innerHTML = data.results.length ? "" : `<div class="empty maplegend">${esc(data.headline)}${data.last_error ? `: ${esc(data.last_error)}` : ""}</div>`;
+      this._draw(L, data);
+    } catch (e) {
+      err.innerHTML = `<div class="error maplegend">Map: ${esc(e.message ?? e)}</div>`;
+    }
+  }
+
+  _draw(L, data) {
+    const dark = Boolean(this._hass.themes?.darkMode);
+    if (!this._map) {
+      const el = this.shadowRoot.querySelector(".map");
+      this._map = L.map(el, { zoomSnap: 0.5 });
+      new ResizeObserver(() => this._map.invalidateSize()).observe(el);
+      const legend = L.control({ position: "bottomleft" });
+      legend.onAdd = () => {
+        const div = L.DomUtil.create("div", "maplegend");
+        div.innerHTML = `<div><i style="border-color:${CAR_COLOR}"></i>Car</div><div><i style="border-color:${TRAIN_COLOR};border-top-style:dashed"></i>Train</div>`;
+        return div;
+      };
+      legend.addTo(this._map);
+    }
+    if (this._dark !== dark) {
+      this._tiles?.remove();
+      this._tiles = L.tileLayer(TILES.replace("{style}", dark ? "dark_all" : "light_all"), {
+        attribution: TILES_ATTRIBUTION,
+        maxZoom: 18,
+      }).addTo(this._map);
+      this._dark = dark;
+    }
+    this._layer?.remove();
+    const layer = L.layerGroup().addTo(this._map);
+    this._layer = layer;
+
+    const home = [this._hass.config.latitude, this._hass.config.longitude];
+    const groups = byResort(data.results);
+    const top = new Set(data.recommended ?? []);
+    const bounds = [home];
+
+    if (this._config.routes !== false) {
+      for (const key of top) {
+        const best = groups.get(key)?.[0];
+        if (!best) continue;
+        const road = best.car?.route ?? [];
+        if (road.length > 1) {
+          L.polyline(road, { color: CAR_COLOR, weight: 4, opacity: 0.8 })
+            .bindTooltip(`${esc(best.resort)}: ${esc(best.car.summary)}`)
+            .addTo(layer);
+        }
+        const rail = trainLine(best);
+        if (rail.length > 1) {
+          const t = best.train;
+          L.polyline(rail, { color: TRAIN_COLOR, weight: 3, opacity: 0.85, dashArray: "6 6" })
+            .bindTooltip(`${esc(best.resort)}: ${esc(t.departure)} → ${esc(t.arrival)}, ${esc(t.duration_min)} min`)
+            .addTo(layer);
+        }
+      }
+    }
+
+    L.marker(home, {
+      icon: L.divIcon({ className: "", html: `<div class="home"><ha-icon icon="mdi:home"></ha-icon></div>`, iconSize: null }),
+      interactive: false,
+      keyboard: false,
+    }).addTo(layer);
+
+    for (const [key, list] of groups) {
+      const best = list[0];
+      if (!best.location) continue;
+      bounds.push(best.location);
+      L.marker(best.location, {
+        icon: L.divIcon({ className: "", html: pinHtml(best, top.has(key)), iconSize: null }),
+        title: best.resort,
+        zIndexOffset: top.has(key) ? 1000 : 0,
+      })
+        .on("click", () =>
+          openResults(this.shadowRoot, async () => ({
+            title: `${best.resort} · ${list.length} day${list.length === 1 ? "" : "s"}`,
+            results: list,
+            scoring: data.scoring,
+            empty: "",
+          })),
+        )
+        .addTo(layer);
+    }
+
+    if (!this._fitted && bounds.length > 1) {
+      this._map.fitBounds(bounds, { padding: [40, 40] });
+      this._fitted = true; // keep the user's zoom on later updates
+    }
+  }
+}
+
+customElements.define("ski-resort-map-card", SkiResortMapCard);
+window.customCards.push({
+  type: "ski-resort-map-card",
+  name: "Ski Resort Recommender map",
+  description: "Map with home, every resort's best day and the routes of the recommendations; click a pin for details.",
 });

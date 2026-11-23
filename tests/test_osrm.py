@@ -119,3 +119,26 @@ def test_the_drive_carries_the_car_parks_of_its_access_point() -> None:
     )
 
     assert drives["laax"].parking == (stenna,)
+
+
+def test_route_is_the_road_as_lat_lon_points() -> None:
+    """One request per route; OSRM sends lon, lat."""
+    answer = {
+        "code": "Ok",
+        "routes": [{"geometry": {"coordinates": [[8.54, 47.378], [9.28, 46.83]]}}],
+    }
+    calls: list[tuple] = []
+
+    def respond(url: str, params: dict) -> FakeResponse:
+        calls.append((url, params))
+        return FakeResponse(answer)
+
+    route = asyncio.run(OsrmProvider(FakeSession(respond)).route(ZURICH_HB, FLIMS))
+
+    assert route == ((47.378, 8.54), (46.83, 9.28))
+    assert calls == [
+        (
+            "https://router.project-osrm.org/route/v1/driving/8.5402,47.3779;9.2823,46.8345",
+            {"overview": "simplified", "geometries": "geojson"},
+        )
+    ]

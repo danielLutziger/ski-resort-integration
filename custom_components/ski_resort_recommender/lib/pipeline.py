@@ -21,6 +21,7 @@ from custom_components.ski_resort_recommender.lib.sbb import SbbProvider
 from custom_components.ski_resort_recommender.lib.service import (
     RecommendationResult,
     attach_connections,
+    attach_routes,
     pick_recommendations,
 )
 from custom_components.ski_resort_recommender.lib.settings import CAR, TRAIN
@@ -55,6 +56,9 @@ class Cache:
     # public EV chargers near the access points (electric car); once a day
     chargers: list[Charger] = field(default_factory=list)
     chargers_on: date | None = None
+    # road geometry per resort key (map), only for the shown results; daily
+    routes: dict[str, tuple[tuple[float, float], ...]] = field(default_factory=dict)
+    routes_for: tuple[date, tuple[float, float]] | None = None
 
 
 async def build_recommendations(  # noqa: PLR0913 (keyword-only inputs)
@@ -100,6 +104,7 @@ async def build_recommendations(  # noqa: PLR0913 (keyword-only inputs)
         ),
         measured_snow_cm=dict(cache.snow_depths),
     )
+    result = await _with_routes(session, resorts, settings, today, cache, result)
     if not _by_train(settings):
         return result
 
@@ -170,6 +175,34 @@ async def _refresh_chargers(
     except SkiApiError:
         return  # try again with the next update
     cache.chargers_on = today
+
+
+async def _with_routes(  # noqa: PLR0913 (pipeline state)
+    session: aiohttp.ClientSession,
+    resorts: list[Resort],
+    settings: Settings,
+    today: date,
+    cache: Cache,
+    result: RecommendationResult,
+) -> RecommendationResult:
+    """Add the road (map) to the shown resorts; one OSRM request each a day."""
+    origin = settings.home_location
+    if not cache.drives or origin is None:
+        return result
+    if cache.routes_for != (today, origin):
+        cache.routes, cache.routes_for = {}, (today, origin)
+    access = {(r.key, a.name): a for r in resorts for a in r.access}
+    shown = [*result.recommendations, *filter(None, [result.outlook])]
+    osrm = OsrmProvider(session)
+    for key in dict.fromkeys(r.resort.key for r in shown if r.drive):
+        point = access.get((key, cache.drives[key].access))
+        if key in cache.routes or point is None:
+            continue
+        try:
+            cache.routes[key] = await osrm.route(origin, point)
+        except SkiApiError:
+            continue  # the map shows no road for this resort
+    return attach_routes(result, cache.routes)
 
 
 def _by_train(settings: Settings) -> bool:
