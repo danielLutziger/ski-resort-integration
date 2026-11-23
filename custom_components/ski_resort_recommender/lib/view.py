@@ -18,8 +18,9 @@ HEADLINES = {
     RecommendationStatus.NO_FORECAST: "No forecast yet",
 }
 NO_DATA = "No data yet"
-SCORE_COLUMN_PX = 64  # left column: big score, small classification + icon
-SNOW_N_RAIL_SHORT = "SaR"  # Snow'n'Rail offer
+# column widths in px: score | date | connection (rest) | price + badge
+COLUMNS = '<colgroup><col width="64"><col width="56"><col><col width="44"></colgroup>'
+SNOW_N_RAIL_SHORT = "SnR"  # Snow'n'Rail offer
 
 
 def headline(result: RecommendationResult) -> str:
@@ -65,13 +66,14 @@ def entry(r: Recommendation, *, outlook: bool = False) -> dict:
 
 def render_table(result: RecommendationResult) -> str:
     """
-    Compact HTML table for the Markdown card, two rows per result.
+    Compact HTML table for the Markdown card, one block of three rows per result.
 
-    52          | Hoch-Ybrig · Sat 28.11
-    Not good ☁️ | 07:15 · S5 · Pl. 3 · Arr. 09:15 · SaR · 62.-
+     52         | Hoch-Ybrig · Spirstock                        |  62.-
+     Not good ⛅ | Sat 28.11 | Dep. Zürich HB, 07:15 · S5 · Pl. 3 | [SnR]
+                |           | Arr. Hoch-Ybrig, 09:10             |
 
-    Only HTML the Markdown card allows (no CSS): font size and column width.
-    Borders, padding and "…" for long text come from card-mod (README).
+    Only HTML the Markdown card allows (no CSS): font size, rowspan/colspan,
+    column widths. No borders and the SnR badge style come from card-mod.
     """
     shown = [(r, False) for r in result.recommendations]
     if result.outlook:
@@ -79,40 +81,60 @@ def render_table(result: RecommendationResult) -> str:
     if not shown:
         return headline(result)
     rows = [row for r, outlook in shown for row in _rows(r, outlook=outlook)]
-    return "\n".join(["<table>", *rows, "</table>"])
+    return "\n".join(['<table width="100%">', COLUMNS, *rows, "</table>"])
 
 
 def _rows(r: Recommendation, *, outlook: bool) -> list[str]:
-    """Score | resort · day, then classification + icon | compact details."""
-    left = f'<td width="{SCORE_COLUMN_PX}">'
+    """Three rows: score/resort/price, date + departure, arrival."""
     label = escape(_classification(r, outlook=outlook))
+    score = (
+        f'<td rowspan="3" align="center"><font size="5"><b>{round(r.score.total)}'
+        f"</b></font><br>{_small(f'{label} {r.weather_icon.emoji}')}</td>"
+    )
+    resort = (
+        f'<td colspan="2"><b>{escape(r.resort.name)}</b> · '
+        f"{_small(escape(r.point.name))}</td>"
+    )
+    side = [_price(r.resort.day_price_chf)]
+    if r.resort.snow_n_rail:
+        side.append(f"<code>{SNOW_N_RAIL_SHORT}</code>")
+    price = f'<td rowspan="3" align="right">{"<br>".join(p for p in side if p)}</td>'
+    departure, arrival = _departure_arrival(r.connection)
     return [
-        f'<tr>{left}<font size="5"><b>{round(r.score.total)}</b></font></td>'
-        f"<td><b>{escape(r.resort.name)}</b> · {r.day.day:%a %d.%m}</td></tr>",
-        f'<tr>{left}<font size="1">{label}</font> {r.weather_icon.emoji}</td>'
-        f"<td>{escape(_details(r))}</td></tr>",
+        f"<tr>{score}{resort}{price}</tr>",
+        f"<tr><td>{_small(f'{r.day.day:%a %d.%m}')}</td><td>{departure}</td></tr>",
+        f"<tr><td></td><td>{arrival}</td></tr>",
     ]
 
 
-def _details(r: Recommendation) -> str:
-    """Departure · first train · platform · arrival · SaR · price (CHF implied)."""
-    parts = [_compact_train(r.connection) if r.connection else "No train"]
-    if r.resort.snow_n_rail:
-        parts.append(SNOW_N_RAIL_SHORT)
-    if price := r.resort.day_price_chf:
-        parts.append(f"{price:.0f}.-" if price == int(price) else f"{price:.2f}")
-    return " · ".join(parts)
-
-
-def _compact_train(c: Connection) -> str:
-    """07:15 · S5 · Pl. 3 · Arr. 09:15 (the train you board at home)."""
-    parts = [f"{c.departure:%H:%M}"]
-    if c.legs:
-        parts.append(c.legs[0].line.replace(" ", ""))
+def _departure_arrival(c: Connection | None) -> tuple[str, str]:
+    """Dep. station, time · first train · platform / Arr. station, time."""
+    if c is None:
+        return _small("No train"), ""
+    first, last = (c.legs[0], c.legs[-1]) if c.legs else (None, None)
+    dep = [f"{c.departure:%H:%M}"]
+    if first:
+        dep.append(first.line.replace(" ", ""))
     if c.platform:
-        parts.append(f"Pl. {c.platform}")
-    parts.append(f"Arr. {c.arrival:%H:%M}")
-    return " · ".join(parts)
+        dep.append(f"Pl. {c.platform}")
+    dep_station = f"{first.departure_station}, " if first else ""
+    arr_station = f"{last.arrival_station}, " if last else ""
+    return (
+        _small(escape(f"Dep. {dep_station}{' · '.join(dep)}")),
+        _small(escape(f"Arr. {arr_station}{c.arrival:%H:%M}")),
+    )
+
+
+def _price(price: float | None) -> str:
+    """Day price, CHF implied: 62.- or 76.50."""
+    if not price:
+        return ""
+    return f"{price:.0f}.-" if price == int(price) else f"{price:.2f}"
+
+
+def _small(text: str) -> str:
+    """Small type (font size 1) for the secondary lines."""
+    return f'<font size="1">{text}</font>'
 
 
 def _classification(r: Recommendation, *, outlook: bool) -> str:
