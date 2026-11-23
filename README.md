@@ -39,24 +39,20 @@ HACS cannot install from private repositories.
 
 ### Dashboard card
 
-A Markdown card shows the table, two compact rows per result:
+A Markdown card shows the table, one compact block per result:
 
 ```
-52           Hoch-Ybrig · Sat 28.11
-Not good ☁️  07:15 · S5 · Pl. 3 · Arr. 09:15 · SaR · 62.-
+ 52          Hoch-Ybrig · Spirstock                            62.-
+ Not good ⛅  Sat 28.11  Dep. Zürich HB, 07:15 · S5 · Pl. 3     [SnR]
+                        Arr. Hoch-Ybrig, Talst. Weglosen, 09:10
 ```
 
-(score / classification and weather; resort · day; departure · first train · platform · arrival ·
-SaR = Snow'n'Rail offer · day price in CHF)
+(score and classification with the weather icon; resort · best point; date, departure and arrival of the
+morning train; day price in CHF; SnR = Snow'n'Rail offer)
 
-```yaml
-type: markdown
-content: "{{ state_attr('sensor.ski_resort_recommender', 'table') }}"
-```
-
-Home Assistant only allows plain HTML in a Markdown card (font size, column width), no CSS. For no borders,
-almost no padding and "…" instead of line breaks, add [card-mod](https://github.com/thomasloven/lovelace-card-mod)
-styles to the card:
+Home Assistant only allows plain HTML in a Markdown card, no CSS. The layout works without CSS; for **no borders,
+tight spacing, "…" instead of line breaks and the SnR badge** add these
+[card-mod](https://github.com/thomasloven/lovelace-card-mod) styles:
 
 ```yaml
 type: markdown
@@ -64,14 +60,25 @@ content: "{{ state_attr('sensor.ski_resort_recommender', 'table') }}"
 card_mod:
   style:
     .: |
-      ha-markdown { padding: 4px 6px !important; }
+      ha-card {
+        --markdown-table-border-color: transparent;
+        --markdown-table-border-width: 0;
+      }
+      ha-markdown { padding: 2px 4px !important; }
     ha-markdown$: |
-      table { display: table !important; width: 100%; table-layout: fixed;
-              border-collapse: collapse; border: none !important; margin: 0; }
-      td { border: none !important; padding: 0 4px !important; vertical-align: middle;
+      table { display: table !important; width: 100% !important; table-layout: fixed;
+              border-collapse: collapse; border: 0 !important; margin: 0 !important; }
+      tr, th, td { border: 0 !important; background: none !important; }
+      td { padding: 0 3px !important; line-height: 1.25; vertical-align: middle;
            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      td:first-child { width: 64px; }
+      tr:nth-child(3n+4) td { padding-top: 6px !important; }  /* gap between results */
+      code { font-family: inherit; font-size: 10px; font-weight: 600; line-height: 1;
+             padding: 2px 7px; border-radius: 10px;
+             background: var(--primary-color); color: var(--text-primary-color, #fff); }
 ```
+
+If the card still scrolls, give it more height (e.g. `grid_options: rows: 4`) or lower *Number of
+recommendations* in the options.
 
 ### Troubleshooting
 
