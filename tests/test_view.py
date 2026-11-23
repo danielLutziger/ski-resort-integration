@@ -150,8 +150,8 @@ def test_table_is_full_width_with_fixed_columns() -> None:
 
     assert table.startswith('<table width="100%">\n<colgroup>')
     assert table.splitlines()[1] == (
-        '<colgroup><col width="104"><col width="56"><col width="34"><col>'
-        '<col width="44"></colgroup>'
+        '<colgroup><col width="104"><col width="64"><col width="32"><col>'
+        '<col width="42"></colgroup>'
     )
     assert table.endswith("</table>")
 

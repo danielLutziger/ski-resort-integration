@@ -22,8 +22,8 @@ NO_DATA = "No data yet"
 DIVIDER = '<tr><td colspan="5"><hr></td></tr>'
 # column widths in px: score | date | Dep./Arr. | station + details (rest) | price
 COLUMNS = (
-    '<colgroup><col width="104"><col width="56"><col width="34"><col>'
-    '<col width="44"></colgroup>'
+    '<colgroup><col width="104"><col width="64"><col width="32"><col>'
+    '<col width="42"></colgroup>'
 )
 SMALL_FONT = 2  # HTML font size of the secondary text (1-7, 3 = normal)
 SNOW_N_RAIL_SHORT = "SnR"  # Snow'n'Rail offer
