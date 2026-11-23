@@ -205,6 +205,14 @@ const STYLE = `
   .error { color: var(--error-color, #db4437); padding: 8px; }
 `;
 
+const DEFAULT_RESULTS = 3; // size before the first result (default number of results)
+
+// the entries the compact table shows: recommendations + outlook (if switched on)
+function results(state) {
+  const a = state?.attributes ?? {};
+  return [...(a.recommendations ?? []), ...(a.outlook ? [a.outlook] : [])];
+}
+
 class SkiResortCard extends HTMLElement {
   setConfig(config) {
     this._config = { entity: DEFAULT_ENTITY, ...config };
@@ -218,13 +226,20 @@ class SkiResortCard extends HTMLElement {
     if (changed) this._renderCard(state);
   }
 
-  // 3 results + outlook need about 5 grid rows (56 px each)
+  // one result block is about 78 px; a sections grid row is 56 px + 8 px gap.
+  // Read when the dashboard builds the card: a changed number of results
+  // (e.g. the outlook option) applies after a page reload, until then it scrolls.
+  _rows() {
+    const shown = results(this._hass?.states[this._config?.entity]).length || DEFAULT_RESULTS;
+    return Math.ceil((shown * 78 + 8) / 64);
+  }
+
   getCardSize() {
-    return 5;
+    return this._rows();
   }
 
   getGridOptions() {
-    return { columns: 12, rows: 5, min_rows: 3 };
+    return { columns: 12, rows: this._rows(), min_rows: 2 };
   }
 
   static getStubConfig() {
@@ -233,9 +248,9 @@ class SkiResortCard extends HTMLElement {
 
   _renderCard(state) {
     const a = state?.attributes ?? {};
-    const results = [...(a.recommendations ?? []), ...(a.outlook ? [a.outlook] : [])];
-    const body = results.length
-      ? results.map(block).join("")
+    const shown = results(state);
+    const body = shown.length
+      ? shown.map(block).join("")
       : `<div class="empty">${esc(state ? state.state : `${this._config.entity} not found`)}${a.last_error ? `: ${esc(a.last_error)}` : ""}</div>`;
     this.shadowRoot.innerHTML = `<style>${STYLE}</style><ha-card>${body}</ha-card><div id="modal"></div>`;
     this.shadowRoot.querySelector("ha-card").addEventListener("click", () => this._openModal());
