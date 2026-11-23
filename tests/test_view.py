@@ -15,14 +15,19 @@ from custom_components.ski_resort_recommender.lib.models import (
 from custom_components.ski_resort_recommender.lib.scoring import DayScore
 from custom_components.ski_resort_recommender.lib.service import (
     SNOW_N_RAIL_TAG,
+    PointResult,
     Recommendation,
     RecommendationResult,
 )
+from custom_components.ski_resort_recommender.lib.settings import Settings
 from custom_components.ski_resort_recommender.lib.view import (
     DIVIDER,
+    detail,
     entry,
     headline,
     render_table,
+    results_payload,
+    scoring_info,
     sensor_state,
     sensor_table,
 )
@@ -243,3 +248,69 @@ def test_results_are_separated_by_a_divider_row() -> None:
     assert len(table_rows) == 3 * 3 + 2
     assert table_rows[3] == table_rows[7] == DIVIDER
     assert DIVIDER not in (table_rows[0], table_rows[-1])
+
+
+def with_points(r: Recommendation) -> Recommendation:
+    """Give a recommendation its (single) point result."""
+    return replace(r, points=(PointResult(point=POINT, day=r.day, score=r.score),))
+
+
+def test_detail_has_points_forecast_and_full_connection() -> None:
+    """Everything the expanded row shows."""
+    d = detail(with_points(make_recommendation()))
+
+    assert d["resort"] == "Flumserberg"
+    assert d["points"] == [
+        {
+            "name": "Leist",
+            "weight": 1.0,
+            "elevation_m": 2222,
+            "score": 83,
+            "reasons": {"sun": 40.0},
+            "forecast": {
+                "sunshine_hours": 8,
+                "daylight_hours": 9,
+                "fresh_snow_cm": 20,
+                "snow_depth_cm": None,
+                "gust_max_kmh": 20,
+                "temp_ski_c": -5,
+                "visibility_m": 30_000,
+                "recent_rain_mm": None,
+                "snow_after_rain_cm": None,
+                "weather_code": 0,
+            },
+        }
+    ]
+    assert [leg["line"] for leg in d["train"]["legs"]] == ["IC 3", "B 441"]
+    assert d["train"]["legs"][0] == {
+        "line": "IC 3",
+        "train_number": "559",
+        "from": "Zürich HB",
+        "departure": "07:38",
+        "platform": "9",
+        "to": "Sargans",
+        "arrival": "08:32",
+    }
+
+
+def test_scoring_info_lists_the_weights_for_the_formula() -> None:
+    """Current weights and thresholds (from the settings) for the legend."""
+    info = scoring_info(Settings())
+
+    assert info["min_good_score"] == 60
+    assert info["weights"]["sun_points"] == 40
+    assert info["weights"]["icy_penalty"] == 40
+    assert info["ranking_days"] == 5
+
+
+def test_results_payload_lists_all_results_best_first() -> None:
+    """The modal gets the headline, every result and the scoring info."""
+    good = with_points(make_recommendation())
+    poor = with_points(replace(make_recommendation(good=False), outlook=True))
+    result = RecommendationResult((good,), outlook=poor, all=(good, poor))
+
+    payload = results_payload(result, Settings())
+
+    assert payload["headline"] == "Good day"
+    assert [r["classification"] for r in payload["results"]] == ["Good day", "Outlook"]
+    assert payload["scoring"]["min_good_score"] == 60

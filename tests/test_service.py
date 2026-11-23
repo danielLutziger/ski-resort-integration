@@ -602,3 +602,42 @@ def test_resorts_with_a_snow_n_rail_offer_get_the_tag() -> None:
     tags = {r.resort.key: r.tags for r in result.recommendations}
     assert tags == {"pizol": (SNOW_N_RAIL_TAG,), "other": ()}
     assert SNOW_N_RAIL_TAG == "snow-n-rail"
+
+
+def test_all_results_hold_every_resort_day_sorted_with_outlook_flag() -> None:
+    """result.all: every allowed resort-day up to outlook_days, best first."""
+    forecasts = {
+        "laax": [make_day(SATURDAY, sun=8), make_day(SUNDAY, sun=2)],
+        "flims": [make_day(SATURDAY, sun=5), make_day(date(2026, 11, 30), sun=8)],
+    }
+    settings = replace(SETTINGS, allowed_weekdays=frozenset(range(7)), max_results=1)
+
+    result = pick(
+        [make_resort("laax"), make_resort("flims")], forecasts, settings, today=TODAY
+    )
+
+    assert len(result.recommendations) == 1
+    assert len(result.all) == 4
+    totals = [r.score.total for r in result.all]
+    assert totals == sorted(totals, reverse=True)
+    outlook_days = {(r.resort.key, r.day.day) for r in result.all if r.outlook}
+    assert outlook_days == {("flims", date(2026, 11, 30))}  # today + 6
+
+
+def test_every_result_keeps_its_point_scores() -> None:
+    """Per-point forecast and score for the details view."""
+    resort = make_resort("laax", make_point("top", weight=2), make_point("mid"))
+    forecasts: Forecasts = {
+        "laax": {"top": [make_day(SATURDAY, sun=8)], "mid": [make_day(SATURDAY, sun=0)]}
+    }
+
+    (rec,) = pick_recommendations(
+        [resort], forecasts, SETTINGS, today=TODAY
+    ).recommendations
+
+    assert [(p.point.name, p.point.weight) for p in rec.points] == [
+        ("top", 2),
+        ("mid", 1),
+    ]
+    assert rec.points[0].score.total > rec.points[1].score.total
+    assert rec.points[0].day.sunshine_hours == 8

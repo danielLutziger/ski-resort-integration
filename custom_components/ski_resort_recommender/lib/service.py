@@ -27,6 +27,15 @@ from custom_components.ski_resort_recommender.lib.weather_codes import (
 
 
 @dataclass(frozen=True, slots=True)
+class PointResult:
+    """Forecast and score of one weather point of a resort-day (for the details)."""
+
+    point: WeatherPoint
+    day: DayForecast
+    score: DayScore
+
+
+@dataclass(frozen=True, slots=True)
 class Recommendation:
     """One resort on one day: combined score, shown with its best point."""
 
@@ -38,6 +47,8 @@ class Recommendation:
     connection: Connection | None = None  # morning train, None = none found
     tags: tuple[str, ...] = ()  # e.g. SNOW_N_RAIL_TAG
     weather_icon: WeatherIcon = WeatherIcon.UNKNOWN  # over all points and ski hours
+    points: tuple[PointResult, ...] = ()  # every point of the resort that day
+    outlook: bool = False  # day after the ranking window (days 6-7)
 
 
 # resort has an SBB Snow'n'Rail offer (per-day availability: issue #19)
@@ -58,6 +69,9 @@ class RecommendationResult:
 
     recommendations: tuple[Recommendation, ...]  # ranked days, best first
     outlook: Recommendation | None = None  # best day after the ranking window
+    all: tuple[
+        Recommendation, ...
+    ] = ()  # every resort-day up to outlook_days, best first
 
     @property
     def has_good_day(self) -> bool:
@@ -120,7 +134,8 @@ def pick_recommendations(  # noqa: PLR0913 (optional keyword-only inputs)
                     continue
                 point_days[day.day].append((point, day))
         for day, points in point_days.items():
-            target = ranked if day <= ranking_end else outlook
+            in_outlook = day > ranking_end
+            target = outlook if in_outlook else ranked
             extras = {
                 "travel": travel_points.get(resort.key, 0.0),
                 "price": price_points.get(resort.key, 0.0),
@@ -128,12 +143,19 @@ def pick_recommendations(  # noqa: PLR0913 (optional keyword-only inputs)
             recommendation = _recommend(resort, points, settings, extras)
             tags = (SNOW_N_RAIL_TAG,) if resort.snow_n_rail else ()
             target.append(
-                replace(recommendation, connection=travel.get(resort.key), tags=tags)
+                replace(
+                    recommendation,
+                    connection=travel.get(resort.key),
+                    tags=tags,
+                    outlook=in_outlook,
+                )
             )
     ranked.sort(key=lambda r: r.score.total, reverse=True)
+    everything = sorted([*ranked, *outlook], key=lambda r: r.score.total, reverse=True)
     return RecommendationResult(
         tuple(ranked[: settings.max_results]),
         outlook=max(outlook, key=lambda r: r.score.total, default=None),
+        all=tuple(everything),
     )
 
 
@@ -167,6 +189,7 @@ def _recommend(
         is_good=is_good,
         point=best_point,
         weather_icon=icon,
+        points=tuple(PointResult(point, day, s) for point, day, s in scored),
     )
 
 
