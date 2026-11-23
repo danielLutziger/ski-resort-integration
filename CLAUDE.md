@@ -322,7 +322,9 @@ Add `custom_components/ski_resort_recommender/resorts/<key>.yaml` (the file name
 underscores) with `name`, `meteoswiss_point_id` (empty), `station` (the SBB stop at the gondola, exactly as
 transport.opendata.ch names it, or empty), `day_price_chf` (adult high-season day price), optional
 `snow_n_rail: {offer, up_to_pct}`, `access:` (1-4 valley stations with parking: `name`, `lat`, `lon`;
-coordinates of the gondola's timetable stop; the closest by car wins), optional `snow_stations:` (0-3 SLF IMIS stations with `code`, `name`,
+coordinates of the gondola's timetable stop, never the mountain station - check the elevation; the closest by car
+wins; each with `parking:` 1-2 car parks: `name`, `lat`, `lon`, optional `spaces`, `price_chf` = one ski day of
+about 8 h, 0 = free, missing = unknown; the main car park first), optional `snow_stations:` (0-3 SLF IMIS stations with `code`, `name`,
 `elevation_m`, chosen by the rule under the rating; list: `/public/api/imis/stations`) and `points:` (1-5 lift stations with `name`, `lat`, `lon`,
 `elevation_m`, `weight`). Check coordinates against the terrain height (Open-Meteo elevation API) and the
 station with `/v1/locations`. Every point adds a location to each Open-Meteo request (rate limit).
@@ -369,6 +371,12 @@ station with `/v1/locations`. Every point adds a location to each Open-Meteo req
   contributors (ODbL). 23.11 from Zürich HB: Flims 101 min < Laax 102 < Falera 109; to Sedrun it routes
   over the Oberalp (closed in winter). EV chargers: BFE dataset on data.geo.admin.ch (gzip JSON, ~1 MB,
   daily; OICP fields, power, plugs; no prices; licence to check) - for #53 PR 3.
+- Parking (researched 23.11.2026 for #53 PR 2): parking.ch car park pages (spaces, tariffs, coordinates,
+  charging flag), resort/tourism pages and OSM (`amenity=parking`, `capacity`, `charge`) where parking.ch has
+  nothing (Sedrun, Ischgl, St. Anton, Le Châble, Täsch). Day price = what ~8 h cost in the high season
+  (St. Moritz Quadrellas CHF 3 / 30 min -> 48; Flims Stenna long-term 5-12 h 13.60). Unknown: Adelboden Oey,
+  Lenk Metsch, Andermatt Gemsstock/Gütsch, Churwalden, Klosters Gotschna, Laax, Scuol, Celerina, St. Anton.
+  Disentis access point was the mountain station Caischavedra (1854 m) -> moved to the valley station.
 - SBB: `https://transport.opendata.ch/v1/connections` (free, no key, no rate-limit headers; keep calls
   few, `MAX_PARALLEL` 4). `journey.name` is the train number for trains, an internal trip id for buses.
   Not in the Swiss timetable: Ischgl (station left empty). St. Anton returned no plausible morning
