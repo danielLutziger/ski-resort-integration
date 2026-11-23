@@ -39,6 +39,40 @@ HACS cannot install from private repositories.
 
 ### Dashboard card
 
+The integration brings its own card, loaded automatically (restart Home Assistant once after installing):
+
+```yaml
+type: custom:ski-resort-card
+entity: sensor.ski_resort_recommender  # optional, this is the default
+```
+
+- **Compact table** of the best days plus the outlook:
+  ```
+   52          Hoch-Ybrig · Spirstock                                  62.-
+   Not good ⛅  Sat 28.11  Dep.  Zürich HB, 07:15 · S5 · Pl. 3          [SnR]
+                          Arr.  Hoch-Ybrig, Talst. Weglosen, 09:10
+  ```
+- **Click the card:** a window with **every resort-day** (best first). **Click a result** for its details: score
+  breakdown (a bar per part), the weather points of the resort with their weights and forecast values, every leg of
+  the train connection. At the end: **legend** and the **scoring formula** with your current weights.
+
+Spacing and column widths can be tuned with CSS variables, e.g. with card-mod:
+
+```yaml
+card_mod:
+  style: |
+    ha-card {
+      --ski-gap: 3px;            /* space around the dividers, top and bottom */
+      --ski-score-width: 104px;  /* score column */
+      --ski-date-width: 64px;    /* date column */
+      --ski-label-width: 32px;   /* Dep./Arr. */
+      --ski-side-width: 42px;    /* price + SnR */
+    }
+```
+
+<details>
+<summary>Alternative: Markdown card (no click, no details)</summary>
+
 A Markdown card shows the table, one compact block per result:
 
 ```
@@ -85,6 +119,9 @@ card_mod:
 
 If the card still scrolls, give it more height (e.g. `grid_options: rows: 4`) or lower *Number of
 recommendations* in the options.
+
+
+</details>
 
 ### Troubleshooting
 
