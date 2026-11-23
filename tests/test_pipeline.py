@@ -226,3 +226,15 @@ def test_rate_limited_weather_keeps_the_last_forecast_for_a_while() -> None:
                 limited, resorts, no_train, now=NOW + timedelta(hours=13), cache=cache
             )
         )
+
+
+def test_all_results_survive_the_exact_connections() -> None:
+    """With a home station the modal still gets every resort-day."""
+    result = asyncio.run(
+        build_recommendations(
+            session(), [make_resort("laax")], SETTINGS, now=NOW, cache=Cache()
+        )
+    )
+
+    assert result.all
+    assert len(result.all) >= len(result.recommendations)

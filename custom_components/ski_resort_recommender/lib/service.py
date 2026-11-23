@@ -223,6 +223,7 @@ def attach_connections(
     return RecommendationResult(
         tuple(attach(r) for r in result.recommendations),
         outlook=attach(result.outlook) if result.outlook else None,
+        all=tuple(attach(r) for r in result.all),  # keep the modal's list
     )
 
 

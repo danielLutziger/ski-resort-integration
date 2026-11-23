@@ -641,3 +641,23 @@ def test_every_result_keeps_its_point_scores() -> None:
     ]
     assert rec.points[0].score.total > rec.points[1].score.total
     assert rec.points[0].day.sunshine_hours == 8
+
+
+def test_attach_connections_keeps_all_results() -> None:
+    """The modal's list (result.all) survives attaching the exact connections."""
+    forecasts = {
+        "laax": [make_day(SATURDAY, sun=8), make_day(SUNDAY, sun=2)],
+        "flims": [make_day(SATURDAY, sun=5)],
+    }
+    result = pick(
+        [make_resort("laax"), make_resort("flims")], forecasts, SETTINGS, today=TODAY
+    )
+    exact = make_connection(95)
+
+    updated = attach_connections(result, {("laax", SATURDAY): exact})
+
+    assert len(updated.all) == len(result.all) == 3
+    attached = [
+        r for r in updated.all if r.resort.key == "laax" and r.day.day == SATURDAY
+    ]
+    assert attached[0].connection is exact
