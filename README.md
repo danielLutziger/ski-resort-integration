@@ -52,7 +52,8 @@ entity: sensor.ski_resort_recommender  # optional, this is the default
    Not good ⛅  Sat 28.11  Dep.  Zürich HB, 07:15 · S5 · Pl. 3          [SnR]
                           Arr.  Hoch-Ybrig, Talst. Weglosen, 09:10
   ```
-- **Click the card:** a window with **every resort-day** (best first). **Click a result** for its details: score
+- **Click the card:** a window with **every resort-day** (best first); the **search box** filters by resort, point or
+  day (e.g. `laax`, `sat`, `28.11`). **Click a result** for its details: score
   breakdown (a bar per part), the weather points of the resort with their weights and forecast values, every leg of
   the train connection. At the end: **legend** and the **scoring formula** with your current weights.
 
