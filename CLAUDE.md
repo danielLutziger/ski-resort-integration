@@ -39,6 +39,7 @@ custom_components/ski_resort_recommender/
     open_meteo.py               # OpenMeteoProvider (aiohttp); pure _combine/_parse_location/_ski_hours/...
     sbb.py                      # SbbProvider (aiohttp, transport.opendata.ch); pure _parse/_pick
     osrm.py                     # OsrmProvider (aiohttp, public OSRM /table): drive to the closest access point
+    ev.py                       # BfeProvider (public EV chargers, BFE); attach_chargers(): count + kW per access point
     slf.py                      # SlfProvider (aiohttp, SLF IMIS measured snow depth HS); pure _depth_at
     snow_depth.py               # apply_measured_depth(): measured base + model change (pure)
     pipeline.py                 # build_recommendations(): forecasts + SBB (TravelCache) + ranking
@@ -370,7 +371,11 @@ station with `/v1/locations`. Every point adds a location to each Open-Meteo req
   (free, no key, best effort, no traffic; one request a day). Attribution: OSRM, © OpenStreetMap
   contributors (ODbL). 23.11 from Zürich HB: Flims 101 min < Laax 102 < Falera 109; to Sedrun it routes
   over the Oberalp (closed in winter). EV chargers: BFE dataset on data.geo.admin.ch (gzip JSON, ~1 MB,
-  daily; OICP fields, power, plugs; no prices; licence to check) - for #53 PR 3.
+  daily; aiohttp unpacks it, Content-Encoding gzip; OICP fields, power, plugs; no prices). Licence: open use
+  with a source reference (SFOE), commercial use only with permission. #53 PR 3: option `electric_car`;
+  public (`Free/Paying publicly accessible`; 4382 of 19627 are `Restricted access`) chargers within 300 m of
+  the access point or its car parks are counted; no charger of any kind within 3 km = no data (None, e.g.
+  Austria, Stöckalp) instead of 0. parking.ch knows chargers the BFE data lacks (Stöckalp).
 - Parking (researched 23.11.2026 for #53 PR 2): parking.ch car park pages (spaces, tariffs, coordinates,
   charging flag), resort/tourism pages and OSM (`amenity=parking`, `capacity`, `charge`) where parking.ch has
   nothing (Sedrun, Ischgl, St. Anton, Le Châble, Täsch). Day price = what ~8 h cost in the high season

@@ -158,6 +158,14 @@ function carParks(parks) {
   return `<ul class="legs">${items}</ul>`;
 }
 
+// electric car: public chargers at the access point (BFE); null = not checked / no data
+function chargers(c) {
+  if (!c) return "";
+  if (!c.count) return `<div class="small">⚡ No public charger listed at this access point.</div>`;
+  const kw = c.kw_max ? (c.kw_min === c.kw_max ? `${esc(c.kw_max)} kW` : `${esc(c.kw_min)}–${esc(c.kw_max)} kW`) : "power unknown";
+  return `<div class="small">⚡ ${esc(c.count)} public charging point${c.count === 1 ? "" : "s"} within 300 m, ${kw}.</div>`;
+}
+
 function legs(train) {
   if (!train) return `<div class="small">No morning connection in the arrival window.</div>`;
   const items = (train.legs ?? [])
@@ -176,7 +184,7 @@ function details(r, w) {
       <div class="detail">
         <h4>Score breakdown</h4>${breakdown(r.reasons, w)}
         <h4>Weather points (weighted average)</h4>${pointsTable(r.points ?? [])}${snowStations(r.snow_stations)}
-        ${r.car ? `<h4>Car</h4><div class="small">To ${esc(r.car.access)} (the closest access point): ${esc(r.car.summary.split(" · ").slice(1).join(" · "))}, without traffic</div>${carParks(r.car.parking)}` : ""}
+        ${r.car ? `<h4>Car</h4><div class="small">To ${esc(r.car.access)} (the closest access point): ${esc(r.car.summary.split(" · ").slice(1).join(" · "))}, without traffic</div>${carParks(r.car.parking)}${chargers(r.car.chargers)}` : ""}
         ${r.train || !r.car ? `<h4>Train</h4>${legs(r.train)}` : ""}
         ${r.snow_n_rail ? `<div class="small">Snow'n'Rail offer up to ${esc(r.snow_n_rail.up_to_pct)} % – <a href="${esc(r.snow_n_rail.url)}" target="_blank" rel="noopener">SBB RailAway</a> (availability not checked)</div>` : ""}
       </div>
@@ -194,7 +202,7 @@ function legend(s) {
         <li><b>Icon</b>: most frequent weather over all points and ski hours (09–16 h).</li>
         <li><b>Resort · point</b>: the best weather point (lift station) of the resort that day.</li>
         <li><b>Dep. / Arr.</b>: morning train from your home station, arriving at the gondola in the arrival window; first train and platform.</li>
-        <li><b>Car</b>: drive from your home location to the closest access point (valley station / car park), without traffic. <b>P</b>: parking for one ski day (about 8 h) at its main car park, from parking.ch and the resort websites (2026/27, may change).</li>
+        <li><b>Car</b>: drive from your home location to the closest access point (valley station / car park), without traffic. <b>P</b>: parking for one ski day (about 8 h) at its main car park, from parking.ch and the resort websites (2026/27, may change). <b>⚡</b> (electric car): public charging points within 300 m; not every charger is listed, no data in Austria.</li>
         <li><b>Price</b>: adult high-season day pass in CHF. <span class="badge">SnR</span>: the resort has an SBB Snow'n'Rail offer.</li>
       </ul>
       <h3>Scoring</h3>
@@ -215,7 +223,8 @@ function legend(s) {
       <h3>Sources</h3>
       <div class="small">Weather: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> (MeteoSwiss, DWD) ·
         Snow depth: ${SLF_LINK} (CC BY 4.0) · Trains: <a href="https://transport.opendata.ch" target="_blank" rel="noopener">transport.opendata.ch</a> ·
-        Drive times: <a href="https://project-osrm.org" target="_blank" rel="noopener">OSRM</a>, map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors</div>
+        Drive times: <a href="https://project-osrm.org" target="_blank" rel="noopener">OSRM</a>, map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors ·
+        Charging points: <a href="https://www.ich-tanke-strom.ch" target="_blank" rel="noopener">Swiss Federal Office of Energy SFOE</a></div>
     </div>`;
 }
 
