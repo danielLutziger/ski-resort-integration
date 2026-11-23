@@ -9,6 +9,12 @@ access:
   - name: Davos Platz
     lat: 46.7917
     lon: 9.8222
+    parking:
+      - name: Parking Talstation Jakobshorn
+        lat: 46.79217
+        lon: 9.8226
+        spaces: 550
+        price_chf: 10
 snow_stations:
   - code: DAV6
     name: Luksch Alp

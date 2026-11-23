@@ -9,6 +9,12 @@ access:
   - name: Stöckalp
     lat: 46.8024
     lon: 8.2792
+    parking:
+      - name: Parkhaus Stöckalp
+        lat: 46.80193
+        lon: 8.27901
+        spaces: 230
+        price_chf: 12
 snow_stations:
   - code: GAD2
     name: Gschletteregg

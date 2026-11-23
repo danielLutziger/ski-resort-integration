@@ -9,12 +9,33 @@ access:
   - name: Andermatt
     lat: 46.6371
     lon: 8.5944
+    parking:
+      - name: Parking Talstation Gütsch Express
+        lat: 46.63795
+        lon: 8.59537
+        spaces: 150
+      - name: Parkhaus Reuss Parking
+        lat: 46.64007
+        lon: 8.59139
+        spaces: 240
+        price_chf: 15
   - name: Sedrun
     lat: 46.6811
     lon: 8.7698
+    parking:
+      - name: Parkplatz Sedrun
+        lat: 46.6832
+        lon: 8.76932
+        price_chf: 5
   - name: Disentis
-    lat: 46.7045
-    lon: 8.8159
+    lat: 46.7002
+    lon: 8.8404
+    parking:
+      - name: Parkhaus Talstation Disentis
+        lat: 46.70018
+        lon: 8.84038
+        spaces: 450
+        price_chf: 7
 snow_stations:
   - code: TUJ2
     name: Culmatsch

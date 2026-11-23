@@ -9,9 +9,21 @@ access:
   - name: Tannenboden
     lat: 47.0925
     lon: 9.2804
+    parking:
+      - name: Parking Talstation Flumserberg
+        lat: 47.09274
+        lon: 9.28114
+        spaces: 280
+        price_chf: 8
   - name: Unterterzen
     lat: 47.1139
     lon: 9.2556
+    parking:
+      - name: Parking Talstation Unterterzen-Flumserberg
+        lat: 47.11333
+        lon: 9.25441
+        spaces: 310
+        price_chf: 8
 snow_stations:
   - code: ENG2
     name: Fitteren

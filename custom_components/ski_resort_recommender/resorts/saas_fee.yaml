@@ -6,6 +6,12 @@ access:
   - name: Saas-Fee
     lat: 46.1088
     lon: 7.9296
+    parking:
+      - name: Parkhaus Saas-Fee
+        lat: 46.11034
+        lon: 7.93236
+        spaces: 2900
+        price_chf: 14
 snow_stations:
   - code: SAA5
     name: Mälliga

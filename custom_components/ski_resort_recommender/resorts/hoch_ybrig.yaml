@@ -6,6 +6,12 @@ access:
   - name: Weglosen
     lat: 47.0202
     lon: 8.8082
+    parking:
+      - name: Parking Talstation Weglosen
+        lat: 47.02006
+        lon: 8.80887
+        spaces: 2300
+        price_chf: 0
 snow_stations:
   - code: YBR2
     name: Wanne

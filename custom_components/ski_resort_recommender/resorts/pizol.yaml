@@ -9,9 +9,21 @@ access:
   - name: Wangs
     lat: 47.0288
     lon: 9.4322
+    parking:
+      - name: Parking Talstation Pizolbahn
+        lat: 47.02867
+        lon: 9.43125
+        spaces: 160
+        price_chf: 6
   - name: Bad Ragaz
     lat: 47.017
     lon: 9.4739
+    parking:
+      - name: Parking Talstation Pizolbahnen
+        lat: 47.017
+        lon: 9.47399
+        spaces: 600
+        price_chf: 6
 snow_stations:
   - code: TAM2
     name: Wildsee

@@ -9,6 +9,12 @@ access:
   - name: Le Châble
     lat: 46.0793
     lon: 7.2149
+    parking:
+      - name: Parking Curala
+        lat: 46.07924
+        lon: 7.21429
+        spaces: 731
+        price_chf: 0
 snow_stations:
   - code: ATT2
     name: Lac des Vaux

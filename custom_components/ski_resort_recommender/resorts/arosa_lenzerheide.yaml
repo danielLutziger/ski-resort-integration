@@ -9,12 +9,34 @@ access:
   - name: Lenzerheide
     lat: 46.7407
     lon: 9.5557
+    parking:
+      - name: Parking Talstation Rothornbahn Süd
+        lat: 46.73947
+        lon: 9.55662
+        spaces: 200
+        price_chf: 5
+      - name: Parking Talstation Rothornbahn Nord
+        lat: 46.74149
+        lon: 9.55568
+        spaces: 150
+        price_chf: 5
   - name: Arosa
     lat: 46.7839
     lon: 9.6795
+    parking:
+      - name: Parkhaus Ochsenbühl
+        lat: 46.78258
+        lon: 9.68272
+        spaces: 460
+        price_chf: 9.5
   - name: Churwalden
     lat: 46.778
     lon: 9.5437
+    parking:
+      - name: Parking Talstation Pradaschier
+        lat: 46.77786
+        lon: 9.54227
+        spaces: 125
 snow_stations:
   - code: ROT3
     name: Plang Bi

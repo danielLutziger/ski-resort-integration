@@ -6,6 +6,11 @@ access:
   - name: Andermatt
     lat: 46.6321
     lon: 8.5922
+    parking:
+      - name: Parking Talstation Gemsstock
+        lat: 46.63232
+        lon: 8.59185
+        spaces: 75
 snow_stations:
   - code: URS2
     name: Giltnasen

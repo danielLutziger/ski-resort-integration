@@ -6,6 +6,12 @@ access:
   - name: Surlej
     lat: 46.4552
     lon: 9.8143
+    parking:
+      - name: Parkhaus Talstation Corvatsch
+        lat: 46.45579
+        lon: 9.81304
+        spaces: 100
+        price_chf: 13.5
 snow_stations:
   - code: LAG2
     name: Tscheppa

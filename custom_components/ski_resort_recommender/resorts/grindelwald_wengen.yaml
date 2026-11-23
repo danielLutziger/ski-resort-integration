@@ -9,9 +9,21 @@ access:
   - name: Grindelwald
     lat: 46.6255
     lon: 8.0171
+    parking:
+      - name: Parkhaus Grindelwald Terminal
+        lat: 46.62399
+        lon: 8.02087
+        spaces: 1032
+        price_chf: 15
   - name: Lauterbrunnen (train to Wengen)
     lat: 46.5984
     lon: 7.9081
+    parking:
+      - name: Parkhaus Talstation Lauterbrunnen
+        lat: 46.59833
+        lon: 7.90889
+        spaces: 974
+        price_chf: 18
 snow_stations:
   - code: LHO2
     name: Russisprung

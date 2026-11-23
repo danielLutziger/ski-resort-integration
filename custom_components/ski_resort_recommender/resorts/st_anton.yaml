@@ -6,6 +6,11 @@ access:
   - name: St. Anton
     lat: 47.1275
     lon: 10.2668
+    parking:
+      - name: P9 Bahnhof
+        lat: 47.12748
+        lon: 10.26639
+        spaces: 100
 points:
   - name: Galzig
     lat: 47.1309

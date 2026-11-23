@@ -9,9 +9,19 @@ access:
   - name: Adelboden
     lat: 46.4879
     lon: 7.5604
+    parking:
+      - name: Parking Talstation Adelboden Oey
+        lat: 46.48753
+        lon: 7.56101
+        spaces: 300
   - name: Lenk
     lat: 46.442
     lon: 7.4567
+    parking:
+      - name: Parking Talstation Metsch
+        lat: 46.4418
+        lon: 7.45673
+        spaces: 400
 snow_stations:
   - code: FAE2
     name: Färmel
