@@ -50,7 +50,7 @@ A Markdown card shows the table, one compact block per result:
 (score and classification with the weather icon; resort · best point; date, departure and arrival of the
 morning train; day price in CHF; SnR = Snow'n'Rail offer)
 
-Home Assistant only allows plain HTML in a Markdown card, no CSS. The layout works without CSS; for **no borders,
+Home Assistant only allows plain HTML in a Markdown card, no CSS. The layout (incl. the dividers between results) works without CSS; for **no borders,
 tight spacing, "…" instead of line breaks and the SnR badge** add these
 [card-mod](https://github.com/thomasloven/lovelace-card-mod) styles:
 
@@ -71,7 +71,7 @@ card_mod:
       tr, th, td { border: 0 !important; background: none !important; }
       td { padding: 0 3px !important; line-height: 1.25; vertical-align: middle;
            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      tr:nth-child(3n+4) td { padding-top: 6px !important; }  /* gap between results */
+      hr { margin: 4px 0; border: 0; border-top: 1px solid var(--divider-color); }  /* between results */
       code { font-family: inherit; font-size: 10px; font-weight: 600; line-height: 1;
              padding: 2px 7px; border-radius: 10px;
              background: var(--primary-color); color: var(--text-primary-color, #fff); }
