@@ -30,17 +30,33 @@ const matches = (haystack, query) => fold(query).split(/\s+/).every((word) => ha
 const num = (value, digits = 0, unit = "") =>
   value === null || value === undefined ? "–" : `${Number(value).toFixed(digits)}${unit}`;
 
+// travel lines of a block: [label, html]; train Dep./Arr., car (car mode)
+function travelLines(r) {
+  const t = r.train;
+  const lines = [];
+  if (t) {
+    lines.push([
+      "Dep.",
+      `${esc(t.from ?? "")}${t.from ? ", " : ""}${esc(t.departure)}` +
+        `${t.line ? ` · ${esc(t.line.replace(" ", ""))}` : ""}` +
+        `${t.platform ? ` · Pl. ${esc(t.platform)}` : ""}`,
+    ]);
+    lines.push(["Arr.", `${esc(t.to ?? "")}${t.to ? ", " : ""}${esc(t.arrival)}`]);
+  } else if (!r.car) {
+    lines.push(["", "No train"], ["", ""]); // keeps the block height of the train layout
+  }
+  if (r.car) lines.push(["Car", esc(r.car.summary)]);
+  return lines;
+}
+
 // one compact block: score/classification | resort · point | price + SnR
 //                    date | Dep. | station, time · train · platform
 //                         | Arr. | station, time
+//                         | Car  | access point · 1:41 h · 139 km   (car mode)
 function block(r) {
-  const t = r.train;
-  const dep = t
-    ? `${esc(t.from ?? "")}${t.from ? ", " : ""}${esc(t.departure)}` +
-      `${t.line ? ` · ${esc(t.line.replace(" ", ""))}` : ""}` +
-      `${t.platform ? ` · Pl. ${esc(t.platform)}` : ""}`
-    : "No train";
-  const arr = t ? `${esc(t.to ?? "")}${t.to ? ", " : ""}${esc(t.arrival)}` : "";
+  const lines = travelLines(r)
+    .map(([label, text], i) => `<div class="line"><span class="date">${i === 0 ? esc(r.day) : ""}</span><span class="lbl">${label}</span><span class="txt">${text}</span></div>`)
+    .join("");
   const snr = r.snow_n_rail ? `<span class="badge" title="Snow'n'Rail up to ${r.snow_n_rail.up_to_pct} %">SnR</span>` : "";
   return `
     <div class="block${r.is_good ? " good" : ""}">
@@ -50,8 +66,7 @@ function block(r) {
       </div>
       <div class="main">
         <div class="title"><b>${esc(r.resort)}</b> · <span class="small">${esc(r.point)}</span></div>
-        <div class="line"><span class="date">${esc(r.day)}</span><span class="lbl">${t ? "Dep." : ""}</span><span class="txt">${dep}</span></div>
-        <div class="line"><span class="date"></span><span class="lbl">${t ? "Arr." : ""}</span><span class="txt">${arr}</span></div>
+        ${lines}
       </div>
       <div class="side"><div>${price(r.price_chf)}</div>${snr}</div>
     </div>`;
@@ -140,7 +155,8 @@ function details(r, w) {
       <div class="detail">
         <h4>Score breakdown</h4>${breakdown(r.reasons, w)}
         <h4>Weather points (weighted average)</h4>${pointsTable(r.points ?? [])}${snowStations(r.snow_stations)}
-        <h4>Train</h4>${legs(r.train)}
+        ${r.car ? `<h4>Car</h4><div class="small">To ${esc(r.car.access)} (the closest access point): ${esc(r.car.summary.split(" · ").slice(1).join(" · "))}, without traffic</div>` : ""}
+        ${r.train || !r.car ? `<h4>Train</h4>${legs(r.train)}` : ""}
         ${r.snow_n_rail ? `<div class="small">Snow'n'Rail offer up to ${esc(r.snow_n_rail.up_to_pct)} % – <a href="${esc(r.snow_n_rail.url)}" target="_blank" rel="noopener">SBB RailAway</a> (availability not checked)</div>` : ""}
       </div>
     </details>`;
@@ -157,6 +173,7 @@ function legend(s) {
         <li><b>Icon</b>: most frequent weather over all points and ski hours (09–16 h).</li>
         <li><b>Resort · point</b>: the best weather point (lift station) of the resort that day.</li>
         <li><b>Dep. / Arr.</b>: morning train from your home station, arriving at the gondola in the arrival window; first train and platform.</li>
+        <li><b>Car</b>: drive from your home location to the closest access point (valley station / car park), without traffic.</li>
         <li><b>Price</b>: adult high-season day pass in CHF. <span class="badge">SnR</span>: the resort has an SBB Snow'n'Rail offer.</li>
       </ul>
       <h3>Scoring</h3>
@@ -165,7 +182,7 @@ function legend(s) {
         <div><b>Sun</b> = min(sunshine ÷ daylight ÷ ${w.sun_full_share}, 1) × ${w.sun_points}</div>
         <div><b>Fresh snow</b> = min(snow in the 48 h before opening ÷ ${w.snow_full_cm} cm, 1) × ${w.snow_points}</div>
         <div><b>Snow depth</b> = log(1 + d ÷ ${w.snow_depth_curve_cm}) ÷ log(1 + ${w.snow_depth_full_cm} ÷ ${w.snow_depth_curve_cm}) × ${w.snow_depth_points}, d = depth up to ${w.snow_depth_full_cm} cm: measured today at the resort's SLF stations (median) + the model's change until that day; model only without a station</div>
-        <div><b>Travel</b> = (longest trip − trip) ÷ (longest − shortest) × ${w.travel_points}</div>
+        <div><b>Travel</b> = (longest trip − trip) ÷ (longest − shortest) × ${w.travel_points}; trip = train or drive time (with both: the faster)</div>
         <div><b>Price</b> = (dearest − price) ÷ (dearest − cheapest) × ${w.price_points}</div>
         <div><b>Wind</b> = ramp(max gust, ${w.gust_limit_kmh}, ${w.gust_full_kmh} km/h) × ${w.wind_penalty}</div>
         <div><b>Temp</b> = ${w.temp_cold_penalty} below ${w.temp_cold_c} °C, or ramp(mean temp, ${w.temp_slush_start_c}, ${w.temp_slush_full_c} °C) × ${w.temp_slush_penalty} (slush)</div>
@@ -176,7 +193,8 @@ function legend(s) {
       </div>
       <h3>Sources</h3>
       <div class="small">Weather: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> (MeteoSwiss, DWD) ·
-        Snow depth: ${SLF_LINK} (CC BY 4.0) · Trains: <a href="https://transport.opendata.ch" target="_blank" rel="noopener">transport.opendata.ch</a></div>
+        Snow depth: ${SLF_LINK} (CC BY 4.0) · Trains: <a href="https://transport.opendata.ch" target="_blank" rel="noopener">transport.opendata.ch</a> ·
+        Drive times: <a href="https://project-osrm.org" target="_blank" rel="noopener">OSRM</a>, map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors</div>
     </div>`;
 }
 
@@ -262,12 +280,15 @@ class SkiResortCard extends HTMLElement {
     if (changed) this._renderCard(state);
   }
 
-  // one result block is about 78 px; a sections grid row is 56 px + 8 px gap.
-  // Read when the dashboard builds the card: a changed number of results
-  // (e.g. the outlook option) applies after a page reload, until then it scrolls.
+  // a block is about 40 px + 19 px per travel line (train 2, car 1); a sections
+  // grid row is 56 px + 8 px gap. Read when the dashboard builds the card: a
+  // changed number of results applies after a page reload, until then it scrolls.
   _rows() {
-    const shown = results(this._hass?.states[this._config?.entity]).length || DEFAULT_RESULTS;
-    return Math.ceil((shown * 78 + 8) / 64);
+    const shown = results(this._hass?.states[this._config?.entity]);
+    const px = shown.length
+      ? shown.reduce((sum, r) => sum + 40 + 19 * travelLines(r).length, 0)
+      : DEFAULT_RESULTS * 78;
+    return Math.ceil((px + 8) / 64);
   }
 
   getCardSize() {

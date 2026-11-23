@@ -5,17 +5,23 @@ from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING
 
 from custom_components.ski_resort_recommender.lib.errors import SkiApiError
-from custom_components.ski_resort_recommender.lib.models import Connection, Forecasts
+from custom_components.ski_resort_recommender.lib.models import (
+    Connection,
+    Drive,
+    Forecasts,
+)
 from custom_components.ski_resort_recommender.lib.open_meteo import (
     SKI_HOURS,
     OpenMeteoProvider,
 )
+from custom_components.ski_resort_recommender.lib.osrm import OsrmProvider
 from custom_components.ski_resort_recommender.lib.sbb import SbbProvider
 from custom_components.ski_resort_recommender.lib.service import (
     RecommendationResult,
     attach_connections,
     pick_recommendations,
 )
+from custom_components.ski_resort_recommender.lib.settings import CAR, TRAIN
 from custom_components.ski_resort_recommender.lib.slf import SlfProvider
 from custom_components.ski_resort_recommender.lib.snow_depth import (
     apply_measured_depth,
@@ -41,6 +47,9 @@ class Cache:
     forecasts_at: datetime | None = None
     # measured snow depth per SLF station, fetched together with the forecast
     snow_depths: dict[str, float] = field(default_factory=dict)
+    # drive per resort key; fetched once a day per home location
+    drives: dict[str, Drive] = field(default_factory=dict)
+    drives_for: tuple[date, tuple[float, float]] | None = None
 
 
 async def build_recommendations(  # noqa: PLR0913 (keyword-only inputs)
@@ -59,7 +68,8 @@ async def build_recommendations(  # noqa: PLR0913 (keyword-only inputs)
     settings.weather_interval. Weather errors (SkiApiError) reach the caller,
     unless a forecast younger than settings.weather_max_age is cached. Train
     errors only cost the connection of that resort. The measured snow depth (SLF)
-    replaces the model's base; SLF errors keep the last values.
+    replaces the model's base; SLF errors keep the last values. Drive times (car
+    mode) come once a day; OSRM errors keep the last ones.
     connections_for: how many ranked results get their exact connection
     (default max_results; the outlook always gets one).
     """
@@ -68,13 +78,19 @@ async def build_recommendations(  # noqa: PLR0913 (keyword-only inputs)
     forecasts = apply_measured_depth(resorts, forecasts, cache.snow_depths, today)
     sbb = SbbProvider(session)
     await _refresh_travel(sbb, resorts, settings, today, cache)
+    await _refresh_drives(session, resorts, settings, today, cache)
     result = replace(
         pick_recommendations(
-            resorts, forecasts, settings, today=today, travel=cache.travel
+            resorts,
+            forecasts,
+            settings,
+            today=today,
+            travel=cache.travel,
+            drives=cache.drives,
         ),
         measured_snow_cm=dict(cache.snow_depths),
     )
-    if not settings.home_station:
+    if not _by_train(settings):
         return result
 
     limit = settings.max_results if connections_for is None else connections_for
@@ -100,7 +116,7 @@ async def _refresh_travel(
     cache: Cache,
 ) -> None:
     """Fetch the travel times for the next allowed day, at most once a day."""
-    if not settings.home_station:
+    if not _by_train(settings):
         cache.travel = {}
         return
     reference = _reference_day(today, settings)
@@ -110,6 +126,32 @@ async def _refresh_travel(
         await sbb.connections(resorts, reference, settings) if reference else {}
     )
     cache.fetched_on, cache.reference_day = today, reference
+
+
+async def _refresh_drives(
+    session: aiohttp.ClientSession,
+    resorts: list[Resort],
+    settings: Settings,
+    today: date,
+    cache: Cache,
+) -> None:
+    """Fetch the drive times once a day (and when the home location changes)."""
+    origin = settings.home_location
+    if CAR not in settings.travel_modes or origin is None:
+        cache.drives, cache.drives_for = {}, None
+        return
+    if cache.drives_for == (today, origin):
+        return
+    try:
+        cache.drives = await OsrmProvider(session).drives(origin, resorts)
+    except SkiApiError:
+        return  # keep the last drive times, try again with the next update
+    cache.drives_for = (today, origin)
+
+
+def _by_train(settings: Settings) -> bool:
+    """Train connections need the train mode and a home station."""
+    return TRAIN in settings.travel_modes and bool(settings.home_station)
 
 
 async def _forecasts(

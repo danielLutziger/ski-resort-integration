@@ -5,6 +5,13 @@ day_price_chf: 74
 snow_n_rail:
   offer: snownrail-pizol
   up_to_pct: 30
+access:
+  - name: Wangs
+    lat: 47.0288
+    lon: 9.4322
+  - name: Bad Ragaz
+    lat: 47.017
+    lon: 9.4739
 snow_stations:
   - code: TAM2
     name: Wildsee

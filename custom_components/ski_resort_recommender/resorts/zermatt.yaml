@@ -2,6 +2,10 @@ name: Zermatt
 meteoswiss_point_id:
 station: Zermatt
 day_price_chf: 104
+access:
+  - name: Täsch (train to Zermatt)
+    lat: 46.0675
+    lon: 7.7745
 snow_stations:
   - code: GOR2
     name: Gornergratsee

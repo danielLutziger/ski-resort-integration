@@ -5,6 +5,16 @@ day_price_chf: 89
 snow_n_rail:
   offer: snownrail-arosa-lenzerheide
   up_to_pct: 10
+access:
+  - name: Lenzerheide
+    lat: 46.7407
+    lon: 9.5557
+  - name: Arosa
+    lat: 46.7839
+    lon: 9.6795
+  - name: Churwalden
+    lat: 46.778
+    lon: 9.5437
 snow_stations:
   - code: ROT3
     name: Plang Bi

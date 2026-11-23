@@ -5,6 +5,10 @@ day_price_chf: 87
 snow_n_rail:
   offer: snownrail-davos-klosters
   up_to_pct: 10
+access:
+  - name: Davos Platz
+    lat: 46.7917
+    lon: 9.8222
 snow_stations:
   - code: DAV6
     name: Luksch Alp

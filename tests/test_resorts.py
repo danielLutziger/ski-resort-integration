@@ -5,10 +5,12 @@ from pathlib import Path
 import pytest
 
 from custom_components.ski_resort_recommender.lib.models import (
+    AccessPoint,
     SnowRailOffer,
     SnowStation,
 )
 from custom_components.ski_resort_recommender.lib.resorts import (
+    MAX_ACCESS,
     MAX_POINTS,
     MAX_SNOW_STATIONS,
     load_resorts,
@@ -200,3 +202,20 @@ def test_resort_files_list_at_most_three_unique_snow_stations() -> None:
         codes = [s.code for s in resort.snow_stations]
         assert len(codes) <= MAX_SNOW_STATIONS, resort.key
         assert all(code.isupper() and code[-1].isdigit() for code in codes)
+
+
+def test_access_points_are_parsed_and_unique(tmp_path: Path) -> None:
+    """access: list of {name, lat, lon}; duplicate names are rejected."""
+    point = "\n  - {name: a, lat: 46.8, lon: 9.3, elevation_m: 2000}"
+    flims = "  - {name: Flims, lat: 46.8345, lon: 9.2823}\n"
+    (resort,) = load_resorts(write_resort(tmp_path / "ok", point, "access:\n" + flims))
+
+    assert resort.access == (AccessPoint("Flims", 46.8345, 9.2823),)
+    with pytest.raises(ValueError, match="access points"):
+        load_resorts(write_resort(tmp_path / "twice", point, "access:\n" + flims * 2))
+
+
+def test_every_resort_file_has_access_points() -> None:
+    """Drive times need at least one access point per resort."""
+    for resort in load_resorts(RESORTS_DIR):
+        assert 1 <= len(resort.access) <= MAX_ACCESS, resort.key

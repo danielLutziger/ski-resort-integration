@@ -12,6 +12,8 @@ import pytest
 
 from custom_components.ski_resort_recommender.lib.errors import SkiApiConnectionError
 from custom_components.ski_resort_recommender.lib.models import (
+    AccessPoint,
+    Drive,
     Resort,
     SnowStation,
     WeatherPoint,
@@ -26,7 +28,7 @@ from custom_components.ski_resort_recommender.lib.pipeline import (
     Cache,
     build_recommendations,
 )
-from custom_components.ski_resort_recommender.lib.settings import Settings
+from custom_components.ski_resort_recommender.lib.settings import CAR, Settings
 from tests.fakes import FakeResponse, FakeSession
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -312,3 +314,68 @@ def test_slf_failure_keeps_the_last_measurement() -> None:
     )
 
     assert result.measured_snow_cm == {"CMA2": 150.0}
+
+
+OSRM_TABLE = {"code": "Ok", "durations": [[0, 6060]], "distances": [[0, 138500]]}
+CAR_ONLY = replace(
+    SETTINGS, travel_modes=frozenset({CAR}), home_location=(47.378, 8.540)
+)
+
+
+def with_osrm(fake: FakeSession, *, error: BaseException | None = None) -> FakeSession:
+    """Also answer the OSRM table requests."""
+    respond = fake._respond  # noqa: SLF001 (wrap the fake's own answer)
+
+    def both(url: str, params: dict) -> FakeResponse:
+        if "router.project-osrm.org" in url:
+            return FakeResponse(error=error) if error else FakeResponse(OSRM_TABLE)
+        return respond(url, params)
+
+    return FakeSession(both)
+
+
+def laax_by_car() -> Resort:
+    """Return the test resort with one access point."""
+    return replace(make_resort("laax"), access=(AccessPoint("Flims", 46.83, 9.28),))
+
+
+def test_car_only_fetches_drive_times_once_a_day_and_no_trains() -> None:
+    """Car mode: one OSRM request per day, no SBB request at all."""
+    cache, fake = Cache(), with_osrm(session())
+    for hours in (0, 1, 2):
+        result = asyncio.run(
+            build_recommendations(
+                fake,
+                [laax_by_car()],
+                CAR_ONLY,
+                now=NOW + timedelta(hours=hours),
+                cache=cache,
+            )
+        )
+
+    osrm = [c for c in fake.calls if c.get("sources") == "0"]
+    assert len(osrm) == 1
+    assert sbb_calls(fake) == []
+    assert {r.drive for r in result.all} == {Drive("Flims", 101, 138.5)}
+
+
+def test_osrm_failure_keeps_the_update_and_the_last_drive_times() -> None:
+    """OSRM down: no error, the drive times of the last fetch stay."""
+    cache = Cache()
+    asyncio.run(
+        build_recommendations(
+            with_osrm(session()), [laax_by_car()], CAR_ONLY, now=NOW, cache=cache
+        )
+    )
+
+    result = asyncio.run(
+        build_recommendations(
+            with_osrm(session(), error=aiohttp.ClientConnectionError("down")),
+            [laax_by_car()],
+            CAR_ONLY,
+            now=NOW + timedelta(days=1),
+            cache=cache,
+        )
+    )
+
+    assert {r.drive for r in result.all} == {Drive("Flims", 101, 138.5)}

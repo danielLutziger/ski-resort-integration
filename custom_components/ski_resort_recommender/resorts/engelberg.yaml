@@ -5,6 +5,10 @@ day_price_chf: 78
 snow_n_rail:
   offer: snownrail-engelberg-titlis
   up_to_pct: 30
+access:
+  - name: Engelberg
+    lat: 46.8164
+    lon: 8.3959
 snow_stations:
   - code: TIT2
     name: Titlisboden

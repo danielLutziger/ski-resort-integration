@@ -1,8 +1,9 @@
 """
 Run the whole chain against the real APIs and print the ranking.
 
-python -m scripts.try_forecast [--from STATION] [--all]
+python -m scripts.try_forecast [--from STATION] [--car LAT,LON] [--all]
   --from  home station for the train connections (no travel score without it)
+  --car   also by car, from this location (e.g. 47.378,8.540 = Zürich HB)
   --all   every weekday and up to 200 results instead of the defaults
 """
 
@@ -20,7 +21,7 @@ from custom_components.ski_resort_recommender.lib.pipeline import (
     build_recommendations,
 )
 from custom_components.ski_resort_recommender.lib.resorts import load_resorts
-from custom_components.ski_resort_recommender.lib.settings import Settings
+from custom_components.ski_resort_recommender.lib.settings import CAR, TRAIN, Settings
 
 if TYPE_CHECKING:
     from custom_components.ski_resort_recommender.lib.service import Recommendation
@@ -30,10 +31,16 @@ async def main() -> None:
     """Fetch forecasts and connections, pick recommendations, print them."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--from", dest="home_station")
+    parser.add_argument("--car", help="lat,lon where the car trip starts")
     parser.add_argument("--all", action="store_true")
     args = parser.parse_args()
 
     settings = Settings(home_station=args.home_station)
+    if args.car:
+        lat, lon = (float(x) for x in args.car.split(","))
+        settings = replace(
+            settings, travel_modes=frozenset({TRAIN, CAR}), home_location=(lat, lon)
+        )
     if args.all:  # override the defaults in the script, never in Settings
         settings = replace(
             settings, allowed_weekdays=frozenset(range(7)), max_results=200
@@ -65,6 +72,8 @@ def print_line(r: Recommendation) -> None:
         f"{r.day.day:%a %d.%m}  {r.resort.name:<26} {r.point.name:<18} "
         f"{r.score.total:5.1f}  {'GOOD' if r.is_good else '----'}  {reasons}"
     )
+    if d := r.drive:
+        print(f"      car: {d.access}, {d.duration_min} min, {d.distance_km} km")
     if offer := r.resort.snow_n_rail:
         print(f"      [{', '.join(r.tags)}] up to {offer.up_to_pct} % - {offer.url}")
     if c := r.connection:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -49,7 +50,14 @@ class SkiResortCoordinator(DataUpdateCoordinator[RecommendationResult]):
     @property
     def settings(self) -> Settings:
         """Settings from the options form (defaults until it is saved once)."""
-        return settings_from_options(self.config_entry.options)
+        # the car trip starts at HA's home, rounded to about 100 m for OSRM
+        home = (
+            round(self.hass.config.latitude, 3),
+            round(self.hass.config.longitude, 3),
+        )
+        return replace(
+            settings_from_options(self.config_entry.options), home_location=home
+        )
 
     async def _async_update_data(self) -> RecommendationResult:
         """Run one update; API problems become UpdateFailed."""

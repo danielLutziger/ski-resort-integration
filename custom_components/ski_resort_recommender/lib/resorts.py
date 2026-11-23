@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 import yaml
 
 from custom_components.ski_resort_recommender.lib.models import (
+    AccessPoint,
     Resort,
     SnowRailOffer,
     SnowStation,
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
 
 MAX_POINTS = 5  # every point is one location in each Open-Meteo request
 MAX_SNOW_STATIONS = 3  # one SLF request each
+MAX_ACCESS = 4  # access points (car) per resort
 
 
 def load_resorts(directory: Path) -> list[Resort]:
@@ -45,6 +47,15 @@ def _resort(entry: dict) -> Resort:
     if len(codes) > MAX_SNOW_STATIONS or len(set(codes)) != len(codes):
         msg = f"{entry['key']}: at most {MAX_SNOW_STATIONS} snow stations, unique codes"
         raise ValueError(msg)
+    access = tuple(AccessPoint(**a) for a in entry.pop("access", None) or [])
+    names = [a.name for a in access]
+    if len(names) > MAX_ACCESS or len(set(names)) != len(names):
+        msg = f"{entry['key']}: at most {MAX_ACCESS} access points, unique names"
+        raise ValueError(msg)
     return Resort(
-        **entry, points=points, snow_n_rail=snow_n_rail, snow_stations=stations
+        **entry,
+        points=points,
+        snow_n_rail=snow_n_rail,
+        snow_stations=stations,
+        access=access,
     )

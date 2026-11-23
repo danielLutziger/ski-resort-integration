@@ -29,6 +29,24 @@ class SnowRailOffer:
 
 
 @dataclass(frozen=True, slots=True)
+class AccessPoint:
+    """Valley station with parking where you arrive by car (e.g. Flims, Laax)."""
+
+    name: str
+    lat: float
+    lon: float
+
+
+@dataclass(frozen=True, slots=True)
+class Drive:
+    """Car trip from home to the closest access point of a resort."""
+
+    access: str  # name of the access point
+    duration_min: int  # without traffic
+    distance_km: float
+
+
+@dataclass(frozen=True, slots=True)
 class SnowStation:
     """SLF IMIS station that measures the snow depth near the resort."""
 
@@ -50,6 +68,8 @@ class Resort:
     snow_n_rail: SnowRailOffer | None = None
     # measured base (median of the stations); none: the model snow depth is used
     snow_stations: tuple[SnowStation, ...] = ()
+    # by car: the closest of these wins; none: no drive time
+    access: tuple[AccessPoint, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

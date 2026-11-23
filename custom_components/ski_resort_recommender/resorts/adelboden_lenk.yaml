@@ -5,6 +5,13 @@ day_price_chf: 80
 snow_n_rail:
   offer: snownrail-adelboden-lenk
   up_to_pct: 20
+access:
+  - name: Adelboden
+    lat: 46.4879
+    lon: 7.5604
+  - name: Lenk
+    lat: 46.442
+    lon: 7.4567
 snow_stations:
   - code: FAE2
     name: Färmel

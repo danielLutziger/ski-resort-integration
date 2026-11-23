@@ -25,13 +25,14 @@ from .lib.options import (
     MAX_RESULTS,
     MIN_GOOD_SCORE,
     SHOW_OUTLOOK,
+    TRAVEL_MODES,
     WEATHER_INTERVAL_HOURS,
     WEEKDAYS,
     options_from_settings,
     validate_options,
 )
 from .lib.sbb import find_stations
-from .lib.settings import Settings
+from .lib.settings import CAR, TRAIN, Settings
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -53,6 +54,16 @@ def _number(low: float, high: float, step: float, unit: str | None = None) -> An
 
 OPTIONS_SCHEMA = vol.Schema(
     {
+        vol.Required(TRAVEL_MODES): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[
+                    selector.SelectOptionDict(value=TRAIN, label="Train"),
+                    selector.SelectOptionDict(value=CAR, label="Car"),
+                ],
+                multiple=True,
+                mode=selector.SelectSelectorMode.LIST,
+            )
+        ),
         vol.Optional(HOME_STATION): selector.TextSelector(),
         vol.Required(WEEKDAYS): selector.SelectSelector(
             selector.SelectSelectorConfig(
