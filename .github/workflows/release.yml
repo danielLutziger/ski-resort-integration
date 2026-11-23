@@ -1,0 +1,66 @@
+name: Release
+
+# A merged PR that changes the version in manifest.json publishes the release:
+# tag v<version>, GitHub release with notes from the merged PRs, and the zip of the
+# integration folder (for HACS and manual installs). An existing tag is never touched.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - custom_components/ski_resort_recommender/manifest.json
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the tag and the release
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Read the version from manifest.json
+        id: version
+        run: |
+          version="$(jq -r .version custom_components/ski_resort_recommender/manifest.json)"
+          echo "tag=v${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if this version is already released
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "Release $TAG exists already, nothing to do."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build the zip
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          cd custom_components
+          zip -qr -X ../ski_resort_recommender.zip ski_resort_recommender \
+            -x '*/__pycache__/*' '*.pyc'
+
+      - name: Create the tag and the release
+        if: steps.check.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          gh release create "$TAG" ski_resort_recommender.zip \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "$TAG" \
+            --generate-notes \
+            --notes "Update via HACS, or unpack ski_resort_recommender.zip into config/custom_components/ (replace the old folder), then restart Home Assistant. Card and card-mod styles: see the README."

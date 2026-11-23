@@ -228,6 +228,11 @@ and imports so that the integration still loads and tests/ruff stay green.
   descriptions are fine. Commits still use my own git author/committer identity (do not change
   `user.name`/`user.email`).
 - Small, focused commits (one topic each). Do not commit junk (caches, `.venv`, secrets).
+- **Releases are automatic** (from 0.0.6): a PR that should ship bumps `version` in
+  `custom_components/ski_resort_recommender/manifest.json` (patch +1) in the same PR. When it is merged,
+  `.github/workflows/release.yml` creates the tag `v<version>`, the GitHub release (notes generated from the
+  merged PRs) and attaches `ski_resort_recommender.zip`; HACS then offers the update. An existing tag is never
+  touched. No separate version PR and no manual tag anymore.
 - `gh` is not installed in the dev container; PRs are opened through the GitHub REST API with the
   credential from the VS Code git credential helper (never print the token).
 
