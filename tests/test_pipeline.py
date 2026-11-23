@@ -379,3 +379,61 @@ def test_osrm_failure_keeps_the_update_and_the_last_drive_times() -> None:
     )
 
     assert {r.drive for r in result.all} == {Drive("Flims", 101, 138.5)}
+
+
+BFE_PAYLOAD = {
+    "EVSEData": [
+        {
+            "EVSEDataRecord": [
+                {
+                    "Accessibility": "Free publicly accessible",
+                    "GeoCoordinates": {"Google": "46.8301 9.2801"},
+                    "ChargingFacilities": [{"power": "22.0"}],
+                }
+            ]
+        }
+    ]
+}
+
+
+def with_bfe(fake: FakeSession) -> FakeSession:
+    """Also answer the BFE charging points download."""
+    respond = fake._respond  # noqa: SLF001 (wrap the fake's own answer)
+
+    def both(url: str, params: dict) -> FakeResponse:
+        if "ladestellen" in url:
+            return FakeResponse(BFE_PAYLOAD)
+        return respond(url, params)
+
+    return FakeSession(both)
+
+
+def test_electric_car_gets_the_chargers_once_a_day() -> None:
+    """Electric car: one BFE download a day; the drive has the chargers."""
+    cache, fake = Cache(), with_bfe(with_osrm(session()))
+    electric = replace(CAR_ONLY, electric_car=True)
+    for hours in (0, 1):
+        result = asyncio.run(
+            build_recommendations(
+                fake,
+                [laax_by_car()],
+                electric,
+                now=NOW + timedelta(hours=hours),
+                cache=cache,
+            )
+        )
+
+    assert sum(c == {} for c in fake.calls) == 1  # the BFE request has no params
+    assert {r.drive.chargers_kw for r in result.all} == {(22.0,)}
+
+
+def test_without_electric_car_no_charger_download() -> None:
+    """Combustion car: no BFE request, no charger data."""
+    fake = with_bfe(with_osrm(session()))
+
+    result = asyncio.run(
+        build_recommendations(fake, [laax_by_car()], CAR_ONLY, now=NOW, cache=Cache())
+    )
+
+    assert not any(c == {} for c in fake.calls)
+    assert {r.drive.chargers_kw for r in result.all} == {None}

@@ -16,6 +16,7 @@
                 "description": "Train connections come from the SBB timetable (transport.opendata.ch), the weather from Open-Meteo.",
                 "data": {
                     "travel_modes": "Travel by",
+                    "electric_car": "Electric car",
                     "home_station": "Home station",
                     "weekdays": "Ski days",
                     "max_results": "Number of recommendations",
@@ -28,6 +29,7 @@
                 },
                 "data_description": {
                     "travel_modes": "Train, car or both (both: both are shown, the faster one counts for the score). The car trip starts at the home location of Home Assistant; drive times without traffic (OSRM).",
+                    "electric_car": "Only with car: shows the public chargers at the car parks (number and kW, data of the Swiss Federal Office of Energy; not every charger is listed, none in Austria).",
                     "home_station": "Your train station as in the SBB timetable, e.g. Zürich HB. Leave empty for no train connections.",
                     "weekdays": "Only these weekdays are recommended.",
                     "max_results": "How many days are shown.",

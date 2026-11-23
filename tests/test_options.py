@@ -6,6 +6,7 @@ from custom_components.ski_resort_recommender.lib.options import (
     ARRIVAL_EARLIEST,
     ARRIVAL_LATEST,
     ARRIVAL_TARGET,
+    ELECTRIC_CAR,
     HOME_STATION,
     MAX_RESULTS,
     MIN_GOOD_SCORE,
@@ -96,3 +97,9 @@ def test_travel_modes_round_trip_and_unknown_modes_are_dropped() -> None:
     assert both.travel_modes == frozenset({TRAIN, CAR})
     assert options_from_settings(both)[TRAVEL_MODES] == ["train", "car"]
     assert settings_from_options({TRAVEL_MODES: []}).travel_modes == frozenset()
+
+
+def test_electric_car_round_trip() -> None:
+    """The electric car switch is kept; default off."""
+    assert settings_from_options({ELECTRIC_CAR: True}).electric_car is True
+    assert options_from_settings(Settings())[ELECTRIC_CAR] is False

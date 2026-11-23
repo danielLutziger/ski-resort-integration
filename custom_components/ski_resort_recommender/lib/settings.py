@@ -85,6 +85,8 @@ class Settings:
     home_station: str | None = None
     # (lat, lon) where the car trip starts (HA: the home location); None = no car
     home_location: tuple[float, float] | None = None
+    # car mode: also show the public chargers at the access points
+    electric_car: bool = False
     # the morning connection must arrive in this window; closest to the target wins
     arrival_target: time = time(9, 0)
     arrival_earliest: time = time(8, 45)
