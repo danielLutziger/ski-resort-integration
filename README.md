@@ -44,7 +44,12 @@ The integration brings its own card, loaded automatically (restart Home Assistan
 ```yaml
 type: custom:ski-resort-card
 entity: sensor.ski_resort_recommender  # optional, this is the default
+color_mode: true                       # optional: good days on a coloured background (default on)
+good_color: "#c8f2cf"                  # optional: that background, any CSS colour (default pastel green)
 ```
+
+**Color mode** highlights good days in the compact table and in the window with all results. The text on the
+coloured background stays dark, so pick a light colour (also in dark themes). `color_mode: false` turns it off.
 
 - **Compact table** of the best days (plus the outlook if *Show the outlook* is on):
   ```

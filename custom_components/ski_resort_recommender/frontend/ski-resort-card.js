@@ -4,6 +4,8 @@
 
 const RESULTS_COMMAND = "ski_resort_recommender/results";
 const DEFAULT_ENTITY = "sensor.ski_resort_recommender";
+// color mode: good days get this background (card option good_color)
+const DEFAULT_GOOD_COLOR = "#c8f2cf"; // pastel green
 // required by the SLF data licence: a visible reference with a link
 const SLF_LINK = `<a href="https://www.slf.ch" target="_blank" rel="noopener">WSL Institute for Snow and Avalanche Research SLF</a>`;
 
@@ -41,7 +43,7 @@ function block(r) {
   const arr = t ? `${esc(t.to ?? "")}${t.to ? ", " : ""}${esc(t.arrival)}` : "";
   const snr = r.snow_n_rail ? `<span class="badge" title="Snow'n'Rail up to ${r.snow_n_rail.up_to_pct} %">SnR</span>` : "";
   return `
-    <div class="block">
+    <div class="block${r.is_good ? " good" : ""}">
       <div class="score">
         <div class="points">${esc(r.score)}</div>
         <div class="class">${esc(r.classification)} <ha-icon icon="${esc(r.weather_icon)}"></ha-icon></div>
@@ -151,7 +153,7 @@ function legend(s) {
       <h3>Legend</h3>
       <ul>
         <li><b>Score</b> 0–100: weather part (max ${w.sun_points + w.snow_points + w.snow_depth_points}) + travel + price, minus penalties.</li>
-        <li><b>Good day</b>: score ≥ ${esc(s.min_good_score)} and no rain/thunder at the best point. <b>Not good</b>: below. <b>Outlook</b>: days ${s.ranking_days + 1}–${s.outlook_days} (less certain; the best one is shown in the card when <i>Show the outlook</i> is on).</li>
+        <li><span class="swatch"></span><b>Good day</b>: score ≥ ${esc(s.min_good_score)} and no rain/thunder at the best point. <b>Not good</b>: below. <b>Outlook</b>: days ${s.ranking_days + 1}–${s.outlook_days} (less certain; the best one is shown in the card when <i>Show the outlook</i> is on).</li>
         <li><b>Icon</b>: most frequent weather over all points and ski hours (09–16 h).</li>
         <li><b>Resort · point</b>: the best weather point (lift station) of the resort that day.</li>
         <li><b>Dep. / Arr.</b>: morning train from your home station, arriving at the gondola in the arrival window; first train and platform.</li>
@@ -185,6 +187,12 @@ const STYLE = `
   .block { display: grid; grid-template-columns: var(--ski-score-width) 1fr var(--ski-side-width); align-items: center; }
   .block + .block, .sep { border-top: 1px solid var(--divider-color); margin-top: var(--ski-gap); padding-top: var(--ski-gap); }
   .score { text-align: center; }
+  /* color mode: good days on a coloured background, dark text (readable in dark themes too) */
+  :host([color-mode]) .block { padding: var(--ski-gap) 2px; border-radius: 6px; }
+  :host([color-mode]) .block.good { background: var(--ski-good-color); color: #1f2d22;
+    --primary-text-color: #1f2d22; --secondary-text-color: #45574a; }
+  .swatch { display: none; width: 10px; height: 10px; margin-right: 4px; border-radius: 2px; background: var(--ski-good-color); vertical-align: -1px; }
+  :host([color-mode]) .swatch { display: inline-block; }
   .points { font-size: 24px; font-weight: 700; line-height: 1.1; }
   .class, .small { font-size: 12px; color: var(--secondary-text-color); }
   .class ha-icon { --mdc-icon-size: 16px; }
@@ -240,8 +248,11 @@ function results(state) {
 
 class SkiResortCard extends HTMLElement {
   setConfig(config) {
-    this._config = { entity: DEFAULT_ENTITY, ...config };
+    this._config = { entity: DEFAULT_ENTITY, color_mode: true, good_color: DEFAULT_GOOD_COLOR, ...config };
     if (!this.shadowRoot) this.attachShadow({ mode: "open" });
+    // color mode: CSS on :host([color-mode]); setProperty keeps the colour a plain value
+    this.toggleAttribute("color-mode", this._config.color_mode !== false);
+    this.style.setProperty("--ski-good-color", this._config.good_color);
   }
 
   set hass(hass) {

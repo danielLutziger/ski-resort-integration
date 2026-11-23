@@ -292,6 +292,9 @@ and imports so that the integration still loads and tests/ruff stay green.
    fetches `ski_resort_recommender/results` (all resort-days + details, ~100 KB, not an attribute), each result
    expands (<details>: score bars, points table, train legs), legend + formula with the current weights at the
    end. Served at `/ski_resort_recommender/ski-resort-card.js`, added with `add_extra_js_url(...?v=<version>)`.
+   Color mode (card options `color_mode`, default on; `good_color`, default pastel green #c8f2cf):
+   blocks of good days (`entry.is_good`, also outlook days) get that background with dark text, in the card
+   and the modal; `:host([color-mode])` + CSS variable `--ski-good-color` (set with `style.setProperty`).
    Check the JS with VS Code's node (`--check`, render pure functions in a vm). Still open in #28: configurable
    rows/cells.
    Weather icon = most frequent weather over all points and ski hours (weighted, ties -> worse); for
