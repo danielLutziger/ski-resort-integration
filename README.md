@@ -161,8 +161,9 @@ color_mode: true                       # optional: good days in good_color (as i
 - **Click a pin** for that resort's days with all details (the same window as the list card).
 - **Routes of the recommendations:** the car road (solid blue, from OSRM) and the train through its stops
   (dashed red), depending on *Travel by*.
-- The map library (Leaflet) comes with the integration; the map tiles are loaded by the browser from CARTO
-  (© OpenStreetMap contributors, © CARTO), like the Home Assistant map card. Light or dark follows the theme.
+- The map library (Leaflet) comes with the integration; the map is the Swiss national map from
+  [swisstopo](https://www.swisstopo.admin.ch) (free, no API key), loaded by the browser. Dark themes get the grey
+  map, darkened. Outside Switzerland (Ischgl, St. Anton) the map has little detail; the pins are still shown.
 
 ### Troubleshooting
 
