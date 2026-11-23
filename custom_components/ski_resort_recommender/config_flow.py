@@ -24,6 +24,7 @@ from .lib.options import (
     HOME_STATION,
     MAX_RESULTS,
     MIN_GOOD_SCORE,
+    SHOW_OUTLOOK,
     WEATHER_INTERVAL_HOURS,
     WEEKDAYS,
     options_from_settings,
@@ -64,6 +65,7 @@ OPTIONS_SCHEMA = vol.Schema(
             )
         ),
         vol.Required(MAX_RESULTS): _number(1, 5, 1),
+        vol.Required(SHOW_OUTLOOK): selector.BooleanSelector(),
         vol.Required(MIN_GOOD_SCORE): _number(0, 100, 1, "points"),
         vol.Required(ARRIVAL_EARLIEST): selector.TimeSelector(),
         vol.Required(ARRIVAL_TARGET): selector.TimeSelector(),
