@@ -139,7 +139,21 @@ def _leg(section: dict) -> Leg:
         platform=section["departure"]["platform"] or None,
         arrival_station=section["arrival"]["station"]["name"],
         arrival=_time(section["arrival"]["arrival"]),
+        stops=_stops(section),
     )
+
+
+def _stops(section: dict) -> tuple[tuple[float, float], ...]:
+    """(lat, lon) of every stop of the ride (passList), else departure + arrival."""
+    stations = [p["station"] for p in section["journey"].get("passList") or []]
+    if not stations:
+        stations = [section["departure"]["station"], section["arrival"]["station"]]
+    points = []
+    for station in stations:
+        coordinate = station.get("coordinate") or {}
+        if coordinate.get("x") is not None and coordinate.get("y") is not None:
+            points.append((coordinate["x"], coordinate["y"]))  # x = lat, y = lon
+    return tuple(points)
 
 
 def _time(value: str) -> datetime:

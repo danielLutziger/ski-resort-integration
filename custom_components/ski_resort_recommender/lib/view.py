@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from custom_components.ski_resort_recommender.lib.models import (
         Connection,
         Drive,
+        Resort,
     )
     from custom_components.ski_resort_recommender.lib.service import PointResult
     from custom_components.ski_resort_recommender.lib.settings import Settings
@@ -98,10 +99,23 @@ def entry(r: Recommendation, *, outlook: bool | None = None) -> dict:
     }
 
 
-def detail(r: Recommendation, measured: Mapping[str, float] | None = None) -> dict:
-    """Entry plus everything the expanded row shows: points, forecast, legs."""
+def detail(
+    r: Recommendation,
+    measured: Mapping[str, float] | None = None,
+    *,
+    stops: bool = True,
+) -> dict:
+    """
+    Entry plus everything the expanded row shows: points, forecast, legs.
+
+    stops: the train stops of every leg (the map draws them for the shown resorts).
+    """
     data = entry(r)
+    data["key"] = r.resort.key
+    data["location"] = _location(r.resort)  # the map's marker
     data["points"] = [_point(p) for p in r.points]
+    if r.drive and data["car"]:
+        data["car"]["route"] = [list(p) for p in r.drive.route]
     data["snow_stations"] = [
         {
             "code": s.code,
@@ -121,6 +135,7 @@ def detail(r: Recommendation, measured: Mapping[str, float] | None = None) -> di
                 "platform": leg.platform,
                 "to": leg.arrival_station,
                 "arrival": f"{leg.arrival:%H:%M}",
+                "stops": [list(p) for p in leg.stops] if stops else [],
             }
             for leg in r.connection.legs
         ]
@@ -141,12 +156,32 @@ def results_payload(
     result: RecommendationResult, settings: Settings, error: str | None = None
 ) -> dict:
     """Everything the modal of the card needs (sent on request, not as attribute)."""
+    # resort keys of the recommendations: the map draws their routes
+    recommended = list(
+        dict.fromkeys(
+            r.resort.key
+            for r in [*result.recommendations, *filter(None, [result.outlook])]
+        )
+    )
     return {
         "headline": headline(result),
         "last_error": error,
-        "results": [detail(r, result.measured_snow_cm) for r in result.all],
+        "results": [
+            detail(r, result.measured_snow_cm, stops=r.resort.key in recommended)
+            for r in result.all
+        ],
+        "recommended": recommended,
         "scoring": scoring_info(settings),
     }
+
+
+def _location(resort: Resort) -> list[float]:
+    """Weighted centre of the resort's weather points (the ski area)."""
+    total = sum(p.weight for p in resort.points)
+    return [
+        round(sum(p.lat * p.weight for p in resort.points) / total, 5),
+        round(sum(p.lon * p.weight for p in resort.points) / total, 5),
+    ]
 
 
 def _point(p: PointResult) -> dict:

@@ -437,3 +437,39 @@ def test_without_electric_car_no_charger_download() -> None:
 
     assert not any(c == {} for c in fake.calls)
     assert {r.drive.chargers_kw for r in result.all} == {None}
+
+
+ROUTE = {
+    "code": "Ok",
+    "routes": [{"geometry": {"coordinates": [[8.54, 47.378], [9.28, 46.83]]}}],
+}
+
+
+def with_route(fake: FakeSession) -> FakeSession:
+    """Answer OSRM route requests with a two-point road."""
+    respond = fake._respond  # noqa: SLF001 (wrap the fake's own answer)
+
+    def both(url: str, params: dict) -> FakeResponse:
+        if "/route/v1/" in url:
+            return FakeResponse(ROUTE)
+        return respond(url, params)
+
+    return FakeSession(both)
+
+
+def test_shown_resorts_get_their_road_once_a_day() -> None:
+    """The map's road: one OSRM route request per shown resort and day."""
+    cache, fake = Cache(), with_route(with_osrm(session()))
+    for hours in (0, 1):
+        result = asyncio.run(
+            build_recommendations(
+                fake,
+                [laax_by_car()],
+                CAR_ONLY,
+                now=NOW + timedelta(hours=hours),
+                cache=cache,
+            )
+        )
+
+    assert sum("overview" in c for c in fake.calls) == 1
+    assert {r.drive.route for r in result.all} == {((47.378, 8.54), (46.83, 9.28))}

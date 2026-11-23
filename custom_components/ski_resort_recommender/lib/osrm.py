@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 
 # demo server: free, no key, best effort, no traffic; one request a day is fine
 URL = "https://router.project-osrm.org/table/v1/driving/{coordinates}"
+ROUTE_URL = "https://router.project-osrm.org/route/v1/driving/{coordinates}"
 # the data licence (ODbL) asks for this reference
 ATTRIBUTION = "OSRM, map data © OpenStreetMap contributors"
 
@@ -55,6 +56,42 @@ class OsrmProvider:
         except (KeyError, IndexError, TypeError, ValueError) as error:
             msg = f"OSRM: {error}"
             raise SkiApiParseError(msg) from error
+
+    async def route(
+        self, origin: tuple[float, float], to: AccessPoint
+    ) -> tuple[tuple[float, float], ...]:
+        """Return the road from origin to the access point (about 50 points)."""
+        payload = await _route_payload(self._session, origin, to)
+        try:
+            return _route(payload)
+        except (KeyError, IndexError, TypeError, ValueError) as error:
+            msg = f"OSRM: {error}"
+            raise SkiApiParseError(msg) from error
+
+
+async def _route_payload(
+    session: aiohttp.ClientSession, origin: tuple[float, float], to: AccessPoint
+) -> dict:
+    """Fetch the simplified road geometry from origin to the access point."""
+    coordinates = f"{origin[1]},{origin[0]};{to.lon},{to.lat}"  # lon first
+    try:
+        async with session.get(
+            ROUTE_URL.format(coordinates=coordinates),
+            params={"overview": "simplified", "geometries": "geojson"},
+            timeout=aiohttp.ClientTimeout(total=30),
+        ) as response:
+            response.raise_for_status()
+            return await response.json()
+    except (aiohttp.ClientError, TimeoutError) as error:
+        raise SkiApiConnectionError(describe("OSRM", error)) from error
+
+
+def _route(payload: dict) -> tuple[tuple[float, float], ...]:
+    """(lat, lon) points of the first route (OSRM sends lon, lat)."""
+    if payload.get("code") != "Ok":
+        raise ValueError(payload.get("message") or payload.get("code"))
+    coordinates = payload["routes"][0]["geometry"]["coordinates"]
+    return tuple((lat, lon) for lon, lat in coordinates)
 
 
 def _closest(access: list[tuple[str, AccessPoint]], payload: dict) -> dict[str, Drive]:

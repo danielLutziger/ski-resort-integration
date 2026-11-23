@@ -294,6 +294,7 @@ def test_detail_has_points_forecast_and_full_connection() -> None:
         "platform": "9",
         "to": "Sargans",
         "arrival": "08:32",
+        "stops": [],
     }
 
 
@@ -449,3 +450,43 @@ def test_car_entry_without_charger_data_says_nothing() -> None:
         "kw_min": None,
         "kw_max": None,
     }
+
+
+def test_payload_has_what_the_map_needs() -> None:
+    """Resort key and location, the car route, the train stops, the top resorts."""
+    road = ((47.378, 8.540), (47.1, 9.0), (47.093, 9.28))
+    stops = ((47.378, 8.540), (47.044, 9.446))
+    r = with_points(make_recommendation())
+    leg = replace(r.connection.legs[0], stops=stops)
+    r = replace(
+        r,
+        drive=replace(DRIVE, route=road),
+        connection=replace(r.connection, legs=(leg, *r.connection.legs[1:])),
+    )
+
+    payload = results_payload(RecommendationResult((r,), all=(r,)), Settings())
+
+    (d,) = payload["results"]
+    assert d["key"] == "flumserberg"
+    assert d["location"] == [47.06, 9.23]  # one point: its coordinates
+    assert d["car"]["route"] == [list(p) for p in road]
+    assert d["train"]["legs"][0]["stops"] == [list(p) for p in stops]
+    assert payload["recommended"] == ["flumserberg"]
+
+
+def test_train_stops_only_for_the_recommended_resorts() -> None:
+    """The map draws routes of the recommendations only; the rest stays small."""
+    stops = ((47.378, 8.540), (47.044, 9.446))
+    r = with_points(make_recommendation())
+    leg = replace(r.connection.legs[0], stops=stops)
+    shown = replace(r, connection=replace(r.connection, legs=(leg,)))
+    other = replace(shown, resort=replace(shown.resort, key="other"))
+
+    payload = results_payload(
+        RecommendationResult((shown,), all=(shown, other)), Settings()
+    )
+
+    assert payload["results"][0]["train"]["legs"][0]["stops"] == [
+        list(p) for p in stops
+    ]
+    assert payload["results"][1]["train"]["legs"][0]["stops"] == []
