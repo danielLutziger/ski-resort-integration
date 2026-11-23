@@ -49,6 +49,8 @@ COLUMNS = (
 )
 SMALL_FONT = 2  # HTML font size of the secondary text (1-7, 3 = normal)
 SNOW_N_RAIL_SHORT = "SnR"  # Snow'n'Rail offer
+# walking: about 80 m per minute, paths are about 1.3 times the straight line
+WALK_M_PER_MIN = 80 / 1.3
 
 
 def headline(result: RecommendationResult) -> str:
@@ -199,6 +201,8 @@ def _rows(r: Recommendation, *, outlook: bool) -> list[str]:
         f"{_small(escape(r.point.name))}</td>"
     )
     side = [_price(r.resort.day_price_chf)]
+    if r.drive and r.drive.parking and r.drive.parking[0].price_chf is not None:
+        side.append(_small(f"P {_parking_price(r.drive.parking[0].price_chf)}"))
     if r.resort.snow_n_rail:
         side.append(f"<code>{SNOW_N_RAIL_SHORT}</code>")
     price = (
@@ -252,14 +256,28 @@ def _classification(r: Recommendation, *, outlook: bool) -> str:
 
 
 def _car(d: Drive) -> dict:
-    """Drive to the closest access point: where, how long, how far."""
+    """Drive to the closest access point: where, how long, how far, car parks."""
     hours, minutes = divmod(d.duration_min, 60)
     return {
         "access": d.access,
         "duration_min": d.duration_min,
         "distance_km": d.distance_km,
         "summary": f"{d.access} · {hours}:{minutes:02d} h · {d.distance_km:.0f} km",
+        "parking": [
+            {
+                "name": c.name,
+                "spaces": c.spaces,
+                "price_chf": c.price_chf,
+                "walk_min": max(1, round(c.walk_m / WALK_M_PER_MIN)),
+            }
+            for c in d.parking
+        ],
     }
+
+
+def _parking_price(price: float) -> str:
+    """Parking for a ski day: free, 8.- or 13.60."""
+    return _price(price) if price else "free"
 
 
 def _train(c: Connection) -> dict:

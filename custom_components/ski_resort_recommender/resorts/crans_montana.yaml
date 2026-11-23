@@ -9,9 +9,21 @@ access:
   - name: Crans-Montana
     lat: 46.3085
     lon: 7.4696
+    parking:
+      - name: Parking Talstation Crans-Cry d'Er
+        lat: 46.30808
+        lon: 7.46609
+        spaces: 390
+        price_chf: 32
   - name: Aminona
     lat: 46.3323
     lon: 7.5253
+    parking:
+      - name: Parkhaus Aminona
+        lat: 46.332
+        lon: 7.52772
+        spaces: 219
+        price_chf: 0
 snow_stations:
   - code: TRU2
     name: Trubelboden

@@ -9,6 +9,12 @@ access:
   - name: Engelberg
     lat: 46.8164
     lon: 8.3959
+    parking:
+      - name: Parking Talstation Engelberg-Titlis P1
+        lat: 46.81657
+        lon: 8.39739
+        spaces: 143
+        price_chf: 10
 snow_stations:
   - code: TIT2
     name: Titlisboden

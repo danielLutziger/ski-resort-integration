@@ -6,9 +6,25 @@ access:
   - name: St. Moritz
     lat: 46.4988
     lon: 9.8376
+    parking:
+      - name: Parkhaus Quadrellas
+        lat: 46.49834
+        lon: 9.83852
+        spaces: 200
+        price_chf: 48
+      - name: Parkhaus Serletta
+        lat: 46.49658
+        lon: 9.84258
+        spaces: 603
+        price_chf: 24
   - name: Celerina
     lat: 46.5128
     lon: 9.853
+    parking:
+      - name: Parking Talstation Marguns
+        lat: 46.51265
+        lon: 9.85495
+        spaces: 400
 snow_stations:
   - code: BEV2
     name: Valetta

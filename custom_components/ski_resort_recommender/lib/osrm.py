@@ -68,7 +68,12 @@ def _closest(access: list[tuple[str, AccessPoint]], payload: dict) -> dict[str, 
     for (key, point), seconds, metres in zip(access, durations, distances, strict=True):
         if seconds is None or metres is None:
             continue
-        drive = Drive(point.name, round(seconds / 60), round(metres / 1000, 1))
+        drive = Drive(
+            point.name,
+            round(seconds / 60),
+            round(metres / 1000, 1),
+            point.parking,
+        )
         if key not in best or drive.duration_min < best[key].duration_min:
             best[key] = drive
     return best

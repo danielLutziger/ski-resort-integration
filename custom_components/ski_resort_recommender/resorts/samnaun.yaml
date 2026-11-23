@@ -6,6 +6,12 @@ access:
   - name: Samnaun
     lat: 46.9511
     lon: 10.3747
+    parking:
+      - name: Parking Talstation Samnaun
+        lat: 46.95136
+        lon: 10.374
+        spaces: 250
+        price_chf: 0
 snow_stations:
   - code: SMN2
     name: Ravaischer Salaas

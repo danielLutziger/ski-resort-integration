@@ -27,6 +27,9 @@ const fold = (text) =>
 // the modal's search: every word must appear in resort, point or day
 const matches = (haystack, query) => fold(query).split(/\s+/).every((word) => haystack.includes(word));
 
+// parking for one ski day: "free", "8.-", "13.60"; null = unknown
+const parkingPrice = (chf) => (chf === null || chf === undefined ? null : chf === 0 ? "free" : price(chf));
+
 const num = (value, digits = 0, unit = "") =>
   value === null || value === undefined ? "–" : `${Number(value).toFixed(digits)}${unit}`;
 
@@ -54,6 +57,7 @@ function travelLines(r) {
 //                         | Arr. | station, time
 //                         | Car  | access point · 1:41 h · 139 km   (car mode)
 function block(r) {
+  const park = parkingPrice(r.car?.parking?.[0]?.price_chf);
   const lines = travelLines(r)
     .map(([label, text], i) => `<div class="line"><span class="date">${i === 0 ? esc(r.day) : ""}</span><span class="lbl">${label}</span><span class="txt">${text}</span></div>`)
     .join("");
@@ -68,7 +72,7 @@ function block(r) {
         <div class="title"><b>${esc(r.resort)}</b> · <span class="small">${esc(r.point)}</span></div>
         ${lines}
       </div>
-      <div class="side"><div>${price(r.price_chf)}</div>${snr}</div>
+      <div class="side"><div>${price(r.price_chf)}</div>${park ? `<div class="small" title="Parking, one ski day">P ${esc(park)}</div>` : ""}${snr}</div>
     </div>`;
 }
 
@@ -137,6 +141,23 @@ function snowStations(stations) {
   return `<div class="small">Snow depth measured at 09:00 (median = base of every point): ${list}. Source: ${SLF_LINK}</div>`;
 }
 
+// car parks of the access point: spaces, price for a ski day, walk to the gondola
+function carParks(parks) {
+  if (!parks?.length) return "";
+  const items = parks
+    .map((c) => {
+      const cost = parkingPrice(c.price_chf);
+      const facts = [
+        c.spaces ? `${esc(c.spaces)} spaces` : "spaces unknown",
+        cost === null ? "price unknown" : cost === "free" ? "free" : `CHF ${esc(cost)} per ski day`,
+        `${esc(c.walk_min)} min walk`,
+      ];
+      return `<li>${esc(c.name)}: ${facts.join(" · ")}</li>`;
+    })
+    .join("");
+  return `<ul class="legs">${items}</ul>`;
+}
+
 function legs(train) {
   if (!train) return `<div class="small">No morning connection in the arrival window.</div>`;
   const items = (train.legs ?? [])
@@ -155,7 +176,7 @@ function details(r, w) {
       <div class="detail">
         <h4>Score breakdown</h4>${breakdown(r.reasons, w)}
         <h4>Weather points (weighted average)</h4>${pointsTable(r.points ?? [])}${snowStations(r.snow_stations)}
-        ${r.car ? `<h4>Car</h4><div class="small">To ${esc(r.car.access)} (the closest access point): ${esc(r.car.summary.split(" · ").slice(1).join(" · "))}, without traffic</div>` : ""}
+        ${r.car ? `<h4>Car</h4><div class="small">To ${esc(r.car.access)} (the closest access point): ${esc(r.car.summary.split(" · ").slice(1).join(" · "))}, without traffic</div>${carParks(r.car.parking)}` : ""}
         ${r.train || !r.car ? `<h4>Train</h4>${legs(r.train)}` : ""}
         ${r.snow_n_rail ? `<div class="small">Snow'n'Rail offer up to ${esc(r.snow_n_rail.up_to_pct)} % – <a href="${esc(r.snow_n_rail.url)}" target="_blank" rel="noopener">SBB RailAway</a> (availability not checked)</div>` : ""}
       </div>
@@ -173,7 +194,7 @@ function legend(s) {
         <li><b>Icon</b>: most frequent weather over all points and ski hours (09–16 h).</li>
         <li><b>Resort · point</b>: the best weather point (lift station) of the resort that day.</li>
         <li><b>Dep. / Arr.</b>: morning train from your home station, arriving at the gondola in the arrival window; first train and platform.</li>
-        <li><b>Car</b>: drive from your home location to the closest access point (valley station / car park), without traffic.</li>
+        <li><b>Car</b>: drive from your home location to the closest access point (valley station / car park), without traffic. <b>P</b>: parking for one ski day (about 8 h) at its main car park, from parking.ch and the resort websites (2026/27, may change).</li>
         <li><b>Price</b>: adult high-season day pass in CHF. <span class="badge">SnR</span>: the resort has an SBB Snow'n'Rail offer.</li>
       </ul>
       <h3>Scoring</h3>

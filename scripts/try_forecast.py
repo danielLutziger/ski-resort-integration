@@ -74,6 +74,9 @@ def print_line(r: Recommendation) -> None:
     )
     if d := r.drive:
         print(f"      car: {d.access}, {d.duration_min} min, {d.distance_km} km")
+        for c in d.parking:
+            print(f"        P {c.name}: {c.spaces} spaces, CHF {c.price_chf}", end="")
+            print(f", {c.walk_m} m")
     if offer := r.resort.snow_n_rail:
         print(f"      [{', '.join(r.tags)}] up to {offer.up_to_pct} % - {offer.url}")
     if c := r.connection:

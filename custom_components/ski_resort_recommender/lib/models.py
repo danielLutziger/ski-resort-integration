@@ -29,12 +29,25 @@ class SnowRailOffer:
 
 
 @dataclass(frozen=True, slots=True)
+class CarPark:
+    """Car park at an access point (researched: parking.ch, resort websites)."""
+
+    name: str
+    lat: float
+    lon: float
+    spaces: int | None = None  # None = unknown
+    price_chf: float | None = None  # one ski day (about 8 h); 0 = free, None = unknown
+    walk_m: int = 0  # straight line to the access point (set by the loader)
+
+
+@dataclass(frozen=True, slots=True)
 class AccessPoint:
     """Valley station with parking where you arrive by car (e.g. Flims, Laax)."""
 
     name: str
     lat: float
     lon: float
+    parking: tuple[CarPark, ...] = ()  # the main car park first
 
 
 @dataclass(frozen=True, slots=True)
@@ -44,6 +57,7 @@ class Drive:
     access: str  # name of the access point
     duration_min: int  # without traffic
     distance_km: float
+    parking: tuple[CarPark, ...] = ()  # car parks of that access point
 
 
 @dataclass(frozen=True, slots=True)

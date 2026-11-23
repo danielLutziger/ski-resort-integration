@@ -11,6 +11,7 @@ from custom_components.ski_resort_recommender.lib.errors import (
 )
 from custom_components.ski_resort_recommender.lib.models import (
     AccessPoint,
+    CarPark,
     Drive,
     Resort,
     WeatherPoint,
@@ -105,3 +106,16 @@ def test_errors_become_ski_api_errors() -> None:
         run(error=aiohttp.ClientConnectionError("down"))
     with pytest.raises(SkiApiParseError, match="Too many"):
         run({"code": "TooBig", "message": "Too many table coordinates"})
+
+
+def test_the_drive_carries_the_car_parks_of_its_access_point() -> None:
+    """The card shows the car parks of the chosen access point."""
+    stenna = CarPark(name="Stenna", lat=46.833, lon=9.282, spaces=1147, price_chf=13.6)
+    flims = AccessPoint(name="Flims", lat=46.8345, lon=9.2823, parking=(stenna,))
+    session = FakeSession(lambda *_: FakeResponse(table([6060], [138500])))
+
+    drives = asyncio.run(
+        OsrmProvider(session).drives(ZURICH_HB, [make_resort("laax", flims)])
+    )
+
+    assert drives["laax"].parking == (stenna,)

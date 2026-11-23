@@ -6,6 +6,11 @@ access:
   - name: Ischgl
     lat: 47.0126
     lon: 10.2918
+    parking:
+      - name: Silvrettaparkplatz Ost (P2)
+        lat: 47.01168
+        lon: 10.28774
+        price_chf: 6.5
 snow_stations:
   - code: SMN2
     name: Ravaischer Salaas

@@ -9,6 +9,11 @@ access:
   - name: Scuol
     lat: 46.7953
     lon: 10.2892
+    parking:
+      - name: Parking Talstation Scuol
+        lat: 46.79439
+        lon: 10.28578
+        spaces: 210
 snow_stations:
   - code: NAS2
     name: Schlivèra

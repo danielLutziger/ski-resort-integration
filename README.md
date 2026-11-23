@@ -33,7 +33,9 @@ HACS cannot install from private repositories.
 2. On the integration, click **Configure** and set:
    - **Travel by**: train, car or both. By car, the drive starts at Home Assistant's home location
      (Settings → System → General) and goes to the closest valley station of each resort, without traffic.
-     With both, both are shown and the faster one counts for the score.
+     With both, both are shown and the faster one counts for the score. By car, the card also shows the
+     parking price for a ski day (`P 13.60`, separate from the ski ticket) and, in the details, the car parks
+     with spaces and walking time to the gondola (researched 2026/27; prices may change).
    - **Home station** as in the SBB timetable (e.g. `Zürich HB`; a typo shows suggestions). Leave it empty
      for no train connections.
    - **Ski days** (default Saturday and Sunday), **number of recommendations**, **minimum score**.

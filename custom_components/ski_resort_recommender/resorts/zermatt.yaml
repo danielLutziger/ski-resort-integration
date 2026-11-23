@@ -6,6 +6,12 @@ access:
   - name: Täsch (train to Zermatt)
     lat: 46.0675
     lon: 7.7745
+    parking:
+      - name: Parkhaus Matterhorn Terminal Täsch
+        lat: 46.06866
+        lon: 7.77535
+        spaces: 2100
+        price_chf: 17
 snow_stations:
   - code: GOR2
     name: Gornergratsee

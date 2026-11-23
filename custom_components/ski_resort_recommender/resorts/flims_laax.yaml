@@ -13,12 +13,29 @@ access:
   - name: Flims
     lat: 46.8345
     lon: 9.2823
+    parking:
+      - name: Parkhaus Stenna (Talstation Plaun und Foppa)
+        lat: 46.83295
+        lon: 9.28185
+        spaces: 1147
+        price_chf: 13.6
   - name: Laax
     lat: 46.8202
     lon: 9.2633
+    parking:
+      - name: Parking Talstation Laax
+        lat: 46.8207
+        lon: 9.26529
+        spaces: 140
   - name: Falera
     lat: 46.8029
     lon: 9.2286
+    parking:
+      - name: Parking Falera
+        lat: 46.80075
+        lon: 9.23593
+        spaces: 180
+        price_chf: 6
 snow_stations:
   - code: CMA2
     name: La Fuorcla

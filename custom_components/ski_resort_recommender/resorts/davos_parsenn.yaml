@@ -6,9 +6,20 @@ access:
   - name: Davos Dorf
     lat: 46.8086
     lon: 9.8391
+    parking:
+      - name: Parking Talstation Parsenn
+        lat: 46.80727
+        lon: 9.84006
+        spaces: 700
+        price_chf: 5
   - name: Klosters
     lat: 46.869
     lon: 9.8804
+    parking:
+      - name: Parking Talstation Gotschna
+        lat: 46.86942
+        lon: 9.88018
+        spaces: 100
 snow_stations:
   - code: WFJ2
     name: Weissfluhjoch
