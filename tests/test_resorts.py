@@ -219,3 +219,29 @@ def test_every_resort_file_has_access_points() -> None:
     """Drive times need at least one access point per resort."""
     for resort in load_resorts(RESORTS_DIR):
         assert 1 <= len(resort.access) <= MAX_ACCESS, resort.key
+
+
+def test_car_parks_are_parsed_with_their_walk_to_the_gondola(tmp_path: Path) -> None:
+    """parking: list per access point; spaces/price optional; walk computed."""
+    point = "\n  - {name: a, lat: 46.8, lon: 9.3, elevation_m: 2000}"
+    access = (
+        "access:\n"
+        "  - name: Flims\n    lat: 46.8345\n    lon: 9.2823\n    parking:\n"
+        "      - {name: Stenna, lat: 46.83295, lon: 9.28185, spaces: 1147, "
+        "price_chf: 13.6}\n"
+        "      - {name: Other, lat: 46.8345, lon: 9.2823}\n"
+    )
+    (resort,) = load_resorts(write_resort(tmp_path, point, access))
+
+    stenna, other = resort.access[0].parking
+    assert (stenna.name, stenna.spaces, stenna.price_chf) == ("Stenna", 1147, 13.6)
+    assert stenna.walk_m == pytest.approx(178, abs=2)
+    assert (other.spaces, other.price_chf, other.walk_m) == (None, None, 0)
+
+
+def test_access_points_are_valley_stations_with_parking() -> None:
+    """Every access point has a car park; none is a mountain station."""
+    for resort in load_resorts(RESORTS_DIR):
+        for point in resort.access:
+            assert point.parking, (resort.key, point.name)
+            assert all(c.walk_m < 1000 for c in point.parking), point.name

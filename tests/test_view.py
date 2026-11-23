@@ -5,6 +5,7 @@ from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
 from custom_components.ski_resort_recommender.lib.models import (
+    CarPark,
     Connection,
     DayForecast,
     Drive,
@@ -364,6 +365,7 @@ def test_entry_car_has_access_point_time_and_distance() -> None:
         "duration_min": 65,
         "distance_km": 72.4,
         "summary": "Tannenboden · 1:05 h · 72 km",
+        "parking": [],
     }
     assert entry(make_recommendation())["car"] is None
 
@@ -391,3 +393,32 @@ def test_table_adds_a_car_row_and_drops_no_train_in_car_mode() -> None:
     assert "Sat 28.11" in car_only[1]
     assert "Car" in car_only[1]
     assert "No train" not in "".join(car_only)
+
+
+STENNA = CarPark("Stenna", 46.833, 9.282, spaces=1147, price_chf=13.6, walk_m=178)
+
+
+def test_car_entry_lists_the_car_parks_with_walking_minutes() -> None:
+    """Spaces, price for a ski day, walk (80 m/min, 1.3 x the straight line)."""
+    drive = replace(DRIVE, parking=(STENNA, CarPark("Free", 0, 0, price_chf=0)))
+
+    parking = entry(replace(make_recommendation(), drive=drive))["car"]["parking"]
+
+    assert parking == [
+        {"name": "Stenna", "spaces": 1147, "price_chf": 13.6, "walk_min": 3},
+        {"name": "Free", "spaces": None, "price_chf": 0, "walk_min": 1},
+    ]
+
+
+def test_table_shows_the_parking_price_under_the_ski_ticket() -> None:
+    """Ski ticket and parking are separate values; free parking says so."""
+    paid = replace(make_recommendation(), drive=replace(DRIVE, parking=(STENNA,)))
+    free = replace(paid, drive=replace(DRIVE, parking=(replace(STENNA, price_chf=0),)))
+    unknown = replace(
+        paid, drive=replace(DRIVE, parking=(replace(STENNA, price_chf=None),))
+    )
+
+    assert "76.-<br>" in rows(render_table(RecommendationResult((paid,))))[0]
+    assert "P 13.60" in rows(render_table(RecommendationResult((paid,))))[0]
+    assert "P free" in rows(render_table(RecommendationResult((free,))))[0]
+    assert "P " not in rows(render_table(RecommendationResult((unknown,))))[0]

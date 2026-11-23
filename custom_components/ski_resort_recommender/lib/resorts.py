@@ -1,11 +1,13 @@
 """Load the resorts: one YAML file per resort, the file name is the resort key."""
 
+import math
 from typing import TYPE_CHECKING
 
 import yaml
 
 from custom_components.ski_resort_recommender.lib.models import (
     AccessPoint,
+    CarPark,
     Resort,
     SnowRailOffer,
     SnowStation,
@@ -47,7 +49,7 @@ def _resort(entry: dict) -> Resort:
     if len(codes) > MAX_SNOW_STATIONS or len(set(codes)) != len(codes):
         msg = f"{entry['key']}: at most {MAX_SNOW_STATIONS} snow stations, unique codes"
         raise ValueError(msg)
-    access = tuple(AccessPoint(**a) for a in entry.pop("access", None) or [])
+    access = tuple(_access(a) for a in entry.pop("access", None) or [])
     names = [a.name for a in access]
     if len(names) > MAX_ACCESS or len(set(names)) != len(names):
         msg = f"{entry['key']}: at most {MAX_ACCESS} access points, unique names"
@@ -59,3 +61,20 @@ def _resort(entry: dict) -> Resort:
         snow_stations=stations,
         access=access,
     )
+
+
+def _access(entry: dict) -> AccessPoint:
+    """Build one access point; its car parks get their walk to the gondola."""
+    point = AccessPoint(**{k: v for k, v in entry.items() if k != "parking"})
+    parking = tuple(
+        CarPark(**c, walk_m=_metres(point.lat, point.lon, c["lat"], c["lon"]))
+        for c in entry.get("parking") or []
+    )
+    return AccessPoint(point.name, point.lat, point.lon, parking)
+
+
+def _metres(lat1: float, lon1: float, lat2: float, lon2: float) -> int:
+    """Straight-line distance in metres (flat approximation, fine below 2 km)."""
+    dy = math.radians(lat2 - lat1)
+    dx = math.radians(lon2 - lon1) * math.cos(math.radians(lat1))
+    return round(6_371_000 * math.hypot(dx, dy))
