@@ -284,6 +284,7 @@ const STYLE = `
   .legend ul { margin: 0; padding-left: 18px; }
   .formula div { padding: 2px 0; }
   .error { color: var(--error-color, #db4437); padding: 8px; }
+  .detail a, .legend a { color: var(--primary-color, #03a9f4); }
 `;
 
 const DEFAULT_RESULTS = 3; // size before the first result (default number of results)
@@ -410,13 +411,12 @@ window.customCards.push({
 // ---- map card: custom:ski-resort-map-card ---------------------------------------
 // Home, one pin per resort (its best day: score + date; click = its days) and the
 // car road / train stops of the recommended resorts. Leaflet comes with the
-// integration; tiles from CARTO (like the Home Assistant map card).
+// integration; tiles: Swiss national map (swisstopo, free, no key; CARTO wants a key).
 
 const LEAFLET_URL = "/ski_resort_recommender/leaflet";
-const TILES = "https://basemaps.cartocdn.com/{style}/{z}/{x}/{y}{r}.png";
-const TILES_ATTRIBUTION =
-  '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors ' +
-  '&copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>';
+// colour map; dark themes get the grey map, darkened with a CSS filter
+const TILES = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-{style}/default/current/3857/{z}/{x}/{y}.jpeg";
+const TILES_ATTRIBUTION = '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>';
 const CAR_COLOR = "#1e88e5";
 const TRAIN_COLOR = "#e53935";
 
@@ -460,12 +460,14 @@ const MAP_STYLE = `
   ha-card.mapcard { padding: 0; cursor: default; overflow: hidden; height: 100%; }
   .map { width: 100%; height: 100%; min-height: 200px; }
   .maperr { position: absolute; top: 8px; left: 50px; right: 8px; z-index: 1000; }
-  .pin { transform: translate(-50%, -100%); width: max-content; text-align: center; font-size: 11px; line-height: 1.15;
-         padding: 2px 6px; border-radius: 8px; cursor: pointer; white-space: nowrap;
+  .pin { transform: translate(-50%, -100%); width: max-content; text-align: center; font-size: 9px; line-height: 1.1;
+         padding: 1px 4px; border-radius: 6px; cursor: pointer; white-space: nowrap;
          background: var(--card-background-color, #fff); color: var(--primary-text-color, #222);
-         border: 2px solid var(--secondary-text-color, #777); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4); }
-  .pin b { display: block; font-size: 14px; }
-  .pin.top { border-color: var(--primary-color, #03a9f4); border-width: 3px; }
+         border: 1px solid var(--secondary-text-color, #777); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); }
+  .pin b { display: block; font-size: 12px; }
+  .pin.top { border: 2px solid var(--primary-color, #03a9f4); font-size: 10px; }
+  .pin.top b { font-size: 14px; }
+  .dark .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.85); }
   :host([color-mode]) .pin.good { background: var(--ski-good-color); color: #1f2d22; }
   .home { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
           transform: translate(-50%, -50%); background: var(--primary-color, #03a9f4); color: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4); }
@@ -530,7 +532,11 @@ class SkiResortMapCard extends HTMLElement {
     if (!this._map) {
       const el = this.shadowRoot.querySelector(".map");
       this._map = L.map(el, { zoomSnap: 0.5 });
-      new ResizeObserver(() => this._map.invalidateSize()).observe(el);
+      // a card is laid out after it is built: fit the view once it has a size
+      new ResizeObserver(() => {
+        this._map.invalidateSize();
+        this._fit();
+      }).observe(el);
       const legend = L.control({ position: "bottomleft" });
       legend.onAdd = () => {
         const div = L.DomUtil.create("div", "maplegend");
@@ -541,10 +547,11 @@ class SkiResortMapCard extends HTMLElement {
     }
     if (this._dark !== dark) {
       this._tiles?.remove();
-      this._tiles = L.tileLayer(TILES.replace("{style}", dark ? "dark_all" : "light_all"), {
+      this._tiles = L.tileLayer(TILES.replace("{style}", dark ? "grau" : "farbe"), {
         attribution: TILES_ATTRIBUTION,
-        maxZoom: 18,
+        maxZoom: 17,
       }).addTo(this._map);
+      this.shadowRoot.querySelector(".map").classList.toggle("dark", dark);
       this._dark = dark;
     }
     this._layer?.remove();
@@ -602,10 +609,18 @@ class SkiResortMapCard extends HTMLElement {
         .addTo(layer);
     }
 
-    if (!this._fitted && bounds.length > 1) {
-      this._map.fitBounds(bounds, { padding: [40, 40] });
-      this._fitted = true; // keep the user's zoom on later updates
-    }
+    this._bounds = bounds;
+    this._fit();
+  }
+
+  // fit home + pins once the map has a size; later updates keep the user's view
+  _fit() {
+    const el = this.shadowRoot.querySelector(".map");
+    if (this._fitted || !this._map || !this._bounds || this._bounds.length < 2) return;
+    if (!el.clientWidth || !el.clientHeight) return; // not laid out yet
+    this._map.invalidateSize();
+    this._map.fitBounds(this._bounds, { padding: [30, 30], maxZoom: 11 });
+    this._fitted = true;
   }
 }
 

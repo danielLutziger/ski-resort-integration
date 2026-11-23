@@ -302,7 +302,9 @@ and imports so that the integration still loads and tests/ruff stay green.
    Color mode (card options `color_mode`, default on; `good_color`, default pastel green #c8f2cf):
    blocks of good days (`entry.is_good`, also outlook days) get that background with dark text, in the card
    and the modal; `:host([color-mode])` + CSS variable `--ski-good-color` (set with `style.setProperty`).
-   Map card (23.11): `custom:ski-resort-map-card` (Leaflet, CARTO tiles like HA's map card): home marker, one pin
+   Map card (23.11): `custom:ski-resort-map-card` (Leaflet; tiles: swisstopo `pixelkarte-farbe`, dark theme
+   `pixelkarte-grau` + CSS invert; CARTO answers "API KEY REQUIRED" tiles to unregistered sites; fit only once the
+   map has a size, a 0-size fit zoomed out to the world): home marker, one pin
    per resort = its best day (score + date, colour mode, recommended = thick border), click = `openResults` with
    that resort's days; routes of `recommended` (payload): car = OSRM `/route` simplified geometry (`Drive.route`,
    only shown resorts, once a day, `attach_routes`), train = `Leg.stops` from the SBB passList (payload only for
