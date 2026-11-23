@@ -18,6 +18,8 @@ HEADLINES = {
     RecommendationStatus.NO_FORECAST: "No forecast yet",
 }
 NO_DATA = "No data yet"
+# full-width line between two results (plain HTML, works without card-mod)
+DIVIDER = '<tr><td colspan="4"><hr></td></tr>'
 # column widths in px: score | date | connection (rest) | price + badge
 COLUMNS = '<colgroup><col width="84"><col width="56"><col><col width="44"></colgroup>'
 SNOW_N_RAIL_SHORT = "SnR"  # Snow'n'Rail offer
@@ -80,8 +82,9 @@ def render_table(result: RecommendationResult) -> str:
         shown.append((result.outlook, True))
     if not shown:
         return headline(result)
-    rows = [row for r, outlook in shown for row in _rows(r, outlook=outlook)]
-    return "\n".join(['<table width="100%">', COLUMNS, *rows, "</table>"])
+    blocks = ["\n".join(_rows(r, outlook=outlook)) for r, outlook in shown]
+    body = f"\n{DIVIDER}\n".join(blocks)
+    return f'<table width="100%">\n{COLUMNS}\n{body}\n</table>'
 
 
 def _rows(r: Recommendation, *, outlook: bool) -> list[str]:

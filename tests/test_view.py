@@ -19,6 +19,7 @@ from custom_components.ski_resort_recommender.lib.service import (
     RecommendationResult,
 )
 from custom_components.ski_resort_recommender.lib.view import (
+    DIVIDER,
     entry,
     headline,
     render_table,
@@ -224,3 +225,16 @@ def test_a_failed_update_keeps_the_last_result_with_a_note() -> None:
     assert table.startswith(render_table(result))
     assert table.endswith(f"⚠️ Last update failed: {ERROR}. Showing the last result.")
     assert sensor_table(result, None) == render_table(result)
+
+
+def test_results_are_separated_by_a_divider_row() -> None:
+    """A full-width <hr> row between results, none before the first or after last."""
+    result = RecommendationResult(
+        (make_recommendation(), make_recommendation()), outlook=make_recommendation()
+    )
+
+    table_rows = rows(render_table(result))
+
+    assert len(table_rows) == 3 * 3 + 2
+    assert table_rows[3] == table_rows[7] == DIVIDER
+    assert DIVIDER not in (table_rows[0], table_rows[-1])
