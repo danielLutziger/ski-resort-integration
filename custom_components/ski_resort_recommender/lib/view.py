@@ -1,5 +1,6 @@
 """What the sensor shows: headline, one entry per recommendation, the table."""
 
+from dataclasses import asdict
 from html import escape
 from typing import TYPE_CHECKING
 
@@ -11,6 +12,22 @@ from custom_components.ski_resort_recommender.lib.service import (
 
 if TYPE_CHECKING:
     from custom_components.ski_resort_recommender.lib.models import Connection
+    from custom_components.ski_resort_recommender.lib.service import PointResult
+    from custom_components.ski_resort_recommender.lib.settings import Settings
+
+# DayForecast values shown in the details, per point
+FORECAST_FIELDS = (
+    "sunshine_hours",
+    "daylight_hours",
+    "fresh_snow_cm",
+    "snow_depth_cm",
+    "gust_max_kmh",
+    "temp_ski_c",
+    "visibility_m",
+    "recent_rain_mm",
+    "snow_after_rain_cm",
+    "weather_code",
+)
 
 HEADLINES = {
     RecommendationStatus.GOOD_DAY: "Good day",
@@ -49,11 +66,13 @@ def sensor_table(result: RecommendationResult | None, error: str | None) -> str:
     return table
 
 
-def entry(r: Recommendation, *, outlook: bool = False) -> dict:
+def entry(r: Recommendation, *, outlook: bool | None = None) -> dict:
     """One recommendation as plain values (sensor attribute, JSON friendly)."""
     offer = r.resort.snow_n_rail
     return {
-        "classification": _classification(r, outlook=outlook),
+        "classification": _classification(
+            r, outlook=r.outlook if outlook is None else outlook
+        ),
         "score": round(r.score.total),
         "date": r.day.day.isoformat(),
         "day": f"{r.day.day:%a %d.%m}",
@@ -67,6 +86,60 @@ def entry(r: Recommendation, *, outlook: bool = False) -> dict:
         else None,
         "tags": list(r.tags),
         "reasons": {k: round(v, 1) for k, v in r.score.reasons.items()},
+    }
+
+
+def detail(r: Recommendation) -> dict:
+    """Entry plus everything the expanded row shows: points, forecast, legs."""
+    data = entry(r)
+    data["points"] = [_point(p) for p in r.points]
+    if r.connection:
+        data["train"]["legs"] = [
+            {
+                "line": leg.line,
+                "train_number": leg.train_number,
+                "from": leg.departure_station,
+                "departure": f"{leg.departure:%H:%M}",
+                "platform": leg.platform,
+                "to": leg.arrival_station,
+                "arrival": f"{leg.arrival:%H:%M}",
+            }
+            for leg in r.connection.legs
+        ]
+    return data
+
+
+def scoring_info(settings: Settings) -> dict:
+    """Weights and thresholds for the legend and the formula."""
+    return {
+        "min_good_score": settings.min_good_score,
+        "ranking_days": settings.ranking_days,
+        "outlook_days": settings.outlook_days,
+        "weights": asdict(settings.scoring),
+    }
+
+
+def results_payload(
+    result: RecommendationResult, settings: Settings, error: str | None = None
+) -> dict:
+    """Everything the modal of the card needs (sent on request, not as attribute)."""
+    return {
+        "headline": headline(result),
+        "last_error": error,
+        "results": [detail(r) for r in result.all],
+        "scoring": scoring_info(settings),
+    }
+
+
+def _point(p: PointResult) -> dict:
+    """One weather point: weight, height, its own score and forecast values."""
+    return {
+        "name": p.point.name,
+        "weight": p.point.weight,
+        "elevation_m": p.point.elevation_m,
+        "score": round(p.score.total),
+        "reasons": {k: round(v, 1) for k, v in p.score.reasons.items()},
+        "forecast": {field: getattr(p.day, field) for field in FORECAST_FIELDS},
     }
 
 

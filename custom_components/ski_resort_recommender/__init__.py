@@ -5,13 +5,24 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from homeassistant.const import Platform
+from homeassistant.helpers import config_validation as cv
 
+from . import websocket
+from .const import DOMAIN
 from .coordinator import SkiResortConfigEntry, SkiResortCoordinator
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.typing import ConfigType
 
 PLATFORMS: list[Platform] = [Platform.SENSOR]
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)  # no YAML configuration
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:  # noqa: ARG001
+    """Register what exists once per Home Assistant (not per entry)."""
+    websocket.async_register(hass)
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: SkiResortConfigEntry) -> bool:
