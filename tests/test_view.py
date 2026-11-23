@@ -143,37 +143,45 @@ def rows(table: str) -> list[str]:
     return [line for line in table.splitlines() if line.startswith("<tr>")]
 
 
-def test_table_has_two_rows_per_result_in_one_table() -> None:
-    """Score | resort + day, then classification + icon | compact connection."""
-    result = RecommendationResult(
-        (make_recommendation(),), outlook=make_recommendation(good=False, offer=False)
+def test_table_is_full_width_with_fixed_columns() -> None:
+    """One table, 100 % wide; column widths without CSS (colgroup)."""
+    table = render_table(RecommendationResult((make_recommendation(),)))
+
+    assert table.startswith('<table width="100%">\n<colgroup>')
+    assert table.endswith("</table>")
+
+
+def test_one_result_uses_three_rows_with_dep_and_arr_aligned() -> None:
+    """Score | resort · point | price/badge; date beside Dep., Arr. below Dep."""
+    first, second, third = rows(
+        render_table(RecommendationResult((make_recommendation(),)))
     )
 
-    table = render_table(result)
-
-    assert table.startswith("<table>")
-    assert table.endswith("</table>")
-    first, second, third, fourth = rows(table)
     assert first == (
-        '<tr><td width="64"><font size="5"><b>83</b></font></td>'
-        "<td><b>Flumserberg</b> · Sat 28.11</td></tr>"
+        '<tr><td rowspan="3" align="center"><font size="5"><b>83</b></font><br>'
+        '<font size="1">Good day ☀️</font></td>'
+        '<td colspan="2"><b>Flumserberg</b> · <font size="1">Leist</font></td>'
+        '<td rowspan="3" align="right">76.-<br><code>SnR</code></td></tr>'
     )
     assert second == (
-        '<tr><td width="64"><font size="1">Good day</font> ☀️</td>'
-        "<td>07:38 · IC3 · Pl. 9 · Arr. 09:18 · SaR · 76.-</td></tr>"
+        '<tr><td><font size="1">Sat 28.11</font></td>'
+        '<td><font size="1">Dep. Zürich HB, 07:38 · IC3 · Pl. 9</font></td></tr>'
     )
-    assert third.startswith('<tr><td width="64"><font size="5"><b>83</b>')
-    assert fourth.startswith('<tr><td width="64"><font size="1">Outlook</font>')
-    assert fourth.endswith("<td>07:38 · IC3 · Pl. 9 · Arr. 09:18 · 76.-</td></tr>")
+    assert third == (
+        '<tr><td></td><td><font size="1">Arr. Tannenboden, 09:18</font></td></tr>'
+    )
 
 
-def test_line_without_train_without_offer_and_odd_price() -> None:
-    """No train: say so; no offer: no SaR; prices with Rappen keep two decimals."""
+def test_outlook_and_missing_train_offer_and_odd_price() -> None:
+    """Outlook label; no train; no badge without offer; 76.50 with Rappen."""
     r = make_recommendation(train=False, offer=False, price=76.5)
 
-    second = rows(render_table(RecommendationResult((r,))))[1]
+    first, second, third = rows(render_table(RecommendationResult((), outlook=r)))
 
-    assert second.endswith("<td>No train · 76.50</td></tr>")
+    assert '<font size="1">Outlook ☀️</font>' in first
+    assert first.endswith('<td rowspan="3" align="right">76.50</td></tr>')
+    assert second.endswith('<td><font size="1">No train</font></td></tr>')
+    assert third == "<tr><td></td><td></td></tr>"
 
 
 def test_names_are_html_escaped() -> None:
