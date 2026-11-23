@@ -19,7 +19,7 @@ HEADLINES = {
 }
 NO_DATA = "No data yet"
 # column widths in px: score | date | connection (rest) | price + badge
-COLUMNS = '<colgroup><col width="64"><col width="56"><col><col width="44"></colgroup>'
+COLUMNS = '<colgroup><col width="84"><col width="56"><col><col width="44"></colgroup>'
 SNOW_N_RAIL_SHORT = "SnR"  # Snow'n'Rail offer
 
 
@@ -88,7 +88,7 @@ def _rows(r: Recommendation, *, outlook: bool) -> list[str]:
     """Three rows: score/resort/price, date + departure, arrival."""
     label = escape(_classification(r, outlook=outlook))
     score = (
-        f'<td rowspan="3" align="center"><font size="5"><b>{round(r.score.total)}'
+        f'<td rowspan="3" align="center"><font size="6"><b>{round(r.score.total)}'
         f"</b></font><br>{_small(f'{label} {r.weather_icon.emoji}')}</td>"
     )
     resort = (

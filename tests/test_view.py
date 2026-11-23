@@ -148,6 +148,7 @@ def test_table_is_full_width_with_fixed_columns() -> None:
     table = render_table(RecommendationResult((make_recommendation(),)))
 
     assert table.startswith('<table width="100%">\n<colgroup>')
+    assert '<col width="84">' in table  # score column
     assert table.endswith("</table>")
 
 
@@ -158,7 +159,7 @@ def test_one_result_uses_three_rows_with_dep_and_arr_aligned() -> None:
     )
 
     assert first == (
-        '<tr><td rowspan="3" align="center"><font size="5"><b>83</b></font><br>'
+        '<tr><td rowspan="3" align="center"><font size="6"><b>83</b></font><br>'
         '<font size="1">Good day ☀️</font></td>'
         '<td colspan="2"><b>Flumserberg</b> · <font size="1">Leist</font></td>'
         '<td rowspan="3" align="right">76.-<br><code>SnR</code></td></tr>'

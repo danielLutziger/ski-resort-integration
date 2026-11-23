@@ -242,8 +242,8 @@ and imports so that the integration still loads and tests/ruff stay green.
    Sensor done: state = headline (Good day / No good day / No forecast yet); attributes
    `recommendations` + `outlook` (classification, score, date, resort, point, weather_icon, price_chf,
    train, snow_n_rail, tags, reasons) and `table`, all three excluded from the recorder.
-   `table` (23.11, owner's layout v2): `<table width="100%">` + `<colgroup>` (64 | 56 | rest | 44 px),
-   three rows per result: `score (size 5, centered) + classification/icon (size 1)` (rowspan 3) |
+   `table` (23.11, owner's layout v2): `<table width="100%">` + `<colgroup>` (84 | 56 | rest | 44 px),
+   three rows per result: `score (size 6, centered) + classification/icon (size 1)` (rowspan 3) |
    `resort · best point (size 1)` (colspan 2) | `price + <code>SnR</code>` (rowspan 3); then
    `date | Dep. station, 07:15 · S5 · Pl. 3`; then `(empty) | Arr. station, 09:10` (Dep./Arr. aligned).
    The Markdown card only allows plain HTML (no style/class); borders, spacing, ellipsis and the SnR
