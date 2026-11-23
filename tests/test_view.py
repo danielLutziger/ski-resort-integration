@@ -10,6 +10,7 @@ from custom_components.ski_resort_recommender.lib.models import (
     Leg,
     Resort,
     SnowRailOffer,
+    SnowStation,
     WeatherPoint,
 )
 from custom_components.ski_resort_recommender.lib.scoring import DayScore
@@ -325,3 +326,17 @@ def test_entry_train_has_stations_and_first_line_for_the_card() -> None:
         "Tannenboden",
         "IC 3",
     )
+
+
+def test_detail_lists_the_snow_stations_with_their_measurement() -> None:
+    """The modal names the SLF stations behind the snow depth."""
+    station = SnowStation(code="FLU2", name="Test", elevation_m=2100)
+    r = make_recommendation()
+    r = replace(r, resort=replace(r.resort, snow_stations=(station,)))
+
+    d = detail(r, {"FLU2": 82.4})
+
+    assert d["snow_stations"] == [
+        {"code": "FLU2", "name": "Test", "elevation_m": 2100, "depth_cm": 82.4}
+    ]
+    assert detail(r)["snow_stations"][0]["depth_cm"] is None

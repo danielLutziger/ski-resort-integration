@@ -7,10 +7,15 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+import aiohttp
 import pytest
 
 from custom_components.ski_resort_recommender.lib.errors import SkiApiConnectionError
-from custom_components.ski_resort_recommender.lib.models import Resort, WeatherPoint
+from custom_components.ski_resort_recommender.lib.models import (
+    Resort,
+    SnowStation,
+    WeatherPoint,
+)
 from custom_components.ski_resort_recommender.lib.open_meteo import (
     FALLBACK_MODEL,
 )
@@ -238,3 +243,72 @@ def test_all_results_survive_the_exact_connections() -> None:
 
     assert result.all
     assert len(result.all) >= len(result.recommendations)
+
+
+SLF_ROWS = [  # 08:00 UTC = 09:00 in Zurich, the opening of TODAY
+    {"station_code": "CMA2", "measure_date": "2026-11-21T08:00:00Z", "HS": 150.0},
+    {"station_code": "CMA2", "measure_date": "2026-11-21T09:00:00Z", "HS": 155.0},
+]
+
+
+def with_slf(fake: FakeSession, *, error: BaseException | None = None) -> FakeSession:
+    """Also answer the SLF station requests."""
+    respond = fake._respond  # noqa: SLF001 (wrap the fake's own answer)
+
+    def both(url: str, params: dict) -> FakeResponse:
+        if "measurement-api.slf.ch" in url:
+            return FakeResponse(error=error) if error else FakeResponse(SLF_ROWS)
+        return respond(url, params)
+
+    return FakeSession(both)
+
+
+def laax_with_station() -> Resort:
+    """Return the test resort with one SLF station."""
+    station = SnowStation(code="CMA2", name="La Fuorcla", elevation_m=2325)
+    return replace(make_resort("laax"), snow_stations=(station,))
+
+
+def test_measured_snow_depth_is_the_base_of_every_day() -> None:
+    """Today's opening equals the measurement; the result carries the values."""
+    model = asyncio.run(
+        build_recommendations(
+            session(), [make_resort("laax")], SETTINGS, now=NOW, cache=Cache()
+        )
+    )
+    result = asyncio.run(
+        build_recommendations(
+            with_slf(session()), [laax_with_station()], SETTINGS, now=NOW, cache=Cache()
+        )
+    )
+
+    assert result.measured_snow_cm == {"CMA2": 150.0}
+    measured = {(r.day.day, r.point.name): r for r in result.all}
+    for r in model.all:  # same model change, shifted to the measured base
+        m = measured[(r.day.day, r.point.name)]
+        assert m.day.snow_depth_cm > r.day.snow_depth_cm
+        assert m.score.reasons["depth"] >= r.score.reasons["depth"]
+
+
+def test_slf_failure_keeps_the_last_measurement() -> None:
+    """SLF down: the update works and uses the last measured values."""
+    cache = Cache()
+    resorts = [laax_with_station()]
+    asyncio.run(
+        build_recommendations(
+            with_slf(session()), resorts, SETTINGS, now=NOW, cache=cache
+        )
+    )
+    later = NOW + timedelta(hours=4)  # past the weather interval: fetch again
+
+    result = asyncio.run(
+        build_recommendations(
+            with_slf(session(), error=aiohttp.ClientConnectionError("down")),
+            resorts,
+            SETTINGS,
+            now=later,
+            cache=cache,
+        )
+    )
+
+    assert result.measured_snow_cm == {"CMA2": 150.0}

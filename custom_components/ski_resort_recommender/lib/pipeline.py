@@ -1,17 +1,24 @@
 """One update: forecasts, train connections and ranking (used by HA and the script)."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING
 
 from custom_components.ski_resort_recommender.lib.errors import SkiApiError
 from custom_components.ski_resort_recommender.lib.models import Connection, Forecasts
-from custom_components.ski_resort_recommender.lib.open_meteo import OpenMeteoProvider
+from custom_components.ski_resort_recommender.lib.open_meteo import (
+    SKI_HOURS,
+    OpenMeteoProvider,
+)
 from custom_components.ski_resort_recommender.lib.sbb import SbbProvider
 from custom_components.ski_resort_recommender.lib.service import (
     RecommendationResult,
     attach_connections,
     pick_recommendations,
+)
+from custom_components.ski_resort_recommender.lib.slf import SlfProvider
+from custom_components.ski_resort_recommender.lib.snow_depth import (
+    apply_measured_depth,
 )
 
 if TYPE_CHECKING:
@@ -32,6 +39,8 @@ class Cache:
     # last Open-Meteo forecast and when it was fetched
     forecasts: Forecasts | None = None
     forecasts_at: datetime | None = None
+    # measured snow depth per SLF station, fetched together with the forecast
+    snow_depths: dict[str, float] = field(default_factory=dict)
 
 
 async def build_recommendations(  # noqa: PLR0913 (keyword-only inputs)
@@ -49,16 +58,21 @@ async def build_recommendations(  # noqa: PLR0913 (keyword-only inputs)
     now: local time; today is now.date(). The forecast is fetched at most every
     settings.weather_interval. Weather errors (SkiApiError) reach the caller,
     unless a forecast younger than settings.weather_max_age is cached. Train
-    errors only cost the connection of that resort.
+    errors only cost the connection of that resort. The measured snow depth (SLF)
+    replaces the model's base; SLF errors keep the last values.
     connections_for: how many ranked results get their exact connection
     (default max_results; the outlook always gets one).
     """
     today = now.date()
     forecasts = await _forecasts(session, resorts, settings, now, cache)
+    forecasts = apply_measured_depth(resorts, forecasts, cache.snow_depths, today)
     sbb = SbbProvider(session)
     await _refresh_travel(sbb, resorts, settings, today, cache)
-    result = pick_recommendations(
-        resorts, forecasts, settings, today=today, travel=cache.travel
+    result = replace(
+        pick_recommendations(
+            resorts, forecasts, settings, today=today, travel=cache.travel
+        ),
+        measured_snow_cm=dict(cache.snow_depths),
     )
     if not settings.home_station:
         return result
@@ -117,7 +131,25 @@ async def _forecasts(
             return cache.forecasts  # e.g. rate limited: keep the last one
         raise
     cache.forecasts, cache.forecasts_at = forecasts, now
+    cache.snow_depths = await _snow_depths(session, resorts, now, cache.snow_depths)
     return forecasts
+
+
+async def _snow_depths(
+    session: aiohttp.ClientSession,
+    resorts: list[Resort],
+    now: datetime,
+    last: dict[str, float],
+) -> dict[str, float]:
+    """Measured snow depth per station at today's opening; the last one on errors."""
+    codes = {s.code for resort in resorts for s in resort.snow_stations}
+    if not codes:
+        return {}
+    opening = now.replace(hour=SKI_HOURS.start, minute=0, second=0, microsecond=0)
+    try:
+        return await SlfProvider(session).snow_depths(codes, opening)
+    except SkiApiError:
+        return last  # the forecast still works with the last (or model) depth
 
 
 def _reference_day(today: date, settings: Settings) -> date | None:

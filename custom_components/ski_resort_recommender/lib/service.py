@@ -1,7 +1,7 @@
 """Pick the best resort/day combinations."""
 
 from collections import defaultdict
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from datetime import date, timedelta
 from enum import StrEnum
 
@@ -72,6 +72,8 @@ class RecommendationResult:
     all: tuple[
         Recommendation, ...
     ] = ()  # every resort-day up to outlook_days, best first
+    # measured snow depth (cm) per SLF station code, as used for the base
+    measured_snow_cm: dict[str, float] = field(default_factory=dict)
 
     @property
     def has_good_day(self) -> bool:
@@ -222,10 +224,11 @@ def attach_connections(
         found = connections.get((r.resort.key, r.day.day))
         return replace(r, connection=found) if found else r
 
-    return RecommendationResult(
-        tuple(attach(r) for r in result.recommendations),
+    return replace(  # replace keeps every other field (e.g. the modal's list)
+        result,
+        recommendations=tuple(attach(r) for r in result.recommendations),
         outlook=attach(result.outlook) if result.outlook else None,
-        all=tuple(attach(r) for r in result.all),  # keep the modal's list
+        all=tuple(attach(r) for r in result.all),
     )
 
 

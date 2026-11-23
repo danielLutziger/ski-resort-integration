@@ -11,6 +11,8 @@ from custom_components.ski_resort_recommender.lib.service import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from custom_components.ski_resort_recommender.lib.models import Connection
     from custom_components.ski_resort_recommender.lib.service import PointResult
     from custom_components.ski_resort_recommender.lib.settings import Settings
@@ -89,10 +91,19 @@ def entry(r: Recommendation, *, outlook: bool | None = None) -> dict:
     }
 
 
-def detail(r: Recommendation) -> dict:
+def detail(r: Recommendation, measured: Mapping[str, float] | None = None) -> dict:
     """Entry plus everything the expanded row shows: points, forecast, legs."""
     data = entry(r)
     data["points"] = [_point(p) for p in r.points]
+    data["snow_stations"] = [
+        {
+            "code": s.code,
+            "name": s.name,
+            "elevation_m": s.elevation_m,
+            "depth_cm": (measured or {}).get(s.code),
+        }
+        for s in r.resort.snow_stations
+    ]
     if r.connection:
         data["train"]["legs"] = [
             {
@@ -126,7 +137,7 @@ def results_payload(
     return {
         "headline": headline(result),
         "last_error": error,
-        "results": [detail(r) for r in result.all],
+        "results": [detail(r, result.measured_snow_cm) for r in result.all],
         "scoring": scoring_info(settings),
     }
 
