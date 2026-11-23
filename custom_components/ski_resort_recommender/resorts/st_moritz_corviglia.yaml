@@ -2,6 +2,13 @@ name: St. Moritz Corviglia
 meteoswiss_point_id:
 station: St. Moritz (Standseilbahn)
 day_price_chf: 95
+access:
+  - name: St. Moritz
+    lat: 46.4988
+    lon: 9.8376
+  - name: Celerina
+    lat: 46.5128
+    lon: 9.853
 snow_stations:
   - code: BEV2
     name: Valetta

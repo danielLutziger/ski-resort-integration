@@ -2,6 +2,10 @@ name: St. Anton
 meteoswiss_point_id:
 station: St. Anton am Arlberg, Bahnhof
 day_price_chf: 78
+access:
+  - name: St. Anton
+    lat: 47.1275
+    lon: 10.2668
 points:
   - name: Galzig
     lat: 47.1309

@@ -5,6 +5,13 @@ day_price_chf: 76
 snow_n_rail:
   offer: snownrail-flumserberg
   up_to_pct: 30
+access:
+  - name: Tannenboden
+    lat: 47.0925
+    lon: 9.2804
+  - name: Unterterzen
+    lat: 47.1139
+    lon: 9.2556
 snow_stations:
   - code: ENG2
     name: Fitteren

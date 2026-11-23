@@ -5,6 +5,10 @@ day_price_chf: 69
 snow_n_rail:
   offer: snownrail-melchsee-frutt
   up_to_pct: 30
+access:
+  - name: Stöckalp
+    lat: 46.8024
+    lon: 8.2792
 snow_stations:
   - code: GAD2
     name: Gschletteregg

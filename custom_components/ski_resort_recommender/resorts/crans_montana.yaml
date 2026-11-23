@@ -5,6 +5,13 @@ day_price_chf: 94
 snow_n_rail:
   offer: snownrail-crans-montana
   up_to_pct: 10
+access:
+  - name: Crans-Montana
+    lat: 46.3085
+    lon: 7.4696
+  - name: Aminona
+    lat: 46.3323
+    lon: 7.5253
 snow_stations:
   - code: TRU2
     name: Trubelboden

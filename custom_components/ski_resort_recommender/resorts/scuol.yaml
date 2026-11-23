@@ -5,6 +5,10 @@ day_price_chf: 69
 snow_n_rail:
   offer: snownrail-scuol-motta-naluns
   up_to_pct: 10
+access:
+  - name: Scuol
+    lat: 46.7953
+    lon: 10.2892
 snow_stations:
   - code: NAS2
     name: Schlivèra

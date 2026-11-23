@@ -5,6 +5,13 @@ day_price_chf: 83
 snow_n_rail:
   offer: snownrail-jungfrau-ski-region
   up_to_pct: 10
+access:
+  - name: Grindelwald
+    lat: 46.6255
+    lon: 8.0171
+  - name: Lauterbrunnen (train to Wengen)
+    lat: 46.5984
+    lon: 7.9081
 snow_stations:
   - code: LHO2
     name: Russisprung

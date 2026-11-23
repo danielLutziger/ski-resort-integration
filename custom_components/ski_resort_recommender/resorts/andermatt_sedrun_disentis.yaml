@@ -5,6 +5,16 @@ day_price_chf: 99
 snow_n_rail:
   offer: snownrail-andermatt-sedrun-disentis
   up_to_pct: 30
+access:
+  - name: Andermatt
+    lat: 46.6371
+    lon: 8.5944
+  - name: Sedrun
+    lat: 46.6811
+    lon: 8.7698
+  - name: Disentis
+    lat: 46.7045
+    lon: 8.8159
 snow_stations:
   - code: TUJ2
     name: Culmatsch
