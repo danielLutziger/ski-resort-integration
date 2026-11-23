@@ -63,8 +63,10 @@ card_mod:
       ha-card {
         --markdown-table-border-color: transparent;
         --markdown-table-border-width: 0;
+        --ski-gap: 3px;  /* space above and below every divider */
       }
-      ha-markdown { padding: 2px !important; }
+      /* top and bottom = the space around a divider: gap + 1px line + gap */
+      ha-markdown { padding: calc(2 * var(--ski-gap) + 1px) 2px !important; }
     ha-markdown$: |
       table { display: table !important; width: 100% !important; table-layout: fixed;
               border-collapse: collapse; border: 0 !important; margin: 0 !important; }
@@ -72,7 +74,10 @@ card_mod:
       td { padding: 0 2px !important; line-height: 1.1; vertical-align: middle;
            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       font { line-height: 1.1; }
-      hr { margin: 2px 0; border: 0; border-top: 1px solid var(--divider-color); }
+      /* each result = 4 rows: title, Dep., Arr., divider */
+      tr:nth-child(4n+1) td[colspan] { padding-bottom: 3px !important; }  /* title row */
+      tr:nth-child(4n+3) td { padding-top: 2px !important; }  /* Arr. below Dep. */
+      hr { margin: var(--ski-gap) 0; border: 0; border-top: 1px solid var(--divider-color); }
       code { font-family: inherit; font-size: 10px; font-weight: 600; line-height: 1;
              padding: 2px 7px; border-radius: 10px;
              background: var(--primary-color); color: var(--text-primary-color, #fff); }
