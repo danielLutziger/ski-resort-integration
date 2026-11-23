@@ -72,6 +72,8 @@ class Settings:
     ranking_days: int = 5
     # the best day after the ranking window, up to outlook_days, is a 4th entry
     outlook_days: int = 7
+    # off: no 4th entry (days 6-7 stay in the full list); weekends rarely need it
+    show_outlook: bool = False
     scoring: ScoringSettings = ScoringSettings()
     # public transport from home: None = no travel score and no connections
     home_station: str | None = None

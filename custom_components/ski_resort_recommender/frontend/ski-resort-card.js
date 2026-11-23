@@ -133,7 +133,7 @@ function legend(s) {
       <h3>Legend</h3>
       <ul>
         <li><b>Score</b> 0–100: weather part (max ${w.sun_points + w.snow_points + w.snow_depth_points}) + travel + price, minus penalties.</li>
-        <li><b>Good day</b>: score ≥ ${esc(s.min_good_score)} and no rain/thunder at the best point. <b>Not good</b>: below. <b>Outlook</b>: days ${s.ranking_days + 1}–${s.outlook_days} (less certain, only the best one is shown in the card).</li>
+        <li><b>Good day</b>: score ≥ ${esc(s.min_good_score)} and no rain/thunder at the best point. <b>Not good</b>: below. <b>Outlook</b>: days ${s.ranking_days + 1}–${s.outlook_days} (less certain; the best one is shown in the card when <i>Show the outlook</i> is on).</li>
         <li><b>Icon</b>: most frequent weather over all points and ski hours (09–16 h).</li>
         <li><b>Resort · point</b>: the best weather point (lift station) of the resort that day.</li>
         <li><b>Dep. / Arr.</b>: morning train from your home station, arriving at the gondola in the arrival window; first train and platform.</li>

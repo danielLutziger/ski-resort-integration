@@ -154,7 +154,9 @@ def pick_recommendations(  # noqa: PLR0913 (optional keyword-only inputs)
     everything = sorted([*ranked, *outlook], key=lambda r: r.score.total, reverse=True)
     return RecommendationResult(
         tuple(ranked[: settings.max_results]),
-        outlook=max(outlook, key=lambda r: r.score.total, default=None),
+        outlook=max(outlook, key=lambda r: r.score.total, default=None)
+        if settings.show_outlook
+        else None,
         all=tuple(everything),
     )
 

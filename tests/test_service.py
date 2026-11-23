@@ -36,6 +36,7 @@ SETTINGS = Settings(
     min_good_score=50.0,
     ranking_days=5,
     outlook_days=7,
+    show_outlook=True,
     scoring=SCORING,
 )
 
@@ -661,3 +662,21 @@ def test_attach_connections_keeps_all_results() -> None:
         r for r in updated.all if r.resort.key == "laax" and r.day.day == SATURDAY
     ]
     assert attached[0].connection is exact
+
+
+def test_outlook_is_hidden_when_switched_off() -> None:
+    """show_outlook=False: no 4th entry; the modal list still has days 6-7."""
+    forecasts = {"laax": [make_day(SATURDAY), make_day(date(2026, 11, 30))]}
+    settings = replace(
+        SETTINGS, allowed_weekdays=frozenset(range(7)), show_outlook=False
+    )
+
+    result = pick([make_resort("laax")], forecasts, settings, today=TODAY)
+
+    assert result.outlook is None
+    assert [r.outlook for r in result.all] == [False, True]
+
+
+def test_outlook_is_off_by_default() -> None:
+    """Default settings (weekends) do not show the outlook entry."""
+    assert Settings().show_outlook is False

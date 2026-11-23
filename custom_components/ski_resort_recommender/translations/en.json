@@ -18,6 +18,7 @@
                     "home_station": "Home station",
                     "weekdays": "Ski days",
                     "max_results": "Number of recommendations",
+                    "show_outlook": "Show the outlook",
                     "min_good_score": "Minimum score for a good day",
                     "arrival_earliest": "Arrive at the gondola from",
                     "arrival_target": "Preferred arrival",
@@ -27,7 +28,8 @@
                 "data_description": {
                     "home_station": "Your train station as in the SBB timetable, e.g. Zürich HB. Leave empty for no train connections.",
                     "weekdays": "Only these weekdays are recommended.",
-                    "max_results": "How many days are shown (an outlook for days 6-7 comes on top).",
+                    "max_results": "How many days are shown.",
+                    "show_outlook": "Adds the best day 6-7 days ahead as an extra entry (less reliable forecast). The full list in the card shows these days either way.",
                     "min_good_score": "Days with at least this score (0-100) count as good.",
                     "arrival_target": "The connection arriving closest to this time wins.",
                     "weather_interval_hours": "Open-Meteo is asked at most this often. Raise it if the weather service rate-limits."

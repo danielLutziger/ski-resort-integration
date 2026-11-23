@@ -114,7 +114,8 @@ Done and tested (pytest green at last check):
     Reason: resorts cover icy pistes with artificial snow within a day or two. Do not extend it.
 - Horizon / outlook (done 22.11): 8 forecast days. MeteoSwiss where it has data, DWD `icon_seamless`
   for the rest (`_merge`). Days 1..`ranking_days` (5) are ranked; the best allowed day up to
-  `outlook_days` (7) is `RecommendationResult.outlook`, a separate 4th entry. The status only looks at
+  `outlook_days` (7) is `RecommendationResult.outlook`, a separate 4th entry, only with
+  `Settings.show_outlook` (option, default off since 23.11; days 6-7 stay in `all`). The status only looks at
   the ranked days (outlook only -> "No forecast yet").
 - Visibility (B, done): `DayForecast.visibility_m` = median of hourly visibility 09:00–16:00, from a second
   batched request with model `icon_seamless`; scored as a penalty (0 at >= 5 km, −30 at <= 1 km, None = 0).

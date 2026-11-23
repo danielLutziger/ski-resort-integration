@@ -9,6 +9,7 @@ from custom_components.ski_resort_recommender.lib.options import (
     HOME_STATION,
     MAX_RESULTS,
     MIN_GOOD_SCORE,
+    SHOW_OUTLOOK,
     WEATHER_INTERVAL_HOURS,
     WEEKDAYS,
     options_from_settings,
@@ -26,6 +27,7 @@ FORM = {  # what the Home Assistant form returns (strings, floats)
     ARRIVAL_TARGET: "09:00:00",
     ARRIVAL_LATEST: "09:45:00",
     WEATHER_INTERVAL_HOURS: 6.0,
+    SHOW_OUTLOOK: True,
 }
 
 
@@ -48,6 +50,7 @@ def test_form_values_become_settings() -> None:
     )
     assert settings.arrival_latest == time(9, 45)
     assert settings.weather_interval == timedelta(hours=6)
+    assert settings.show_outlook is True
 
 
 def test_empty_home_station_means_no_trains() -> None:
