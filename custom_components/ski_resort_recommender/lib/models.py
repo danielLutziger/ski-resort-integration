@@ -58,6 +58,19 @@ class Drive:
     duration_min: int  # without traffic
     distance_km: float
     parking: tuple[CarPark, ...] = ()  # car parks of that access point
+    # electric car: power (kW) of each public charging point at the access point;
+    # None = not checked or no charger data around (e.g. Austria)
+    chargers_kw: tuple[float, ...] | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class Charger:
+    """Charging point (BFE data): where, how fast, open to everyone or not."""
+
+    lat: float
+    lon: float
+    power_kw: float  # 0 = unknown
+    public: bool = True  # False: restricted (e.g. hotel guests); not counted
 
 
 @dataclass(frozen=True, slots=True)

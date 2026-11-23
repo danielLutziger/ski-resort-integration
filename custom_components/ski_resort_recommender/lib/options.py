@@ -20,6 +20,7 @@ ARRIVAL_LATEST = "arrival_latest"
 WEATHER_INTERVAL_HOURS = "weather_interval_hours"
 SHOW_OUTLOOK = "show_outlook"
 TRAVEL_MODES = "travel_modes"
+ELECTRIC_CAR = "electric_car"
 
 
 def settings_from_options(options: Mapping[str, Any]) -> Settings:
@@ -34,6 +35,8 @@ def settings_from_options(options: Mapping[str, Any]) -> Settings:
     if TRAVEL_MODES in options:
         modes = frozenset(options[TRAVEL_MODES]) & {TRAIN, CAR}
         values["travel_modes"] = modes
+    if ELECTRIC_CAR in options:
+        values["electric_car"] = bool(options[ELECTRIC_CAR])
     if SHOW_OUTLOOK in options:
         values["show_outlook"] = bool(options[SHOW_OUTLOOK])
     if MIN_GOOD_SCORE in options:
@@ -51,6 +54,7 @@ def options_from_settings(settings: Settings) -> dict[str, Any]:
     """Form values for Settings (pre-fills the form with the defaults)."""
     return {
         TRAVEL_MODES: sorted(settings.travel_modes, reverse=True),  # train, car
+        ELECTRIC_CAR: settings.electric_car,
         HOME_STATION: settings.home_station or "",
         WEEKDAYS: [str(d) for d in sorted(settings.allowed_weekdays)],
         MAX_RESULTS: settings.max_results,

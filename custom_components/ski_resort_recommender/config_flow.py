@@ -21,6 +21,7 @@ from .lib.options import (
     ARRIVAL_EARLIEST,
     ARRIVAL_LATEST,
     ARRIVAL_TARGET,
+    ELECTRIC_CAR,
     HOME_STATION,
     MAX_RESULTS,
     MIN_GOOD_SCORE,
@@ -64,6 +65,7 @@ OPTIONS_SCHEMA = vol.Schema(
                 mode=selector.SelectSelectorMode.LIST,
             )
         ),
+        vol.Required(ELECTRIC_CAR): selector.BooleanSelector(),
         vol.Optional(HOME_STATION): selector.TextSelector(),
         vol.Required(WEEKDAYS): selector.SelectSelector(
             selector.SelectSelectorConfig(

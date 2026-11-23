@@ -262,7 +262,9 @@ def _car(d: Drive) -> dict:
         "access": d.access,
         "duration_min": d.duration_min,
         "distance_km": d.distance_km,
-        "summary": f"{d.access} · {hours}:{minutes:02d} h · {d.distance_km:.0f} km",
+        "summary": f"{d.access} · {hours}:{minutes:02d} h · {d.distance_km:.0f} km"
+        + ("" if d.chargers_kw is None else f" · ⚡{len(d.chargers_kw)}"),
+        "chargers": _chargers(d.chargers_kw),
         "parking": [
             {
                 "name": c.name,
@@ -272,6 +274,18 @@ def _car(d: Drive) -> dict:
             }
             for c in d.parking
         ],
+    }
+
+
+def _chargers(powers: tuple[float, ...] | None) -> dict | None:
+    """Public chargers at the access point: how many, slowest/fastest kW."""
+    if powers is None:
+        return None
+    known = [p for p in powers if p]  # 0 = power unknown
+    return {
+        "count": len(powers),
+        "kw_min": min(known, default=None),
+        "kw_max": max(known, default=None),
     }
 
 

@@ -366,6 +366,7 @@ def test_entry_car_has_access_point_time_and_distance() -> None:
         "distance_km": 72.4,
         "summary": "Tannenboden · 1:05 h · 72 km",
         "parking": [],
+        "chargers": None,
     }
     assert entry(make_recommendation())["car"] is None
 
@@ -422,3 +423,29 @@ def test_table_shows_the_parking_price_under_the_ski_ticket() -> None:
     assert "P 13.60" in rows(render_table(RecommendationResult((paid,))))[0]
     assert "P free" in rows(render_table(RecommendationResult((free,))))[0]
     assert "P " not in rows(render_table(RecommendationResult((unknown,))))[0]
+
+
+def test_car_entry_counts_the_chargers_and_their_power() -> None:
+    """Electric car: count, slowest and fastest kW (0 = unknown power)."""
+    drive = replace(DRIVE, chargers_kw=(50.0, 22.0, 22.0, 0.0))
+
+    car = entry(replace(make_recommendation(), drive=drive))["car"]
+
+    assert car["chargers"] == {"count": 4, "kw_min": 22.0, "kw_max": 50.0}
+    assert car["summary"] == "Tannenboden · 1:05 h · 72 km · ⚡4"
+
+
+def test_car_entry_without_charger_data_says_nothing() -> None:
+    """Not checked or no data around: no count (not a misleading 0)."""
+    car = entry(replace(make_recommendation(), drive=DRIVE))["car"]
+    no_chargers = entry(
+        replace(make_recommendation(), drive=replace(DRIVE, chargers_kw=()))
+    )
+
+    assert car["chargers"] is None
+    assert "⚡" not in car["summary"]
+    assert no_chargers["car"]["chargers"] == {
+        "count": 0,
+        "kw_min": None,
+        "kw_max": None,
+    }

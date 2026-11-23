@@ -36,6 +36,8 @@ HACS cannot install from private repositories.
      With both, both are shown and the faster one counts for the score. By car, the card also shows the
      parking price for a ski day (`P 13.60`, separate from the ski ticket) and, in the details, the car parks
      with spaces and walking time to the gondola (researched 2026/27; prices may change).
+   - **Electric car** (with car): the public charging points within 300 m of the access point (`⚡7`, kW in the
+     details), from the Swiss Federal Office of Energy; not every charger is listed, no data in Austria.
    - **Home station** as in the SBB timetable (e.g. `Zürich HB`; a typo shows suggestions). Leave it empty
      for no train connections.
    - **Ski days** (default Saturday and Sunday), **number of recommendations**, **minimum score**.

@@ -5,7 +5,9 @@ from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING
 
 from custom_components.ski_resort_recommender.lib.errors import SkiApiError
+from custom_components.ski_resort_recommender.lib.ev import BfeProvider, attach_chargers
 from custom_components.ski_resort_recommender.lib.models import (
+    Charger,
     Connection,
     Drive,
     Forecasts,
@@ -50,6 +52,9 @@ class Cache:
     # drive per resort key; fetched once a day per home location
     drives: dict[str, Drive] = field(default_factory=dict)
     drives_for: tuple[date, tuple[float, float]] | None = None
+    # public EV chargers near the access points (electric car); once a day
+    chargers: list[Charger] = field(default_factory=list)
+    chargers_on: date | None = None
 
 
 async def build_recommendations(  # noqa: PLR0913 (keyword-only inputs)
@@ -69,7 +74,8 @@ async def build_recommendations(  # noqa: PLR0913 (keyword-only inputs)
     unless a forecast younger than settings.weather_max_age is cached. Train
     errors only cost the connection of that resort. The measured snow depth (SLF)
     replaces the model's base; SLF errors keep the last values. Drive times (car
-    mode) come once a day; OSRM errors keep the last ones.
+    mode) come once a day; OSRM errors keep the last ones. Electric car: public
+    chargers (BFE) once a day, errors keep the last ones.
     connections_for: how many ranked results get their exact connection
     (default max_results; the outlook always gets one).
     """
@@ -79,6 +85,10 @@ async def build_recommendations(  # noqa: PLR0913 (keyword-only inputs)
     sbb = SbbProvider(session)
     await _refresh_travel(sbb, resorts, settings, today, cache)
     await _refresh_drives(session, resorts, settings, today, cache)
+    drives = cache.drives
+    if drives and settings.electric_car:
+        await _refresh_chargers(session, resorts, today, cache)
+        drives = attach_chargers(resorts, drives, cache.chargers)
     result = replace(
         pick_recommendations(
             resorts,
@@ -86,7 +96,7 @@ async def build_recommendations(  # noqa: PLR0913 (keyword-only inputs)
             settings,
             today=today,
             travel=cache.travel,
-            drives=cache.drives,
+            drives=drives,
         ),
         measured_snow_cm=dict(cache.snow_depths),
     )
@@ -147,6 +157,19 @@ async def _refresh_drives(
     except SkiApiError:
         return  # keep the last drive times, try again with the next update
     cache.drives_for = (today, origin)
+
+
+async def _refresh_chargers(
+    session: aiohttp.ClientSession, resorts: list[Resort], today: date, cache: Cache
+) -> None:
+    """Fetch the public chargers once a day; errors keep the last list."""
+    if cache.chargers_on == today:
+        return
+    try:
+        cache.chargers = await BfeProvider(session).chargers(resorts)
+    except SkiApiError:
+        return  # try again with the next update
+    cache.chargers_on = today
 
 
 def _by_train(settings: Settings) -> bool:
