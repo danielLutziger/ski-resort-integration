@@ -30,6 +30,7 @@ Requirements agreed so far:
 ```
 custom_components/ski_resort_recommender/
   __init__.py manifest.json config_flow.py const.py coordinator.py sensor.py   # HA glue only (mostly TODO)
+  websocket.py                  # ws command ski_resort_recommender/results (all results + details, on request)
   resorts/<key>.yaml            # resorts as DATA: one file per resort, file name = resort key
   lib/                          # NO homeassistant imports, testable alone
     models.py                   # Resort, WeatherPoint, DayForecast (frozen dataclasses), Forecasts alias; imports nothing from lib
@@ -37,13 +38,15 @@ custom_components/ski_resort_recommender/
     open_meteo.py               # OpenMeteoProvider (aiohttp); pure _combine/_parse_location/_ski_hours/...
     sbb.py                      # SbbProvider (aiohttp, transport.opendata.ch); pure _parse/_pick
     pipeline.py                 # build_recommendations(): forecasts + SBB (TravelCache) + ranking
-    view.py                     # headline(), entry(), render_table(): what the sensor shows
+    view.py                     # headline(), entry(), render_table(): what the sensor shows;
+                                # detail(), scoring_info(), results_payload(): the card's modal
     options.py                  # option keys; settings_from_options / options_from_settings / validate_options
     weather_codes.py            # WeatherClass (StrEnum), _CLASSES, classify()
     scoring.py                  # score_day(DayForecast, ScoringSettings) -> DayScore(total, reasons); combine_scores()
     settings.py                 # Settings (weekdays, max_results, min_good_score, ranking_days, outlook_days, scoring)
                                 # and ScoringSettings (all weights/thresholds of score_day, flat numbers)
-    service.py                  # pick_recommendations(); Recommendation, RecommendationResult, RecommendationStatus
+    service.py                  # pick_recommendations(); Recommendation (+ PointResult per point), RecommendationResult
+                                # (recommendations, outlook, all = every resort-day best first), RecommendationStatus
     resorts.py                  # load_resorts(folder) -> list[Resort] sorted by key; 1-5 points, unique names
 scripts/try_forecast.py         # runs the whole chain on the real API and prints the ranking
 tests/                          # pytest; fixtures in tests/fixtures
