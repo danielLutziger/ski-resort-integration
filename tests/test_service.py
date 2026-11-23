@@ -414,7 +414,7 @@ def test_outlook_alone_does_not_change_the_status() -> None:
 def test_scoring_settings_are_used_by_the_service() -> None:
     """pick_recommendations scores with settings.scoring."""
     forecasts = {"laax": [make_day(SATURDAY, sun=8)]}
-    doubled_sun = replace(SETTINGS, scoring=replace(SCORING, sun_points=70))
+    doubled_sun = replace(SETTINGS, scoring=replace(SCORING, sun_points=90))
 
     normal = pick([make_resort("laax")], forecasts, SETTINGS, today=TODAY)
     sunnier = pick([make_resort("laax")], forecasts, doubled_sun, today=TODAY)
@@ -422,7 +422,7 @@ def test_scoring_settings_are_used_by_the_service() -> None:
     gain = (
         sunnier.recommendations[0].score.total - normal.recommendations[0].score.total
     )
-    assert gain == 30
+    assert gain == 45
 
 
 def test_a_short_shower_does_not_block_a_good_day() -> None:
@@ -465,7 +465,7 @@ def travel_points(result: RecommendationResult) -> dict[str, float]:
     return {r.resort.key: r.score.reasons["travel"] for r in result.recommendations}
 
 
-def test_travel_points_are_relative_shortest_10_longest_0() -> None:
+def test_travel_points_are_relative_shortest_5_longest_0() -> None:
     """Shortest trip gets travel_points, longest 0, linear by travel time."""
     resorts = [make_resort(k) for k in ("near", "far", "mid")]
     forecasts = {k: [make_day(SATURDAY)] for k in ("near", "far", "mid")}
@@ -483,7 +483,7 @@ def test_travel_points_are_relative_shortest_10_longest_0() -> None:
         travel=travel,
     )
 
-    assert travel_points(result) == {"near": 10, "mid": 5, "far": 0}
+    assert travel_points(result) == {"near": 5, "mid": 2.5, "far": 0}
     assert [r.resort.key for r in result.recommendations] == ["near", "mid", "far"]
 
 
@@ -501,7 +501,7 @@ def test_resort_without_morning_connection_gets_no_travel_points() -> None:
     )
 
     by_key = {r.resort.key: r for r in result.recommendations}
-    assert by_key["train"].score.reasons["travel"] == 10
+    assert by_key["train"].score.reasons["travel"] == 5
     assert by_key["no_train"].score.reasons["travel"] == 0
     assert by_key["no_train"].connection is None
 
@@ -574,11 +574,11 @@ def test_live_prices_override_the_static_prices() -> None:
 
 
 def test_travel_and_price_count_towards_a_good_day() -> None:
-    """is_good uses the final total: weather 58 + travel 10 + price 5 is good."""
-    day = make_day(SATURDAY, sun=8, snow=0)  # weather part: sun 40 + depth 20
+    """is_good uses the final total: weather 65 + travel 5 + price 5 is good."""
+    day = make_day(SATURDAY, sun=8, snow=0)  # weather part: sun 45 + depth 20
     resorts = [make_resort("near", price=60), make_resort("far", price=100)]
     forecasts = {k: {MAIN: [day]} for k in ("near", "far")}
-    settings = replace(SETTINGS, min_good_score=65)
+    settings = replace(SETTINGS, min_good_score=70)
 
     result = pick_recommendations(
         resorts,

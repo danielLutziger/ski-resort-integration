@@ -85,25 +85,29 @@ Done and tested (pytest green at last check):
 - Resort YAML loader; 23 resorts (101 points) in `resorts.yaml`; `scripts/try_forecast.py` prints the ranking.
 - `weather_codes.py` + coverage test; `scoring.py` + tests (rating review 22.11, see below); `service.py` + tests (weekday filter, future-only,
   max results, same resort twice, no-go never good, missing resort, status).
-- Rating (22.11), weather part max 85; travel time 10 and price 5 follow (max 100):
-  - sun 0..40: sunshine / daylight, full from 80 % (DWD reports ~24 % more sun than MeteoSwiss on the
+- Rating (22.11, weights 23.11), weather part max 90; travel time 5 and price 5 follow (max 100; owner: travel and
+  price must not be crucial):
+  - sun 0..45: sunshine / daylight, full from 80 % (DWD reports ~24 % more sun than MeteoSwiss on the
     same point-day; with the share both reach full points on clear days)
   - fresh snow 0..25: snowfall in the 48 h before opening, full from 30 cm
-  - snow depth 0..20: model snow depth at opening (09:00), 0 up to 20 cm, full from 1 m; counts all
-    season (both models have `snow_depth`; close to measured station depths)
+  - snow depth 0..20: model snow depth at opening (09:00), log curve log(1 + d/10) / log(1 + 80/10):
+    20 cm half, 50 cm 82 %, full from 80 cm (owner 23.11: from 50 cm no rocks, above 80 cm irrelevant);
+    counts all season. Model depth is natural snow and reads low: 23.11 SLF IMIS measured 74 cm at Laax
+    La Fuorcla (models 36-49) and 54 cm at Hoch-Ybrig Wanne (33-50); resorts report piste/top values
+    (Laax 165 cm). Measured IMIS depths: `https://measurement-api.slf.ch/public/api/imis/station/<code>/measurements` (`HS`).
   - wind 0..-30: max gust in ski hours, from 40 km/h, full at 80 km/h
   - temp 0..-20: mean in ski hours; -10 below -15 °C, slush penalty from +2 to +6 °C
   - weather: averaged over the ski hours; NO_GO (rain/freezing/thunder) -50, BAD (fog) -15, snowfall neutral
-  - travel 0..10 (relative): train duration of the morning connection from `Settings.home_station`
-    to `Resort.station`; shortest trip of all resorts 10, longest 0, linear. No connection in the
+  - travel 0..5 (relative): train duration of the morning connection from `Settings.home_station`
+    to `Resort.station`; shortest trip of all resorts 5, longest 0, linear. No connection in the
     arrival window (`arrival_earliest`..`arrival_latest`, 08:45–09:30, closest to `arrival_target`
     09:00) or no home station = 0. Travel times come from one reference day (the next allowed day);
     the shown connection of a recommendation is fetched for its exact day (`attach_connections`).
   - price 0..5 (relative): day ticket price, cheapest resort 5, most expensive 0; from
     `Resort.day_price_chf` or a `prices` dict (hook for live prices, issue #17). Unknown price = 0.
     Travel and price count towards `is_good` (final total >= `min_good_score`).
-  - visibility 0..-30 as before. A clear day on a 1 m base without penalties = 60 = `min_good_score`;
-    on a thin base 40. Bluebird powder day on a good base = 85.
+  - visibility 0..-30 as before. A clear day on a 50 cm base without penalties = 61 (`min_good_score` 60);
+    on 20 cm 55. Bluebird powder day on a good base = 90.
   - icy 0..-40: rain + showers (liquid, mm) in the 48 h before opening refreeze into an icy slope;
     no penalty up to 0.5 mm, full from 5 mm. Applies to every point (all points are ski-area
     stations; a village point would be the only place where rain is acceptable). Real data last 30

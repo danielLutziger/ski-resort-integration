@@ -1,5 +1,6 @@
 """Score one forecast day at one resort."""
 
+import math
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -73,9 +74,16 @@ def _ramp(value: float, start: float, full: float) -> float:
 
 
 def _depth_points(day: DayForecast, s: ScoringSettings) -> float:
-    """Snow on the ground (base): counts all season, unknown depth is 0."""
-    depth = _ramp(day.snow_depth_cm or 0, s.snow_depth_min_cm, s.snow_depth_full_cm)
-    return depth * s.snow_depth_points
+    """
+    Snow on the ground (base): counts all season, unknown depth is 0.
+
+    Log curve log(1 + depth / c) / log(1 + full / c): the first centimetres
+    count most, capped at snow_depth_full_cm.
+    """
+    depth = min(max(day.snow_depth_cm or 0, 0), s.snow_depth_full_cm)
+    c = s.snow_depth_curve_cm
+    share = math.log1p(depth / c) / math.log1p(s.snow_depth_full_cm / c)
+    return share * s.snow_depth_points
 
 
 def _sun_points(day: DayForecast, s: ScoringSettings) -> float:

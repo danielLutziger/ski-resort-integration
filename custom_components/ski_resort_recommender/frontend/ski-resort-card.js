@@ -144,7 +144,7 @@ function legend(s) {
         <div><b>Score</b> = Σ<sub>points</sub> weight × (Sun + Fresh snow + Snow depth − Wind − Temp − Weather − Visibility − Icy) / Σ weight + Travel + Price</div>
         <div><b>Sun</b> = min(sunshine ÷ daylight ÷ ${w.sun_full_share}, 1) × ${w.sun_points}</div>
         <div><b>Fresh snow</b> = min(snow in the 48 h before opening ÷ ${w.snow_full_cm} cm, 1) × ${w.snow_points}</div>
-        <div><b>Snow depth</b> = ramp(depth, ${w.snow_depth_min_cm} cm, ${w.snow_depth_full_cm} cm) × ${w.snow_depth_points}</div>
+        <div><b>Snow depth</b> = log(1 + d ÷ ${w.snow_depth_curve_cm}) ÷ log(1 + ${w.snow_depth_full_cm} ÷ ${w.snow_depth_curve_cm}) × ${w.snow_depth_points}, d = depth up to ${w.snow_depth_full_cm} cm (model value, often lower than the resort reports)</div>
         <div><b>Travel</b> = (longest trip − trip) ÷ (longest − shortest) × ${w.travel_points}</div>
         <div><b>Price</b> = (dearest − price) ÷ (dearest − cheapest) × ${w.price_points}</div>
         <div><b>Wind</b> = ramp(max gust, ${w.gust_limit_kmh}, ${w.gust_full_kmh} km/h) × ${w.wind_penalty}</div>

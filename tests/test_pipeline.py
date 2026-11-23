@@ -90,7 +90,7 @@ def test_recommendations_get_travel_points_and_the_connection_of_their_day() -> 
 
     assert result.recommendations
     for r in result.recommendations:
-        assert r.score.reasons["travel"] == 10  # only resort: shortest trip
+        assert r.score.reasons["travel"] == 5  # only resort: shortest trip
         assert r.connection is not None
         assert r.connection.departure.date() == r.day.day
 

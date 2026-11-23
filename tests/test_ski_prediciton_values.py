@@ -40,9 +40,9 @@ def test_clear_day_without_penalties_scores_the_sun_points() -> None:
     """Sun is the only positive part on a day without fresh snow and base."""
     score = score_day(CLEAR_DAY, SCORING)
 
-    assert score.total == 40
+    assert score.total == 45
     assert score.reasons == {
-        "sun": 40,
+        "sun": 45,
         "snow": 0,
         "depth": 0,
         "wind": 0,
@@ -54,10 +54,10 @@ def test_clear_day_without_penalties_scores_the_sun_points() -> None:
 
 
 def test_bluebird_powder_day_on_a_good_base_is_the_top_of_the_weather_scale() -> None:
-    """Full sun, 30 cm fresh snow, 1 m base: 85 (travel 10 + price 5 come on top)."""
+    """Full sun, 30 cm fresh snow, 1 m base: 90 (travel 5 + price 5 come on top)."""
     bluebird = replace(CLEAR_DAY, fresh_snow_cm=30, snow_depth_cm=100)
 
-    assert score_day(bluebird, SCORING).total == 85
+    assert score_day(bluebird, SCORING).total == 90
 
 
 def test_bluebird_day_beats_sun_without_snow_and_snow_without_sun() -> None:
@@ -83,8 +83,8 @@ def test_sun_is_measured_against_day_length() -> None:
     full = replace(CLEAR_DAY, sunshine_hours=7.2, daylight_hours=9)
     half = replace(CLEAR_DAY, sunshine_hours=3.6, daylight_hours=9)
 
-    assert score_day(full, SCORING).reasons["sun"] == pytest.approx(40)
-    assert score_day(half, SCORING).reasons["sun"] == pytest.approx(20)
+    assert score_day(full, SCORING).reasons["sun"] == pytest.approx(45)
+    assert score_day(half, SCORING).reasons["sun"] == pytest.approx(22.5)
 
 
 def test_fresh_snow_scales_up_to_snow_full_cm() -> None:
@@ -97,24 +97,33 @@ def test_fresh_snow_scales_up_to_snow_full_cm() -> None:
 
 
 @pytest.mark.parametrize(
-    ("depth", "points"), [(None, 0), (0, 0), (20, 0), (60, 10), (100, 20), (250, 20)]
+    ("depth", "points"),
+    [
+        (None, 0),
+        (0, 0),
+        (10, 6.3),
+        (20, 10),
+        (50, 16.3),
+        (80, 20),
+        (250, 20),
+    ],
 )
-def test_snow_depth_counts_from_20_cm_and_is_full_at_1_m(
+def test_snow_depth_is_a_log_curve_full_at_80_cm(
     depth: float | None, points: float
 ) -> None:
-    """The base matters all season: 0 up to 20 cm, full points from 1 m."""
+    """The first centimetres count most; 50 cm gives 82 %, full from 80 cm."""
     day = replace(CLEAR_DAY, snow_depth_cm=depth)
 
-    assert score_day(day, SCORING).reasons["depth"] == points
+    assert score_day(day, SCORING).reasons["depth"] == pytest.approx(points, abs=0.05)
 
 
 def test_clear_day_on_a_good_base_is_good_on_a_thin_base_not() -> None:
-    """Sun + 1 m base reaches min_good_score (60); sun on 20 cm does not."""
-    good_base = replace(CLEAR_DAY, snow_depth_cm=100)
+    """Sun on 50 cm reaches min_good_score (60); sun on 20 cm does not."""
+    good_base = replace(CLEAR_DAY, snow_depth_cm=50)
     thin_base = replace(CLEAR_DAY, snow_depth_cm=20)
 
-    assert score_day(good_base, SCORING).total == 60
-    assert score_day(thin_base, SCORING).total == 40
+    assert score_day(good_base, SCORING).total == pytest.approx(61.3, abs=0.05)
+    assert score_day(thin_base, SCORING).total == 55
 
 
 def test_snowfall_codes_are_not_penalised() -> None:
@@ -284,7 +293,7 @@ def test_snow_after_the_rain_covers_the_ice(
 
 
 def test_bluebird_day_on_covered_ice_is_still_the_top() -> None:
-    """Rain, then 30 cm of snow, then sun on 1 m base: full 85, the ice is buried."""
+    """Rain, then 30 cm of snow, then sun on 1 m base: full 90, the ice is buried."""
     day = replace(
         CLEAR_DAY,
         recent_rain_mm=10,
@@ -293,4 +302,4 @@ def test_bluebird_day_on_covered_ice_is_still_the_top() -> None:
         snow_depth_cm=100,
     )
 
-    assert score_day(day, SCORING).total == 85
+    assert score_day(day, SCORING).total == 90
