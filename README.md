@@ -147,6 +147,23 @@ recommendations* in the options.
 
 </details>
 
+### Map card
+
+```yaml
+type: custom:ski-resort-map-card
+entity: sensor.ski_resort_recommender  # optional, this is the default
+routes: true                           # optional: draw the routes of the recommendations
+color_mode: true                       # optional: good days in good_color (as in the list card)
+```
+
+- **Home** (Home Assistant's home location) and **one pin per resort** with its best day: score and date. Good
+  days are coloured (color mode); the recommended resorts have a thicker border.
+- **Click a pin** for that resort's days with all details (the same window as the list card).
+- **Routes of the recommendations:** the car road (solid blue, from OSRM) and the train through its stops
+  (dashed red), depending on *Travel by*.
+- The map library (Leaflet) comes with the integration; the map tiles are loaded by the browser from CARTO
+  (© OpenStreetMap contributors, © CARTO), like the Home Assistant map card. Light or dark follows the theme.
+
 ### Troubleshooting
 
 - The card shows **"⚠️ No data yet: …"**: the first update failed. The reason is shown (also in the sensor

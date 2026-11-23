@@ -23,6 +23,9 @@ PLATFORMS: list[Platform] = [Platform.SENSOR]
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)  # no YAML configuration
 CARD_FILE = Path(__file__).parent / "frontend" / "ski-resort-card.js"
 CARD_URL = f"/{DOMAIN}/ski-resort-card.js"
+# Leaflet 1.9.4 (BSD-2-Clause) for the map card, served from the integration
+LEAFLET_DIR = Path(__file__).parent / "frontend" / "leaflet"
+LEAFLET_URL = f"/{DOMAIN}/leaflet"
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:  # noqa: ARG001
@@ -33,13 +36,16 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:  # noqa:
 
 
 async def _async_register_card(hass: HomeAssistant) -> None:
-    """Serve the card and load it in every browser (custom:ski-resort-card)."""
+    """Serve the cards (list + map) and Leaflet; load them in every browser."""
     if getattr(hass, "http", None) is None:  # e.g. a test core without web server
         LOGGER.debug("No HTTP server: dashboard card not registered")
         return
     version = (await async_get_integration(hass, DOMAIN)).version
     await hass.http.async_register_static_paths(
-        [StaticPathConfig(CARD_URL, str(CARD_FILE), cache_headers=False)]
+        [
+            StaticPathConfig(CARD_URL, str(CARD_FILE), cache_headers=False),
+            StaticPathConfig(LEAFLET_URL, str(LEAFLET_DIR), cache_headers=True),
+        ]
     )
     add_extra_js_url(hass, f"{CARD_URL}?v={version}")  # new version = no stale cache
 
