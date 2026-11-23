@@ -56,9 +56,9 @@ entity: sensor.ski_resort_recommender  # optional, this is the default
   breakdown (a bar per part), the weather points of the resort with their weights and forecast values, every leg of
   the train connection. At the end: **legend** and the **scoring formula** with your current weights.
 
-The card asks for 5 rows in a sections dashboard (3 results + the optional outlook). If its space is smaller it scrolls
-instead of cutting results off; give it more rows in the card's *Layout* tab, or lower *Number of
-recommendations*. To leave a gap below the card (e.g. 10 px):
+In a sections dashboard the card takes the height of the entries it shows (3 results = 4 rows, with the outlook
+5). After changing *Number of recommendations* or *Show the outlook*, reload the page to resize it. A row count set in
+the card's *Layout* tab wins; if the space is smaller the card scrolls instead of cutting results off. To leave a gap below the card (e.g. 10 px):
 
 ```yaml
 card_mod:
