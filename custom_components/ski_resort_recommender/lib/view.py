@@ -19,9 +19,13 @@ HEADLINES = {
 }
 NO_DATA = "No data yet"
 # full-width line between two results (plain HTML, works without card-mod)
-DIVIDER = '<tr><td colspan="4"><hr></td></tr>'
-# column widths in px: score | date | connection (rest) | price + badge
-COLUMNS = '<colgroup><col width="84"><col width="56"><col><col width="44"></colgroup>'
+DIVIDER = '<tr><td colspan="5"><hr></td></tr>'
+# column widths in px: score | date | Dep./Arr. | station + details (rest) | price
+COLUMNS = (
+    '<colgroup><col width="104"><col width="56"><col width="34"><col>'
+    '<col width="44"></colgroup>'
+)
+SMALL_FONT = 3  # HTML font size of the secondary text (1-7, 3 = normal)
 SNOW_N_RAIL_SHORT = "SnR"  # Snow'n'Rail offer
 
 
@@ -95,25 +99,26 @@ def _rows(r: Recommendation, *, outlook: bool) -> list[str]:
         f"</b></font><br>{_small(f'{label} {r.weather_icon.emoji}')}</td>"
     )
     resort = (
-        f'<td colspan="2"><b>{escape(r.resort.name)}</b> · '
+        f'<td colspan="3"><b>{escape(r.resort.name)}</b> · '
         f"{_small(escape(r.point.name))}</td>"
     )
     side = [_price(r.resort.day_price_chf)]
     if r.resort.snow_n_rail:
         side.append(f"<code>{SNOW_N_RAIL_SHORT}</code>")
     price = f'<td rowspan="3" align="right">{"<br>".join(p for p in side if p)}</td>'
-    departure, arrival = _departure_arrival(r.connection)
+    (dep_label, departure), (arr_label, arrival) = _departure_arrival(r.connection)
+    day = _small(f"{r.day.day:%a %d.%m}")
     return [
         f"<tr>{score}{resort}{price}</tr>",
-        f"<tr><td>{_small(f'{r.day.day:%a %d.%m}')}</td><td>{departure}</td></tr>",
-        f"<tr><td></td><td>{arrival}</td></tr>",
+        f"<tr><td>{day}</td><td>{dep_label}</td><td>{departure}</td></tr>",
+        f"<tr><td></td><td>{arr_label}</td><td>{arrival}</td></tr>",
     ]
 
 
-def _departure_arrival(c: Connection | None) -> tuple[str, str]:
-    """Dep. station, time · first train · platform / Arr. station, time."""
+def _departure_arrival(c: Connection | None) -> tuple[tuple[str, str], ...]:
+    """(Dep., station, time · first train · platform), (Arr., station, time)."""
     if c is None:
-        return _small("No train"), ""
+        return ("", _small("No train")), ("", "")
     first, last = (c.legs[0], c.legs[-1]) if c.legs else (None, None)
     dep = [f"{c.departure:%H:%M}"]
     if first:
@@ -123,8 +128,8 @@ def _departure_arrival(c: Connection | None) -> tuple[str, str]:
     dep_station = f"{first.departure_station}, " if first else ""
     arr_station = f"{last.arrival_station}, " if last else ""
     return (
-        _small(escape(f"Dep. {dep_station}{' · '.join(dep)}")),
-        _small(escape(f"Arr. {arr_station}{c.arrival:%H:%M}")),
+        (_small("Dep."), _small(escape(f"{dep_station}{' · '.join(dep)}"))),
+        (_small("Arr."), _small(escape(f"{arr_station}{c.arrival:%H:%M}"))),
     )
 
 
@@ -136,8 +141,8 @@ def _price(price: float | None) -> str:
 
 
 def _small(text: str) -> str:
-    """Small type (font size 1) for the secondary lines."""
-    return f'<font size="1">{text}</font>'
+    """Secondary text in SMALL_FONT."""
+    return f'<font size="{SMALL_FONT}">{text}</font>'
 
 
 def _classification(r: Recommendation, *, outlook: bool) -> str:

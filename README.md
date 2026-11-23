@@ -42,9 +42,9 @@ HACS cannot install from private repositories.
 A Markdown card shows the table, one compact block per result:
 
 ```
- 52          Hoch-Ybrig · Spirstock                            62.-
- Not good ⛅  Sat 28.11  Dep. Zürich HB, 07:15 · S5 · Pl. 3     [SnR]
-                        Arr. Hoch-Ybrig, Talst. Weglosen, 09:10
+ 52          Hoch-Ybrig · Spirstock                                  62.-
+ Not good ⛅  Sat 28.11  Dep.  Zürich HB, 07:15 · S5 · Pl. 3          [SnR]
+                        Arr.  Hoch-Ybrig, Talst. Weglosen, 09:10
 ```
 
 (score and classification with the weather icon; resort · best point; date, departure and arrival of the
@@ -64,14 +64,15 @@ card_mod:
         --markdown-table-border-color: transparent;
         --markdown-table-border-width: 0;
       }
-      ha-markdown { padding: 2px 4px !important; }
+      ha-markdown { padding: 2px !important; }
     ha-markdown$: |
       table { display: table !important; width: 100% !important; table-layout: fixed;
               border-collapse: collapse; border: 0 !important; margin: 0 !important; }
       tr, th, td { border: 0 !important; background: none !important; }
-      td { padding: 0 3px !important; line-height: 1.25; vertical-align: middle;
+      td { padding: 0 2px !important; line-height: 1.1; vertical-align: middle;
            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      hr { margin: 4px 0; border: 0; border-top: 1px solid var(--divider-color); }  /* between results */
+      font { line-height: 1.1; }
+      hr { margin: 2px 0; border: 0; border-top: 1px solid var(--divider-color); }
       code { font-family: inherit; font-size: 10px; font-weight: 600; line-height: 1;
              padding: 2px 7px; border-radius: 10px;
              background: var(--primary-color); color: var(--text-primary-color, #fff); }
