@@ -314,3 +314,14 @@ def test_results_payload_lists_all_results_best_first() -> None:
     assert payload["headline"] == "Good day"
     assert [r["classification"] for r in payload["results"]] == ["Good day", "Outlook"]
     assert payload["scoring"]["min_good_score"] == 60
+
+
+def test_entry_train_has_stations_and_first_line_for_the_card() -> None:
+    """The card shows Dep./Arr. stations and the first train from the attributes."""
+    train = entry(make_recommendation())["train"]
+
+    assert (train["from"], train["to"], train["line"]) == (
+        "Zürich HB",
+        "Tannenboden",
+        "IC 3",
+    )

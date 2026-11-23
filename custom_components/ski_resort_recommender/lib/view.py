@@ -246,4 +246,7 @@ def _train(c: Connection) -> dict:
         "duration_min": c.duration_min,
         "transfers": c.transfers,
         "summary": summary,
+        "from": c.legs[0].departure_station if c.legs else None,
+        "to": c.legs[-1].arrival_station if c.legs else None,
+        "line": c.legs[0].line if c.legs else None,
     }

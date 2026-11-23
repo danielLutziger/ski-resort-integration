@@ -31,6 +31,7 @@ Requirements agreed so far:
 custom_components/ski_resort_recommender/
   __init__.py manifest.json config_flow.py const.py coordinator.py sensor.py   # HA glue only (mostly TODO)
   websocket.py                  # ws command ski_resort_recommender/results (all results + details, on request)
+  frontend/ski-resort-card.js   # custom:ski-resort-card (vanilla JS, no build), served + loaded by async_setup
   resorts/<key>.yaml            # resorts as DATA: one file per resort, file name = resort key
   lib/                          # NO homeassistant imports, testable alone
     models.py                   # Resort, WeatherPoint, DayForecast (frozen dataclasses), Forecasts alias; imports nothing from lib
@@ -260,7 +261,13 @@ and imports so that the integration still loads and tests/ruff stay green.
    Between two results a divider row `<tr><td colspan="5"><hr></td></tr>` (`DIVIDER`).
    The Markdown card only allows plain HTML (no style/class); borders, spacing, ellipsis and the SnR
    badge (styled `code`) come from the card-mod snippet in the README.
-   Future: issue #28 (configurable rows/cells, click opens all results).
+   Card (23.11, #28 point 3): `custom:ski-resort-card` shows the same compact table from the sensor
+   attributes (own CSS, variables --ski-gap/--ski-*-width, no card-mod needed); a click opens a modal that
+   fetches `ski_resort_recommender/results` (all resort-days + details, ~100 KB, not an attribute), each result
+   expands (<details>: score bars, points table, train legs), legend + formula with the current weights at the
+   end. Served at `/ski_resort_recommender/ski-resort-card.js`, added with `add_extra_js_url(...?v=<version>)`.
+   Check the JS with VS Code's node (`--check`, render pure functions in a vm). Still open in #28: configurable
+   rows/cells.
    Weather icon = most frequent weather over all points and ski hours (weighted, ties -> worse); for
    dry weather the sunshine share decides (sunny from 60 %, partly cloudy from 25 %).
    Failed updates are visible: setup uses `async_refresh()` (no `first_refresh`), so the sensor exists
