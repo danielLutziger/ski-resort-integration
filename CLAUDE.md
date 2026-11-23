@@ -38,6 +38,7 @@ custom_components/ski_resort_recommender/
     errors.py                   # SkiApiError (base, Exception) -> SkiApiConnectionError, SkiApiParseError
     open_meteo.py               # OpenMeteoProvider (aiohttp); pure _combine/_parse_location/_ski_hours/...
     sbb.py                      # SbbProvider (aiohttp, transport.opendata.ch); pure _parse/_pick
+    osrm.py                     # OsrmProvider (aiohttp, public OSRM /table): drive to the closest access point
     slf.py                      # SlfProvider (aiohttp, SLF IMIS measured snow depth HS); pure _depth_at
     snow_depth.py               # apply_measured_depth(): measured base + model change (pure)
     pipeline.py                 # build_recommendations(): forecasts + SBB (TravelCache) + ranking
@@ -119,7 +120,10 @@ Done and tested (pytest green at last check):
   - wind 0..-30: max gust in ski hours, from 40 km/h, full at 80 km/h
   - temp 0..-20: mean in ski hours; -10 below -15 °C, slush penalty from +2 to +6 °C
   - weather: averaged over the ski hours; NO_GO (rain/freezing/thunder) -50, BAD (fog) -15, snowfall neutral
-  - travel 0..5 (relative): train duration of the morning connection from `Settings.home_station`
+  - travel 0..5 (relative): with `travel_modes` train and/or car (#53), the faster of the train duration
+    and the drive time (car: `Resort.access` points, OSRM `/table` once a day from HA's home location
+    rounded to 3 decimals, closest access point wins, no traffic; Oberalp/winter passes not handled,
+    car-free resorts end at the car park before the village, e.g. Täsch). Train: duration
     to `Resort.station`; shortest trip of all resorts 5, longest 0, linear. No connection in the
     arrival window (`arrival_earliest`..`arrival_latest`, 08:45–09:30, closest to `arrival_target`
     09:00) or no home station = 0. Travel times come from one reference day (the next allowed day);
@@ -317,7 +321,8 @@ and imports so that the integration still loads and tests/ruff stay green.
 Add `custom_components/ski_resort_recommender/resorts/<key>.yaml` (the file name is the key, lower case with
 underscores) with `name`, `meteoswiss_point_id` (empty), `station` (the SBB stop at the gondola, exactly as
 transport.opendata.ch names it, or empty), `day_price_chf` (adult high-season day price), optional
-`snow_n_rail: {offer, up_to_pct}`, optional `snow_stations:` (0-3 SLF IMIS stations with `code`, `name`,
+`snow_n_rail: {offer, up_to_pct}`, `access:` (1-4 valley stations with parking: `name`, `lat`, `lon`;
+coordinates of the gondola's timetable stop; the closest by car wins), optional `snow_stations:` (0-3 SLF IMIS stations with `code`, `name`,
 `elevation_m`, chosen by the rule under the rating; list: `/public/api/imis/stations`) and `points:` (1-5 lift stations with `name`, `lat`, `lon`,
 `elevation_m`, `weight`). Check coordinates against the terrain height (Open-Meteo elevation API) and the
 station with `/v1/locations`. Every point adds a location to each Open-Meteo request (rate limit).
@@ -359,6 +364,11 @@ station with `/v1/locations`. Every point adds a location to each Open-Meteo req
   is issue #19 (no public API; the RailAway shop API is private -> only with SBB's permission). Offers
   2026/27 from skiboard.ch / deinskigebiet.ch; Andermatt Gemsstock left out (not named in the ASD offer),
   Davos Jakobshorn 10 % (sources say 10 or 30 %).
+- Car: public OSRM demo server `https://router.project-osrm.org/table/v1/driving/<lon,lat;...>?sources=0`
+  (free, no key, best effort, no traffic; one request a day). Attribution: OSRM, © OpenStreetMap
+  contributors (ODbL). 23.11 from Zürich HB: Flims 101 min < Laax 102 < Falera 109; to Sedrun it routes
+  over the Oberalp (closed in winter). EV chargers: BFE dataset on data.geo.admin.ch (gzip JSON, ~1 MB,
+  daily; OICP fields, power, plugs; no prices; licence to check) - for #53 PR 3.
 - SBB: `https://transport.opendata.ch/v1/connections` (free, no key, no rate-limit headers; keep calls
   few, `MAX_PARALLEL` 4). `journey.name` is the train number for trains, an internal trip id for buses.
   Not in the Swiss timetable: Ischgl (station left empty). St. Anton returned no plausible morning

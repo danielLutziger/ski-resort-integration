@@ -4,7 +4,8 @@ Home Assistant custom integration that tells you **when and where to ski**.
 
 It rates the upcoming days for 23 Swiss/Austrian ski resorts (`custom_components/ski_resort_recommender/resorts/`,
 one file per resort) from weather forecasts ([Open-Meteo](https://open-meteo.com/), MeteoSwiss and DWD
-models), the snow (depth measured at the [SLF](https://www.slf.ch) IMIS stations), the train connection from your home station (SBB timetable via
+models), the snow (depth measured at the [SLF](https://www.slf.ch) IMIS stations), the drive time by car
+([OSRM](https://project-osrm.org), © OpenStreetMap contributors) and/or the train connection from your home station (SBB timetable via
 [transport.opendata.ch](https://transport.opendata.ch)) and the day ticket price. One sensor shows the result:
 
 - **State:** `Good day`, `No good day` or `No forecast yet`
@@ -30,6 +31,9 @@ HACS cannot install from private repositories.
 
 1. **Settings → Devices & services → Add integration → "Ski Resort Recommender"**, then confirm.
 2. On the integration, click **Configure** and set:
+   - **Travel by**: train, car or both. By car, the drive starts at Home Assistant's home location
+     (Settings → System → General) and goes to the closest valley station of each resort, without traffic.
+     With both, both are shown and the faster one counts for the score.
    - **Home station** as in the SBB timetable (e.g. `Zürich HB`; a typo shows suggestions). Leave it empty
      for no train connections.
    - **Ski days** (default Saturday and Sunday), **number of recommendations**, **minimum score**.
