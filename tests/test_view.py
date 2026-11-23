@@ -112,6 +112,7 @@ def test_entry_holds_every_field_of_the_layout() -> None:
     e = entry(make_recommendation())
 
     assert e["classification"] == "Good day"
+    assert e["is_good"] is True
     assert e["score"] == 83
     assert e["date"] == "2026-11-28"
     assert e["day"] == "Sat 28.11"
@@ -340,3 +341,11 @@ def test_detail_lists_the_snow_stations_with_their_measurement() -> None:
         {"code": "FLU2", "name": "Test", "elevation_m": 2100, "depth_cm": 82.4}
     ]
     assert detail(r)["snow_stations"][0]["depth_cm"] is None
+
+
+def test_a_good_outlook_day_is_marked_good_for_the_color_mode() -> None:
+    """The card colours good days; an outlook day keeps its label but is good."""
+    e = entry(make_recommendation(), outlook=True)
+
+    assert (e["classification"], e["is_good"]) == ("Outlook", True)
+    assert entry(make_recommendation(good=False))["is_good"] is False

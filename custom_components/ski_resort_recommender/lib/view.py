@@ -75,6 +75,7 @@ def entry(r: Recommendation, *, outlook: bool | None = None) -> dict:
         "classification": _classification(
             r, outlook=r.outlook if outlook is None else outlook
         ),
+        "is_good": r.is_good,  # also for an outlook day (the card colours it)
         "score": round(r.score.total),
         "date": r.day.day.isoformat(),
         "day": f"{r.day.day:%a %d.%m}",
