@@ -28,6 +28,15 @@ class SnowRailOffer:
         return f"https://freizeit.sbb.ch/en/stories/{self.offer}"
 
 
+@dataclass(frozen=True, slots=True)
+class SnowStation:
+    """SLF IMIS station that measures the snow depth near the resort."""
+
+    code: str  # station code, e.g. "CMA2"
+    name: str
+    elevation_m: int
+
+
 @dataclass(frozen=True)
 class Resort:
     """Every resort follows the same logic."""
@@ -39,6 +48,8 @@ class Resort:
     station: str  # train connection (base station)
     day_price_chf: float | None
     snow_n_rail: SnowRailOffer | None = None
+    # measured base (median of the stations); none: the model snow depth is used
+    snow_stations: tuple[SnowStation, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -60,7 +71,8 @@ class DayForecast:
     weather_codes_ski: tuple[int, ...] = ()  # hourly codes in the ski hours
     recent_rain_mm: float | None = None  # rain + showers in the 48 h before opening
     snow_after_rain_cm: float | None = None  # snowfall after the last rain hour
-    snow_depth_cm: float | None = None  # snow on the ground at opening (model)
+    # snow on the ground at opening: measured base + model change, else model only
+    snow_depth_cm: float | None = None
 
     @property
     def has_data(self) -> bool:

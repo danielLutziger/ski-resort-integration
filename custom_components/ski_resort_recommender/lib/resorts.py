@@ -7,6 +7,7 @@ import yaml
 from custom_components.ski_resort_recommender.lib.models import (
     Resort,
     SnowRailOffer,
+    SnowStation,
     WeatherPoint,
 )
 
@@ -14,6 +15,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 MAX_POINTS = 5  # every point is one location in each Open-Meteo request
+MAX_SNOW_STATIONS = 3  # one SLF request each
 
 
 def load_resorts(directory: Path) -> list[Resort]:
@@ -38,4 +40,11 @@ def _resort(entry: dict) -> Resort:
         raise ValueError(msg)
     offer = entry.pop("snow_n_rail", None)
     snow_n_rail = SnowRailOffer(**offer) if offer else None
-    return Resort(**entry, points=points, snow_n_rail=snow_n_rail)
+    stations = tuple(SnowStation(**s) for s in entry.pop("snow_stations", None) or [])
+    codes = [s.code for s in stations]
+    if len(codes) > MAX_SNOW_STATIONS or len(set(codes)) != len(codes):
+        msg = f"{entry['key']}: at most {MAX_SNOW_STATIONS} snow stations, unique codes"
+        raise ValueError(msg)
+    return Resort(
+        **entry, points=points, snow_n_rail=snow_n_rail, snow_stations=stations
+    )

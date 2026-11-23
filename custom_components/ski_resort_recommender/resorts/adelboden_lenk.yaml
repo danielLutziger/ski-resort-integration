@@ -5,6 +5,13 @@ day_price_chf: 80
 snow_n_rail:
   offer: snownrail-adelboden-lenk
   up_to_pct: 20
+snow_stations:
+  - code: FAE2
+    name: Färmel
+    elevation_m: 1971
+  - code: ADE2
+    name: Engstligenalp
+    elevation_m: 2304
 points:
   - name: Hahnenmoos
     lat: 46.4533

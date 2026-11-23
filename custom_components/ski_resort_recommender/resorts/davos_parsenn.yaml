@@ -2,6 +2,13 @@ name: Davos Klosters Parsenn
 meteoswiss_point_id:
 station: Klosters Dorf, Bahnhof
 day_price_chf: 87
+snow_stations:
+  - code: WFJ2
+    name: Weissfluhjoch
+    elevation_m: 2536
+  - code: PAR2
+    name: Kreuzweg
+    elevation_m: 2290
 points:
   - name: Weissfluhjoch
     lat: 46.8335

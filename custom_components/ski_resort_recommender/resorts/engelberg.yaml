@@ -5,6 +5,13 @@ day_price_chf: 78
 snow_n_rail:
   offer: snownrail-engelberg-titlis
   up_to_pct: 30
+snow_stations:
+  - code: TIT2
+    name: Titlisboden
+    elevation_m: 2149
+  - code: GAD2
+    name: Gschletteregg
+    elevation_m: 2063
 points:
   - name: Trübsee
     lat: 46.7932

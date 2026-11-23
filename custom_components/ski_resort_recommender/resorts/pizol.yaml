@@ -5,6 +5,10 @@ day_price_chf: 74
 snow_n_rail:
   offer: snownrail-pizol
   up_to_pct: 30
+snow_stations:
+  - code: TAM2
+    name: Wildsee
+    elevation_m: 2468
 points:
   - name: Pizolhütte
     lat: 46.9792

@@ -5,6 +5,10 @@ day_price_chf: 76
 snow_n_rail:
   offer: snownrail-flumserberg
   up_to_pct: 30
+snow_stations:
+  - code: ENG2
+    name: Fitteren
+    elevation_m: 2162
 points:
   - name: Maschgenkamm
     lat: 47.0698

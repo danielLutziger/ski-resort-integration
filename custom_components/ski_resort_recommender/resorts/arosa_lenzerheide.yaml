@@ -5,6 +5,10 @@ day_price_chf: 89
 snow_n_rail:
   offer: snownrail-arosa-lenzerheide
   up_to_pct: 10
+snow_stations:
+  - code: ROT3
+    name: Plang Bi
+    elevation_m: 2495
 points:
   - name: Scharmoin
     lat: 46.7428

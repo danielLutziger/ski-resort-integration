@@ -2,6 +2,10 @@ name: Hoch-Ybrig
 meteoswiss_point_id:
 station: Hoch-Ybrig, Talst. Weglosen
 day_price_chf: 62
+snow_stations:
+  - code: YBR2
+    name: Wanne
+    elevation_m: 1701
 points:
   - name: Seebli
     lat: 47.0106

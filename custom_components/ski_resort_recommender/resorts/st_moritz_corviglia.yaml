@@ -2,6 +2,10 @@ name: St. Moritz Corviglia
 meteoswiss_point_id:
 station: St. Moritz (Standseilbahn)
 day_price_chf: 95
+snow_stations:
+  - code: BEV2
+    name: Valetta
+    elevation_m: 2512
 points:
   - name: Corviglia
     lat: 46.508

@@ -5,6 +5,13 @@ day_price_chf: 99
 snow_n_rail:
   offer: snownrail-andermatt-sedrun-disentis
   up_to_pct: 30
+snow_stations:
+  - code: TUJ2
+    name: Culmatsch
+    elevation_m: 2262
+  - code: TUJ3
+    name: Nual
+    elevation_m: 2211
 points:
   - name: Gütsch
     lat: 46.6564

@@ -5,6 +5,10 @@ day_price_chf: 94
 snow_n_rail:
   offer: snownrail-4-vallees
   up_to_pct: 30
+snow_stations:
+  - code: ATT2
+    name: Lac des Vaux
+    elevation_m: 2550
 points:
   - name: Les Ruinettes
     lat: 46.0912

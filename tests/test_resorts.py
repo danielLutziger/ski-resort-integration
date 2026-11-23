@@ -4,9 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from custom_components.ski_resort_recommender.lib.models import SnowRailOffer
+from custom_components.ski_resort_recommender.lib.models import (
+    SnowRailOffer,
+    SnowStation,
+)
 from custom_components.ski_resort_recommender.lib.resorts import (
     MAX_POINTS,
+    MAX_SNOW_STATIONS,
     load_resorts,
 )
 
@@ -162,3 +166,37 @@ def test_a_file_with_a_list_is_rejected(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match=r"old\.yaml"):
         load_resorts(tmp_path)
+
+
+def test_snow_stations_are_parsed_and_optional(tmp_path: Path) -> None:
+    """snow_stations: list of {code, name, elevation_m}; missing = none."""
+    point = "\n  - {name: a, lat: 46.8, lon: 9.3, elevation_m: 2000}"
+    (without,) = load_resorts(write_resort(tmp_path / "plain", point))
+    (resort,) = load_resorts(
+        write_resort(
+            tmp_path / "stations",
+            point,
+            "snow_stations:\n  - {code: CMA2, name: La Fuorcla, elevation_m: 2325}\n",
+        )
+    )
+
+    assert without.snow_stations == ()
+    assert resort.snow_stations == (SnowStation("CMA2", "La Fuorcla", 2325),)
+
+
+def test_duplicate_snow_stations_are_rejected(tmp_path: Path) -> None:
+    """The same station twice would weigh double in the mean."""
+    point = "\n  - {name: a, lat: 46.8, lon: 9.3, elevation_m: 2000}"
+    station = "  - {code: CMA2, name: La Fuorcla, elevation_m: 2325}\n"
+    folder = write_resort(tmp_path, point, "snow_stations:\n" + station * 2)
+
+    with pytest.raises(ValueError, match="snow stations"):
+        load_resorts(folder)
+
+
+def test_resort_files_list_at_most_three_unique_snow_stations() -> None:
+    """Station codes are upper case IMIS codes (e.g. CMA2), one request each."""
+    for resort in load_resorts(RESORTS_DIR):
+        codes = [s.code for s in resort.snow_stations]
+        assert len(codes) <= MAX_SNOW_STATIONS, resort.key
+        assert all(code.isupper() and code[-1].isdigit() for code in codes)

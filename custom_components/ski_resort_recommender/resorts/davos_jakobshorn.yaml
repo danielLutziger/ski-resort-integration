@@ -5,6 +5,13 @@ day_price_chf: 87
 snow_n_rail:
   offer: snownrail-davos-klosters
   up_to_pct: 10
+snow_stations:
+  - code: DAV6
+    name: Luksch Alp
+    elevation_m: 2290
+  - code: DAV3
+    name: Hanengretji
+    elevation_m: 2455
 points:
   - name: Ischalp
     lat: 46.7868

@@ -5,6 +5,10 @@ day_price_chf: 69
 snow_n_rail:
   offer: snownrail-scuol-motta-naluns
   up_to_pct: 10
+snow_stations:
+  - code: NAS2
+    name: Schlivèra
+    elevation_m: 2350
 points:
   - name: Motta Naluns
     lat: 46.8109

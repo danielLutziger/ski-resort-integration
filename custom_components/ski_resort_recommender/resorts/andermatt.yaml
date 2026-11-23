@@ -2,6 +2,13 @@ name: Andermatt
 meteoswiss_point_id:
 station: Andermatt, Gemsstockbahn
 day_price_chf: 99
+snow_stations:
+  - code: URS2
+    name: Giltnasen
+    elevation_m: 2169
+  - code: VAL2
+    name: Vallascia
+    elevation_m: 2268
 points:
   - name: Geissgrat
     lat: 46.6166
