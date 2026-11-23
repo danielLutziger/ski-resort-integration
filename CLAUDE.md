@@ -241,8 +241,12 @@ and imports so that the integration still loads and tests/ruff stay green.
    score, arrival window, weather interval (`OptionsFlowWithReload`).
    Sensor done: state = headline (Good day / No good day / No forecast yet); attributes
    `recommendations` + `outlook` (classification, score, date, resort, point, weather_icon, price_chf,
-   train, snow_n_rail, tags, reasons) and `table` (Markdown, per result: classification | score /
-   date | resort | icon | price / train | Snow'n'Rail), all three excluded from the recorder.
+   train, snow_n_rail, tags, reasons) and `table`, all three excluded from the recorder.
+   `table` (23.11, owner's layout): one HTML table, two rows per result, no borders:
+   `score (font size 5) | resort · day` / `classification (size 1) + icon | 07:15 · S5 · Pl. 3 ·
+   Arr. 09:15 · SaR · 62.-` (middle dot U+00B7, price without "CHF"). The Markdown card only allows
+   plain HTML (no CSS); borders, padding and ellipsis come from the card-mod snippet in the README.
+   Future: issue #28 (configurable rows/cells, click opens all results).
    Weather icon = most frequent weather over all points and ski hours (weighted, ties -> worse); for
    dry weather the sunshine share decides (sunny from 60 %, partly cloudy from 25 %).
    Failed updates are visible: setup uses `async_refresh()` (no `first_refresh`), so the sensor exists
