@@ -228,6 +228,11 @@ and imports so that the integration still loads and tests/ruff stay green.
   descriptions are fine. Commits still use my own git author/committer identity (do not change
   `user.name`/`user.email`).
 - Small, focused commits (one topic each). Do not commit junk (caches, `.venv`, secrets).
+- **Releases are automatic** (from 0.0.6): a PR that should ship bumps `version` in
+  `custom_components/ski_resort_recommender/manifest.json` (patch +1) in the same PR. When it is merged,
+  `.github/workflows/release.yml` creates the tag `v<version>`, the GitHub release (notes generated from the
+  merged PRs) and attaches `ski_resort_recommender.zip`; HACS then offers the update. An existing tag is never
+  touched. No separate version PR and no manual tag anymore.
 - `gh` is not installed in the dev container; PRs are opened through the GitHub REST API with the
   credential from the VS Code git credential helper (never print the token).
 
@@ -243,10 +248,10 @@ and imports so that the integration still loads and tests/ruff stay green.
    `recommendations` + `outlook` (classification, score, date, resort, point, weather_icon, price_chf,
    train, snow_n_rail, tags, reasons) and `table`, all three excluded from the recorder.
    `table` (23.11, owner's layout v3): `<table width="100%">` + `<colgroup>` (104 | 56 | 34 | rest |
-   44 px), three rows per result: `score (size 6, centered) + classification/icon` (rowspan 3) |
+   44 px), three rows per result: `score (size 5, centered) + classification/icon` (rowspan 3) |
    `resort · best point` (colspan 3) | `price + <code>SnR</code>` (rowspan 3); then
    `date | Dep. | station, 07:15 · S5 · Pl. 3`; then `(empty) | Arr. | station, 09:10` (Dep./Arr. and the
-   station names aligned). Secondary text in `SMALL_FONT` (3). The Markdown card only allows plain
+   station names aligned). Secondary text in `SMALL_FONT` (2); the resort name has no font tag (normal size, larger). The Markdown card only allows plain
    HTML (no style/class); borders, spacing, line height, ellipsis and the SnR badge (styled `code`)
    come from the card-mod snippet in the README.
    Between two results a divider row `<tr><td colspan="5"><hr></td></tr>` (`DIVIDER`).
