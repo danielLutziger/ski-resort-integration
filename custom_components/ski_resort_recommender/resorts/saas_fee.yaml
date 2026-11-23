@@ -3,9 +3,9 @@ meteoswiss_point_id:
 station: Saas-Fee, Busterminal
 day_price_chf: 84
 snow_stations:
-  - code: SAA4
-    name: Gibidum
-    elevation_m: 2680
+  - code: SAA5
+    name: Mälliga
+    elevation_m: 2952
 points:
   - name: Morenia
     lat: 46.0854

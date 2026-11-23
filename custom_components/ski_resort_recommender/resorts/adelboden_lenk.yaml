@@ -12,9 +12,6 @@ snow_stations:
   - code: ADE2
     name: Engstligenalp
     elevation_m: 2304
-  - code: OTT2
-    name: Ottere
-    elevation_m: 2017
 points:
   - name: Hahnenmoos
     lat: 46.4533
