@@ -39,11 +39,38 @@ HACS cannot install from private repositories.
 
 ### Dashboard card
 
-A Markdown card shows the table:
+A Markdown card shows the table, two compact rows per result:
+
+```
+52           Hoch-Ybrig · Sat 28.11
+Not good ☁️  07:15 · S5 · Pl. 3 · Arr. 09:15 · SaR · 62.-
+```
+
+(score / classification and weather; resort · day; departure · first train · platform · arrival ·
+SaR = Snow'n'Rail offer · day price in CHF)
 
 ```yaml
 type: markdown
 content: "{{ state_attr('sensor.ski_resort_recommender', 'table') }}"
+```
+
+Home Assistant only allows plain HTML in a Markdown card (font size, column width), no CSS. For no borders,
+almost no padding and "…" instead of line breaks, add [card-mod](https://github.com/thomasloven/lovelace-card-mod)
+styles to the card:
+
+```yaml
+type: markdown
+content: "{{ state_attr('sensor.ski_resort_recommender', 'table') }}"
+card_mod:
+  style:
+    .: |
+      ha-markdown { padding: 4px 6px !important; }
+    ha-markdown$: |
+      table { display: table !important; width: 100%; table-layout: fixed;
+              border-collapse: collapse; border: none !important; margin: 0; }
+      td { border: none !important; padding: 0 4px !important; vertical-align: middle;
+           white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      td:first-child { width: 64px; }
 ```
 
 ### Troubleshooting

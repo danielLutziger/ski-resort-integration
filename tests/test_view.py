@@ -1,5 +1,6 @@
 """Tests for the sensor view: headline, attribute entries and the table."""
 
+from dataclasses import replace
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
@@ -137,28 +138,52 @@ def test_outlook_entry_is_classified_as_outlook() -> None:
     assert entry(make_recommendation(), outlook=True)["classification"] == "Outlook"
 
 
-def test_table_has_the_three_rows_per_recommendation() -> None:
-    """classification|score / date|resort|icon|price / train|snow and rail."""
+def rows(table: str) -> list[str]:
+    """Return the <tr> lines of a rendered table."""
+    return [line for line in table.splitlines() if line.startswith("<tr>")]
+
+
+def test_table_has_two_rows_per_result_in_one_table() -> None:
+    """Score | resort + day, then classification + icon | compact connection."""
     result = RecommendationResult(
         (make_recommendation(),), outlook=make_recommendation(good=False, offer=False)
     )
 
     table = render_table(result)
-    blocks = table.split("\n\n---\n\n")
 
-    assert len(blocks) == 2
-    first = blocks[0].splitlines()
-    assert first[0] == "| **Good day** | **83** | | |"
-    assert first[1] == "|:--|:--|:-:|--:|"
-    assert first[2] == "| Sat 28.11 | Flumserberg (Leist) | ☀️ | CHF 76 |"
-    assert first[3] == (
-        "| 🚆 07:38 pl. 9 IC 3 (559) → Sargans, B 441 → 09:18 Tannenboden · 100 min"
-        " | [🎿 Snow'n'Rail up to 30 %]"
-        "(https://freizeit.sbb.ch/en/stories/snownrail-flumserberg) | | |"
+    assert table.startswith("<table>")
+    assert table.endswith("</table>")
+    first, second, third, fourth = rows(table)
+    assert first == (
+        '<tr><td width="64"><font size="5"><b>83</b></font></td>'
+        "<td><b>Flumserberg</b> · Sat 28.11</td></tr>"
     )
-    outlook = blocks[1].splitlines()
-    assert outlook[0] == "| **Outlook** | **83** | | |"
-    assert outlook[3].endswith("| - | | |")
+    assert second == (
+        '<tr><td width="64"><font size="1">Good day</font> ☀️</td>'
+        "<td>07:38 · IC3 · Pl. 9 · Arr. 09:18 · SaR · 76.-</td></tr>"
+    )
+    assert third.startswith('<tr><td width="64"><font size="5"><b>83</b>')
+    assert fourth.startswith('<tr><td width="64"><font size="1">Outlook</font>')
+    assert fourth.endswith("<td>07:38 · IC3 · Pl. 9 · Arr. 09:18 · 76.-</td></tr>")
+
+
+def test_line_without_train_without_offer_and_odd_price() -> None:
+    """No train: say so; no offer: no SaR; prices with Rappen keep two decimals."""
+    r = make_recommendation(train=False, offer=False, price=76.5)
+
+    second = rows(render_table(RecommendationResult((r,))))[1]
+
+    assert second.endswith("<td>No train · 76.50</td></tr>")
+
+
+def test_names_are_html_escaped() -> None:
+    """Resort names go into HTML: special characters are escaped."""
+    r = make_recommendation()
+    r = replace(r, resort=replace(r.resort, name="Arosa & Lenzerheide"))
+
+    first = rows(render_table(RecommendationResult((r,))))[0]
+
+    assert "<b>Arosa &amp; Lenzerheide</b>" in first
 
 
 def test_table_without_results() -> None:

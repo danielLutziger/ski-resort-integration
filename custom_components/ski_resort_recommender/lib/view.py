@@ -1,5 +1,6 @@
-"""What the sensor shows: headline, one entry per recommendation, Markdown table."""
+"""What the sensor shows: headline, one entry per recommendation, the table."""
 
+from html import escape
 from typing import TYPE_CHECKING
 
 from custom_components.ski_resort_recommender.lib.service import (
@@ -16,8 +17,9 @@ HEADLINES = {
     RecommendationStatus.NO_GOOD_DAY: "No good day",
     RecommendationStatus.NO_FORECAST: "No forecast yet",
 }
-NO_VALUE = "-"
 NO_DATA = "No data yet"
+SCORE_COLUMN_PX = 64  # left column: big score, small classification + icon
+SNOW_N_RAIL_SHORT = "SaR"  # Snow'n'Rail offer
 
 
 def headline(result: RecommendationResult) -> str:
@@ -63,40 +65,54 @@ def entry(r: Recommendation, *, outlook: bool = False) -> dict:
 
 def render_table(result: RecommendationResult) -> str:
     """
-    Markdown for the dashboard card, one small table per recommendation.
+    Compact HTML table for the Markdown card, two rows per result.
 
-    | classification | score |
-    | date | ski resort | weather icon | price |
-    | train information | snow and rail |
+    52          | Hoch-Ybrig · Sat 28.11
+    Not good ☁️ | 07:15 · S5 · Pl. 3 · Arr. 09:15 · SaR · 62.-
+
+    Only HTML the Markdown card allows (no CSS): font size and column width.
+    Borders, padding and "…" for long text come from card-mod (README).
     """
     shown = [(r, False) for r in result.recommendations]
     if result.outlook:
         shown.append((result.outlook, True))
     if not shown:
         return headline(result)
-    return "\n\n---\n\n".join(_block(r, outlook=outlook) for r, outlook in shown)
+    rows = [row for r, outlook in shown for row in _rows(r, outlook=outlook)]
+    return "\n".join(["<table>", *rows, "</table>"])
 
 
-def _block(r: Recommendation, *, outlook: bool) -> str:
-    """Render the three rows of one recommendation."""
-    price = r.resort.day_price_chf
-    offer = r.resort.snow_n_rail
-    train = _train(r.connection)["summary"] if r.connection else "no morning train"
-    snow = (
-        f"[🎿 Snow'n'Rail up to {offer.up_to_pct} %]({offer.url})"
-        if offer
-        else NO_VALUE
-    )
-    label = _classification(r, outlook=outlook)
-    return "\n".join(
-        [
-            f"| **{label}** | **{round(r.score.total)}** | | |",
-            "|:--|:--|:-:|--:|",
-            f"| {r.day.day:%a %d.%m} | {r.resort.name} ({r.point.name})"
-            f" | {r.weather_icon.emoji} | {f'CHF {price:g}' if price else NO_VALUE} |",
-            f"| 🚆 {train} | {snow} | | |",
-        ]
-    )
+def _rows(r: Recommendation, *, outlook: bool) -> list[str]:
+    """Score | resort · day, then classification + icon | compact details."""
+    left = f'<td width="{SCORE_COLUMN_PX}">'
+    label = escape(_classification(r, outlook=outlook))
+    return [
+        f'<tr>{left}<font size="5"><b>{round(r.score.total)}</b></font></td>'
+        f"<td><b>{escape(r.resort.name)}</b> · {r.day.day:%a %d.%m}</td></tr>",
+        f'<tr>{left}<font size="1">{label}</font> {r.weather_icon.emoji}</td>'
+        f"<td>{escape(_details(r))}</td></tr>",
+    ]
+
+
+def _details(r: Recommendation) -> str:
+    """Departure · first train · platform · arrival · SaR · price (CHF implied)."""
+    parts = [_compact_train(r.connection) if r.connection else "No train"]
+    if r.resort.snow_n_rail:
+        parts.append(SNOW_N_RAIL_SHORT)
+    if price := r.resort.day_price_chf:
+        parts.append(f"{price:.0f}.-" if price == int(price) else f"{price:.2f}")
+    return " · ".join(parts)
+
+
+def _compact_train(c: Connection) -> str:
+    """07:15 · S5 · Pl. 3 · Arr. 09:15 (the train you board at home)."""
+    parts = [f"{c.departure:%H:%M}"]
+    if c.legs:
+        parts.append(c.legs[0].line.replace(" ", ""))
+    if c.platform:
+        parts.append(f"Pl. {c.platform}")
+    parts.append(f"Arr. {c.arrival:%H:%M}")
+    return " · ".join(parts)
 
 
 def _classification(r: Recommendation, *, outlook: bool) -> str:
