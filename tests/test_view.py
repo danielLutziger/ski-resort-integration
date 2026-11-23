@@ -163,19 +163,19 @@ def test_one_result_uses_three_rows_with_dep_and_arr_aligned() -> None:
     )
 
     assert first == (
-        '<tr><td rowspan="3" align="center"><font size="6"><b>83</b></font><br>'
-        '<font size="3">Good day ☀️</font></td>'
-        '<td colspan="3"><b>Flumserberg</b> · <font size="3">Leist</font></td>'
+        '<tr><td rowspan="3" align="center"><font size="5"><b>83</b></font><br>'
+        '<font size="2">Good day ☀️</font></td>'
+        '<td colspan="3"><b>Flumserberg</b> · <font size="2">Leist</font></td>'
         '<td rowspan="3" align="right">76.-<br><code>SnR</code></td></tr>'
     )
     assert second == (
-        '<tr><td><font size="3">Sat 28.11</font></td>'
-        '<td><font size="3">Dep.</font></td>'
-        '<td><font size="3">Zürich HB, 07:38 · IC3 · Pl. 9</font></td></tr>'
+        '<tr><td><font size="2">Sat 28.11</font></td>'
+        '<td><font size="2">Dep.</font></td>'
+        '<td><font size="2">Zürich HB, 07:38 · IC3 · Pl. 9</font></td></tr>'
     )
     assert third == (
-        '<tr><td></td><td><font size="3">Arr.</font></td>'
-        '<td><font size="3">Tannenboden, 09:18</font></td></tr>'
+        '<tr><td></td><td><font size="2">Arr.</font></td>'
+        '<td><font size="2">Tannenboden, 09:18</font></td></tr>'
     )
 
 
@@ -185,9 +185,9 @@ def test_outlook_and_missing_train_offer_and_odd_price() -> None:
 
     first, second, third = rows(render_table(RecommendationResult((), outlook=r)))
 
-    assert '<font size="3">Outlook ☀️</font>' in first
+    assert '<font size="2">Outlook ☀️</font>' in first
     assert first.endswith('<td rowspan="3" align="right">76.50</td></tr>')
-    assert second.endswith('<td></td><td><font size="3">No train</font></td></tr>')
+    assert second.endswith('<td></td><td><font size="2">No train</font></td></tr>')
     assert third == "<tr><td></td><td></td><td></td></tr>"
 
 
