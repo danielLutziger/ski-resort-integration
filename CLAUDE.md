@@ -38,6 +38,8 @@ custom_components/ski_resort_recommender/
     errors.py                   # SkiApiError (base, Exception) -> SkiApiConnectionError, SkiApiParseError
     open_meteo.py               # OpenMeteoProvider (aiohttp); pure _combine/_parse_location/_ski_hours/...
     sbb.py                      # SbbProvider (aiohttp, transport.opendata.ch); pure _parse/_pick
+    slf.py                      # SlfProvider (aiohttp, SLF IMIS measured snow depth HS); pure _depth_at
+    snow_depth.py               # apply_measured_depth(): measured base + model change (pure)
     pipeline.py                 # build_recommendations(): forecasts + SBB (TravelCache) + ranking
     view.py                     # headline(), entry(), render_table(): what the sensor shows;
                                 # detail(), scoring_info(), results_payload(): the card's modal
@@ -90,11 +92,19 @@ Done and tested (pytest green at last check):
   - sun 0..45: sunshine / daylight, full from 80 % (DWD reports ~24 % more sun than MeteoSwiss on the
     same point-day; with the share both reach full points on clear days)
   - fresh snow 0..25: snowfall in the 48 h before opening, full from 30 cm
-  - snow depth 0..20: model snow depth at opening (09:00), log curve log(1 + d/10) / log(1 + 80/10):
+  - snow depth 0..20: snow depth at opening (09:00), log curve log(1 + d/10) / log(1 + 80/10):
     20 cm half, 50 cm 82 %, full from 80 cm (owner 23.11: from 50 cm no rocks, above 80 cm irrelevant);
     counts all season. Model depth is natural snow and reads low: 23.11 SLF IMIS measured 74 cm at Laax
     La Fuorcla (models 36-49) and 54 cm at Hoch-Ybrig Wanne (33-50); resorts report piste/top values
-    (Laax 165 cm). Measured IMIS depths: `https://measurement-api.slf.ch/public/api/imis/station/<code>/measurements` (`HS`).
+    (Laax 165 cm).
+    Since 23.11 the base is measured: `Resort.snow_stations` (SLF IMIS, 0-3 per resort) are
+    fetched with the forecast (`SlfProvider`, one request per station, value closest to today 09:00, not
+    the latest: the model change from today 09:00 would count new snow twice). Depth of a point-day =
+    mean of the stations + model(day) - model(today), >= 0 (`apply_measured_depth`). No station or no
+    value: model only (St. Anton). SLF errors keep the last values. Station choice (rule): SNOW_FLAT
+    stations >= 1700 m within 5 km of a lift station, up to 3 nearest; else the nearest within 10 km.
+    Licence CC BY 4.0: visible reference "WSL Institute for Snow and Avalanche Research SLF" with a link
+    (card legend + details, sensor attribution). Known odd one: Corviglia BEV2 Valetta read 10 cm (23.11).
   - wind 0..-30: max gust in ski hours, from 40 km/h, full at 80 km/h
   - temp 0..-20: mean in ski hours; -10 below -15 °C, slush penalty from +2 to +6 °C
   - weather: averaged over the ski hours; NO_GO (rain/freezing/thunder) -50, BAD (fog) -15, snowfall neutral
@@ -293,12 +303,15 @@ and imports so that the integration still loads and tests/ruff stay green.
 Add `custom_components/ski_resort_recommender/resorts/<key>.yaml` (the file name is the key, lower case with
 underscores) with `name`, `meteoswiss_point_id` (empty), `station` (the SBB stop at the gondola, exactly as
 transport.opendata.ch names it, or empty), `day_price_chf` (adult high-season day price), optional
-`snow_n_rail: {offer, up_to_pct}` and `points:` (1-5 lift stations with `name`, `lat`, `lon`,
+`snow_n_rail: {offer, up_to_pct}`, optional `snow_stations:` (0-3 SLF IMIS stations with `code`, `name`,
+`elevation_m`, chosen by the rule under the rating; list: `/public/api/imis/stations`) and `points:` (1-5 lift stations with `name`, `lat`, `lon`,
 `elevation_m`, `weight`). Check coordinates against the terrain height (Open-Meteo elevation API) and the
 station with `/v1/locations`. Every point adds a location to each Open-Meteo request (rate limit).
 
 ## Data sources / facts
 
+- Snow depth: SLF IMIS stations, `https://measurement-api.slf.ch/public/api/imis/station/<code>/measurements?period_in_days=1`
+  (30 min values, `HS` cm, UTC); `/imis/daily-snow` lags a day (snowpack model), not used. CC BY 4.0.
 - Weather: Open-Meteo (MeteoSwiss ICON-CH models); MeteoSwiss Open Data also exists (CSV/STAC, hourly
   point forecasts, ~6000 points incl. mountain POIs, cite "Source: MeteoSwiss").
 - Visibility on Open-Meteo (checked 22.11.2026): hourly only, metres, no daily aggregate. Not provided by

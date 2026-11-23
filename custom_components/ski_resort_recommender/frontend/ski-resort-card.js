@@ -4,6 +4,8 @@
 
 const RESULTS_COMMAND = "ski_resort_recommender/results";
 const DEFAULT_ENTITY = "sensor.ski_resort_recommender";
+// required by the SLF data licence: a visible reference with a link
+const SLF_LINK = `<a href="https://www.slf.ch" target="_blank" rel="noopener">WSL Institute for Snow and Avalanche Research SLF</a>`;
 
 const esc = (value) =>
   String(value ?? "").replace(
@@ -109,6 +111,15 @@ function pointsTable(points) {
     <th>Gusts</th><th>Temp</th><th>View</th><th>Rain</th></tr>${rows}</table>`;
 }
 
+// SLF stations behind the snow depth (measured base); none: model depth
+function snowStations(stations) {
+  if (!stations?.length) return `<div class="small">Snow depth: model only (no SLF station nearby).</div>`;
+  const list = stations
+    .map((s) => `${esc(s.name)} <span class="small">${esc(s.code)}, ${esc(s.elevation_m)} m</span> ${num(s.depth_cm, 0, " cm")}`)
+    .join(" · ");
+  return `<div class="small">Snow depth measured at 09:00 (mean = base of every point): ${list}. Source: ${SLF_LINK}</div>`;
+}
+
 function legs(train) {
   if (!train) return `<div class="small">No morning connection in the arrival window.</div>`;
   const items = (train.legs ?? [])
@@ -126,7 +137,7 @@ function details(r, w) {
       <summary>${block(r)}</summary>
       <div class="detail">
         <h4>Score breakdown</h4>${breakdown(r.reasons, w)}
-        <h4>Weather points (weighted average)</h4>${pointsTable(r.points ?? [])}
+        <h4>Weather points (weighted average)</h4>${pointsTable(r.points ?? [])}${snowStations(r.snow_stations)}
         <h4>Train</h4>${legs(r.train)}
         ${r.snow_n_rail ? `<div class="small">Snow'n'Rail offer up to ${esc(r.snow_n_rail.up_to_pct)} % – <a href="${esc(r.snow_n_rail.url)}" target="_blank" rel="noopener">SBB RailAway</a> (availability not checked)</div>` : ""}
       </div>
@@ -151,7 +162,7 @@ function legend(s) {
         <div><b>Score</b> = Σ<sub>points</sub> weight × (Sun + Fresh snow + Snow depth − Wind − Temp − Weather − Visibility − Icy) / Σ weight + Travel + Price</div>
         <div><b>Sun</b> = min(sunshine ÷ daylight ÷ ${w.sun_full_share}, 1) × ${w.sun_points}</div>
         <div><b>Fresh snow</b> = min(snow in the 48 h before opening ÷ ${w.snow_full_cm} cm, 1) × ${w.snow_points}</div>
-        <div><b>Snow depth</b> = log(1 + d ÷ ${w.snow_depth_curve_cm}) ÷ log(1 + ${w.snow_depth_full_cm} ÷ ${w.snow_depth_curve_cm}) × ${w.snow_depth_points}, d = depth up to ${w.snow_depth_full_cm} cm (model value, often lower than the resort reports)</div>
+        <div><b>Snow depth</b> = log(1 + d ÷ ${w.snow_depth_curve_cm}) ÷ log(1 + ${w.snow_depth_full_cm} ÷ ${w.snow_depth_curve_cm}) × ${w.snow_depth_points}, d = depth up to ${w.snow_depth_full_cm} cm: measured today at the resort's SLF stations (mean) + the model's change until that day; model only without a station</div>
         <div><b>Travel</b> = (longest trip − trip) ÷ (longest − shortest) × ${w.travel_points}</div>
         <div><b>Price</b> = (dearest − price) ÷ (dearest − cheapest) × ${w.price_points}</div>
         <div><b>Wind</b> = ramp(max gust, ${w.gust_limit_kmh}, ${w.gust_full_kmh} km/h) × ${w.wind_penalty}</div>
@@ -161,6 +172,9 @@ function legend(s) {
         <div><b>Icy</b> = ramp(rain in the 48 h before opening, ${w.rain_limit_mm}, ${w.rain_full_mm} mm) × (1 − ramp(snow on top, 0, ${w.ice_cover_full_cm} cm)) × ${w.icy_penalty}</div>
         <div class="small">ramp(x, a, b) = 0 below a, 1 above b, linear in between.</div>
       </div>
+      <h3>Sources</h3>
+      <div class="small">Weather: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> (MeteoSwiss, DWD) ·
+        Snow depth: ${SLF_LINK} (CC BY 4.0) · Trains: <a href="https://transport.opendata.ch" target="_blank" rel="noopener">transport.opendata.ch</a></div>
     </div>`;
 }
 

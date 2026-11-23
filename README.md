@@ -4,7 +4,7 @@ Home Assistant custom integration that tells you **when and where to ski**.
 
 It rates the upcoming days for 23 Swiss/Austrian ski resorts (`custom_components/ski_resort_recommender/resorts/`,
 one file per resort) from weather forecasts ([Open-Meteo](https://open-meteo.com/), MeteoSwiss and DWD
-models), the snow, the train connection from your home station (SBB timetable via
+models), the snow (depth measured at the [SLF](https://www.slf.ch) IMIS stations), the train connection from your home station (SBB timetable via
 [transport.opendata.ch](https://transport.opendata.ch)) and the day ticket price. One sensor shows the result:
 
 - **State:** `Good day`, `No good day` or `No forecast yet`
