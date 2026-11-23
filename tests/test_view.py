@@ -149,28 +149,33 @@ def test_table_is_full_width_with_fixed_columns() -> None:
     table = render_table(RecommendationResult((make_recommendation(),)))
 
     assert table.startswith('<table width="100%">\n<colgroup>')
-    assert '<col width="84">' in table  # score column
+    assert table.splitlines()[1] == (
+        '<colgroup><col width="104"><col width="56"><col width="34"><col>'
+        '<col width="44"></colgroup>'
+    )
     assert table.endswith("</table>")
 
 
 def test_one_result_uses_three_rows_with_dep_and_arr_aligned() -> None:
-    """Score | resort · point | price/badge; date beside Dep., Arr. below Dep."""
+    """Dep./Arr. in their own column, so the station names start aligned too."""
     first, second, third = rows(
         render_table(RecommendationResult((make_recommendation(),)))
     )
 
     assert first == (
         '<tr><td rowspan="3" align="center"><font size="6"><b>83</b></font><br>'
-        '<font size="1">Good day ☀️</font></td>'
-        '<td colspan="2"><b>Flumserberg</b> · <font size="1">Leist</font></td>'
+        '<font size="3">Good day ☀️</font></td>'
+        '<td colspan="3"><b>Flumserberg</b> · <font size="3">Leist</font></td>'
         '<td rowspan="3" align="right">76.-<br><code>SnR</code></td></tr>'
     )
     assert second == (
-        '<tr><td><font size="1">Sat 28.11</font></td>'
-        '<td><font size="1">Dep. Zürich HB, 07:38 · IC3 · Pl. 9</font></td></tr>'
+        '<tr><td><font size="3">Sat 28.11</font></td>'
+        '<td><font size="3">Dep.</font></td>'
+        '<td><font size="3">Zürich HB, 07:38 · IC3 · Pl. 9</font></td></tr>'
     )
     assert third == (
-        '<tr><td></td><td><font size="1">Arr. Tannenboden, 09:18</font></td></tr>'
+        '<tr><td></td><td><font size="3">Arr.</font></td>'
+        '<td><font size="3">Tannenboden, 09:18</font></td></tr>'
     )
 
 
@@ -180,10 +185,10 @@ def test_outlook_and_missing_train_offer_and_odd_price() -> None:
 
     first, second, third = rows(render_table(RecommendationResult((), outlook=r)))
 
-    assert '<font size="1">Outlook ☀️</font>' in first
+    assert '<font size="3">Outlook ☀️</font>' in first
     assert first.endswith('<td rowspan="3" align="right">76.50</td></tr>')
-    assert second.endswith('<td><font size="1">No train</font></td></tr>')
-    assert third == "<tr><td></td><td></td></tr>"
+    assert second.endswith('<td></td><td><font size="3">No train</font></td></tr>')
+    assert third == "<tr><td></td><td></td><td></td></tr>"
 
 
 def test_names_are_html_escaped() -> None:
