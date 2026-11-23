@@ -69,8 +69,8 @@ def test_measured_base_plus_the_model_change() -> None:
     assert depths(make_resort(LA_FUORCLA), model, {"CMA2": 74}) == [74, 84, 69]
 
 
-def test_mean_of_the_stations_and_never_below_zero() -> None:
-    """Several stations: their mean is the base; melting stops at 0."""
+def test_median_of_the_stations_and_never_below_zero() -> None:
+    """Two stations: their mean (= median) is the base; melting stops at 0."""
     model = make_days(40, 0)
 
     result = depths(make_resort(LA_FUORCLA, ELM), model, {"CMA2": 30, "ELM2": 20})
@@ -101,3 +101,11 @@ def test_without_a_measurement_the_model_stays(
     model = make_days(40, 50)
 
     assert depths(make_resort(*stations), model, measured) == [40, 50]
+
+
+def test_one_wind_stripped_station_does_not_pull_the_base_down() -> None:
+    """Three stations: the median ignores the one the wind blew bare."""
+    third = SnowStation(code="GOS2", name="Rientallücke", elevation_m=2325)
+    measured = {"CMA2": 52, "ELM2": 53, "GOS2": 1}
+
+    assert depths(make_resort(LA_FUORCLA, ELM, third), make_days(40), measured) == [52]

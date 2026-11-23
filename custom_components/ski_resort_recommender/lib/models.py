@@ -48,7 +48,7 @@ class Resort:
     station: str  # train connection (base station)
     day_price_chf: float | None
     snow_n_rail: SnowRailOffer | None = None
-    # measured base (mean of the stations); none: the model snow depth is used
+    # measured base (median of the stations); none: the model snow depth is used
     snow_stations: tuple[SnowStation, ...] = ()
 
 

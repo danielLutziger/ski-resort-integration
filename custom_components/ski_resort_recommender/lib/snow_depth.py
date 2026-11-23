@@ -1,7 +1,7 @@
 """Measured snow depth (SLF stations) as the base of the forecast snow depth."""
 
 from dataclasses import replace
-from statistics import mean
+from statistics import median
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -25,8 +25,9 @@ def apply_measured_depth(
     Use the measured base plus the model's change instead of the model depth.
 
     The models read the snow depth too low (23.11: Laax 36-49 cm, measured 74 cm).
-    Base = mean of the resort's stations at today's opening. Every point keeps its
-    model change from today to the day (new snow, melting):
+    Base = median of the resort's stations at today's opening (the median: one
+    station that the wind has blown bare does not pull three stations down).
+    Every point keeps its model change from today to the day (new snow, melting):
     depth = base + model(day) - model(today), at least 0. Resorts without a
     measured station keep the model values.
     """
@@ -35,7 +36,7 @@ def apply_measured_depth(
         depths = [measured[s.code] for s in resort.snow_stations if s.code in measured]
         if not depths or resort.key not in forecasts:
             continue
-        base = mean(depths)
+        base = median(depths)
         result[resort.key] = {
             point: _with_base(days, base, today)
             for point, days in forecasts[resort.key].items()

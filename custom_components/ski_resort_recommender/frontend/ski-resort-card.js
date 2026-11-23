@@ -117,7 +117,7 @@ function snowStations(stations) {
   const list = stations
     .map((s) => `${esc(s.name)} <span class="small">${esc(s.code)}, ${esc(s.elevation_m)} m</span> ${num(s.depth_cm, 0, " cm")}`)
     .join(" · ");
-  return `<div class="small">Snow depth measured at 09:00 (mean = base of every point): ${list}. Source: ${SLF_LINK}</div>`;
+  return `<div class="small">Snow depth measured at 09:00 (median = base of every point): ${list}. Source: ${SLF_LINK}</div>`;
 }
 
 function legs(train) {
@@ -162,7 +162,7 @@ function legend(s) {
         <div><b>Score</b> = Σ<sub>points</sub> weight × (Sun + Fresh snow + Snow depth − Wind − Temp − Weather − Visibility − Icy) / Σ weight + Travel + Price</div>
         <div><b>Sun</b> = min(sunshine ÷ daylight ÷ ${w.sun_full_share}, 1) × ${w.sun_points}</div>
         <div><b>Fresh snow</b> = min(snow in the 48 h before opening ÷ ${w.snow_full_cm} cm, 1) × ${w.snow_points}</div>
-        <div><b>Snow depth</b> = log(1 + d ÷ ${w.snow_depth_curve_cm}) ÷ log(1 + ${w.snow_depth_full_cm} ÷ ${w.snow_depth_curve_cm}) × ${w.snow_depth_points}, d = depth up to ${w.snow_depth_full_cm} cm: measured today at the resort's SLF stations (mean) + the model's change until that day; model only without a station</div>
+        <div><b>Snow depth</b> = log(1 + d ÷ ${w.snow_depth_curve_cm}) ÷ log(1 + ${w.snow_depth_full_cm} ÷ ${w.snow_depth_curve_cm}) × ${w.snow_depth_points}, d = depth up to ${w.snow_depth_full_cm} cm: measured today at the resort's SLF stations (median) + the model's change until that day; model only without a station</div>
         <div><b>Travel</b> = (longest trip − trip) ÷ (longest − shortest) × ${w.travel_points}</div>
         <div><b>Price</b> = (dearest − price) ÷ (dearest − cheapest) × ${w.price_points}</div>
         <div><b>Wind</b> = ramp(max gust, ${w.gust_limit_kmh}, ${w.gust_full_kmh} km/h) × ${w.wind_penalty}</div>
