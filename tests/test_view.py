@@ -298,7 +298,7 @@ def test_scoring_info_lists_the_weights_for_the_formula() -> None:
     info = scoring_info(Settings())
 
     assert info["min_good_score"] == 60
-    assert info["weights"]["sun_points"] == 40
+    assert info["weights"]["sun_points"] == 45
     assert info["weights"]["icy_penalty"] == 40
     assert info["ranking_days"] == 5
 

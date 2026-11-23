@@ -12,16 +12,17 @@ class ScoringSettings:
     """Weights and thresholds of score_day(); flat numbers for the HA options."""
 
     # sun: up to sun_points, full points from sun_full_share of the daylight
-    sun_points: float = 40
+    sun_points: float = 45
     sun_full_share: float = 0.8
     # fresh snow (48 h before opening): up to snow_points, full from snow_full_cm
     snow_points: float = 25
     snow_full_cm: float = 30
-    # snow depth (base) at opening, all season: 0 up to snow_depth_min_cm, full
-    # snow_depth_points from snow_depth_full_cm
+    # snow depth (base) at opening, all season: log curve, the first centimetres
+    # count most (snow_depth_curve_cm 10: 20 cm = half, 50 cm = 82 %), full
+    # snow_depth_points from snow_depth_full_cm (enough base, more adds nothing)
     snow_depth_points: float = 20
-    snow_depth_min_cm: float = 20
-    snow_depth_full_cm: float = 100
+    snow_depth_curve_cm: float = 10
+    snow_depth_full_cm: float = 80
     # gusts in ski hours: no penalty up to gust_limit_kmh, full wind_penalty from
     # gust_full_kmh (lifts start to close)
     gust_limit_kmh: float = 40
@@ -55,7 +56,7 @@ class ScoringSettings:
     visibility_bad_m: float = 1000
     visibility_penalty: float = 30
     # travel time by train, relative: shortest trip travel_points, longest 0
-    travel_points: float = 10
+    travel_points: float = 5
     # day ticket price, relative: cheapest resort price_points, most expensive 0
     price_points: float = 5
 
