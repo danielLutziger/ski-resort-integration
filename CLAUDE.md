@@ -52,6 +52,7 @@ custom_components/ski_resort_recommender/
                                 # (recommendations, outlook, all = every resort-day best first), RecommendationStatus
     resorts.py                  # load_resorts(folder) -> list[Resort] sorted by key; 1-5 points, unique names
 scripts/try_forecast.py         # runs the whole chain on the real API and prints the ranking
+scripts/check_snow_stations.py  # SLF stations per resort: depth, gusts, biggest drop (wind erosion)
 tests/                          # pytest; fixtures in tests/fixtures
 ```
 
@@ -100,11 +101,21 @@ Done and tested (pytest green at last check):
     Since 23.11 the base is measured: `Resort.snow_stations` (SLF IMIS, 0-3 per resort) are
     fetched with the forecast (`SlfProvider`, one request per station, value closest to today 09:00, not
     the latest: the model change from today 09:00 would count new snow twice). Depth of a point-day =
-    mean of the stations + model(day) - model(today), >= 0 (`apply_measured_depth`). No station or no
+    median of the stations + model(day) - model(today), >= 0 (`apply_measured_depth`). No station or no
     value: model only (St. Anton). SLF errors keep the last values. Station choice (rule): SNOW_FLAT
-    stations >= 1700 m within 5 km of a lift station, up to 3 nearest; else the nearest within 10 km.
+    stations >= 1700 m within 5 km of a lift station, up to 3 nearest; else the nearest within 10 km;
+    then drop wind-exposed ones (`python -m scripts.check_snow_stations`: biggest drop in 3 days
+    > 15 cm while the neighbours keep their snow). Checked 23.11: low values were wind erosion, not
+    sun or villages (all stations 2150-2950 m, positions match swissALTI3D): Rientallücke GOS2 (a col)
+    27 -> 1 cm in one windy night while Rienzenstock 1 km away kept 25-34; Gütsch GOS3 (ridge, +30 m
+    above its surroundings) 37 -> 7 -> 54; Gibidum SAA4 -21 cm in 24 m/s gusts. Replaced: Andermatt
+    GOS3 -> URS2 + VAL2, Andermatt-Sedrun GOS3/GOS2/TUJ2 -> TUJ2 + TUJ3, Saas-Fee SAA4 -> SAA5;
+    OTT2 Ottere (Adelboden) has no data (404). Median, not mean: one stripped station of three does
+    not pull the base down. Upper Engadin is really low (north storm, inner-alpine): BEV2 Valetta 12,
+    Albula 12, Vairana 17, Puoz Bass 10 (Corviglia keeps BEV2); Samnaun SMN2 30 vs Alpetta VIN2 80
+    (8 km, higher): partly wind, partly regional, kept. Re-check in Jan/Feb.
     Licence CC BY 4.0: visible reference "WSL Institute for Snow and Avalanche Research SLF" with a link
-    (card legend + details, sensor attribution). Known odd one: Corviglia BEV2 Valetta read 10 cm (23.11).
+    (card legend + details, sensor attribution).
   - wind 0..-30: max gust in ski hours, from 40 km/h, full at 80 km/h
   - temp 0..-20: mean in ski hours; -10 below -15 °C, slush penalty from +2 to +6 °C
   - weather: averaged over the ski hours; NO_GO (rain/freezing/thunder) -50, BAD (fog) -15, snowfall neutral
