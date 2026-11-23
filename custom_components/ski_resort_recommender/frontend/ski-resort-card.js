@@ -159,7 +159,8 @@ function legend(s) {
 
 const STYLE = `
   :host { --ski-gap: 3px; --ski-score-width: 104px; --ski-date-width: 64px; --ski-label-width: 32px; --ski-side-width: 42px; }
-  ha-card { padding: calc(2 * var(--ski-gap) + 1px) 4px; cursor: pointer; overflow: hidden; height: 100%; box-sizing: border-box; }
+  ha-card { padding: calc(2 * var(--ski-gap) + 1px) 4px; cursor: pointer; height: 100%; box-sizing: border-box;
+            overflow-x: hidden; overflow-y: auto; scrollbar-width: thin; }  /* never cut off the outlook: scroll */
   .block { display: grid; grid-template-columns: var(--ski-score-width) 1fr var(--ski-side-width); align-items: center; }
   .block + .block, .sep { border-top: 1px solid var(--divider-color); margin-top: var(--ski-gap); padding-top: var(--ski-gap); }
   .score { text-align: center; }
@@ -217,12 +218,13 @@ class SkiResortCard extends HTMLElement {
     if (changed) this._renderCard(state);
   }
 
+  // 3 results + outlook need about 5 grid rows (56 px each)
   getCardSize() {
-    return 4;
+    return 5;
   }
 
   getGridOptions() {
-    return { columns: 12, rows: 4, min_rows: 2 };
+    return { columns: 12, rows: 5, min_rows: 3 };
   }
 
   static getStubConfig() {

@@ -56,6 +56,16 @@ entity: sensor.ski_resort_recommender  # optional, this is the default
   breakdown (a bar per part), the weather points of the resort with their weights and forecast values, every leg of
   the train connection. At the end: **legend** and the **scoring formula** with your current weights.
 
+The card asks for 5 rows in a sections dashboard (3 results + outlook). If its space is smaller it scrolls
+instead of cutting results off; give it more rows in the card's *Layout* tab, or lower *Number of
+recommendations*. To leave a gap below the card (e.g. 10 px):
+
+```yaml
+card_mod:
+  style: |
+    ha-card { height: calc(100% - 10px) !important; }
+```
+
 Spacing and column widths can be tuned with CSS variables, e.g. with card-mod:
 
 ```yaml
