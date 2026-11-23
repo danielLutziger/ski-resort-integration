@@ -2,6 +2,13 @@ name: Zermatt
 meteoswiss_point_id:
 station: Zermatt
 day_price_chf: 104
+snow_stations:
+  - code: GOR2
+    name: Gornergratsee
+    elevation_m: 2953
+  - code: ZER4
+    name: Stafelalp
+    elevation_m: 2408
 points:
   - name: Trockener Steg
     lat: 45.9718

@@ -2,6 +2,10 @@ name: Saas-Fee
 meteoswiss_point_id:
 station: Saas-Fee, Busterminal
 day_price_chf: 84
+snow_stations:
+  - code: SAA4
+    name: Gibidum
+    elevation_m: 2680
 points:
   - name: Morenia
     lat: 46.0854

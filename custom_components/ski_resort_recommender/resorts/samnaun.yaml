@@ -2,6 +2,10 @@ name: Samnaun
 meteoswiss_point_id:
 station: Samnaun-Ravaisch, Bergbahnen
 day_price_chf: 82
+snow_stations:
+  - code: SMN2
+    name: Ravaischer Salaas
+    elevation_m: 2512
 points:
   - name: Alp Trida
     lat: 46.9786

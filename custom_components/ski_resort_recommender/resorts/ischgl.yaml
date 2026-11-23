@@ -2,6 +2,10 @@ name: Ischgl
 meteoswiss_point_id:
 station:
 day_price_chf: 82
+snow_stations:
+  - code: SMN2
+    name: Ravaischer Salaas
+    elevation_m: 2512
 points:
   - name: Idalp
     lat: 46.9825

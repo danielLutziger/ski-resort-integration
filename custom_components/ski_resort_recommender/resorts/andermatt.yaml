@@ -2,6 +2,10 @@ name: Andermatt
 meteoswiss_point_id:
 station: Andermatt, Gemsstockbahn
 day_price_chf: 99
+snow_stations:
+  - code: GOS3
+    name: Gütsch
+    elevation_m: 2209
 points:
   - name: Geissgrat
     lat: 46.6166

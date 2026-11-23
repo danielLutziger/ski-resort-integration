@@ -5,6 +5,10 @@ day_price_chf: 69
 snow_n_rail:
   offer: snownrail-melchsee-frutt
   up_to_pct: 30
+snow_stations:
+  - code: GAD2
+    name: Gschletteregg
+    elevation_m: 2063
 points:
   - name: Melchsee-Frutt
     lat: 46.7759

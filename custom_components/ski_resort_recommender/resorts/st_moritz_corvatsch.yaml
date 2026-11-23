@@ -2,6 +2,10 @@ name: St. Moritz Corvatsch
 meteoswiss_point_id:
 station: Surlej, Corvatschbahn
 day_price_chf: 88
+snow_stations:
+  - code: LAG2
+    name: Tscheppa
+    elevation_m: 2730
 points:
   - name: Murtèl
     lat: 46.4317

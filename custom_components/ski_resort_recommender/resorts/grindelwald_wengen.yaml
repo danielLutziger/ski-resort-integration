@@ -5,6 +5,16 @@ day_price_chf: 83
 snow_n_rail:
   offer: snownrail-jungfrau-ski-region
   up_to_pct: 10
+snow_stations:
+  - code: LHO2
+    name: Russisprung
+    elevation_m: 2150
+  - code: MAE2
+    name: Itramen
+    elevation_m: 2162
+  - code: FIR2
+    name: Schmidigen-Bidmeren
+    elevation_m: 2111
 points:
   - name: Kleine Scheidegg
     lat: 46.5868

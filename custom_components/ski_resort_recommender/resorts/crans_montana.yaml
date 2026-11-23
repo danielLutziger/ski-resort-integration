@@ -5,6 +5,10 @@ day_price_chf: 94
 snow_n_rail:
   offer: snownrail-crans-montana
   up_to_pct: 10
+snow_stations:
+  - code: TRU2
+    name: Trubelboden
+    elevation_m: 2459
 points:
   - name: Cry d'Er
     lat: 46.3343
