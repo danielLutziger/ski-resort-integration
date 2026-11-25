@@ -69,7 +69,7 @@ function block(r) {
         <div class="class">${esc(r.classification)} <ha-icon icon="${esc(r.weather_icon)}"></ha-icon></div>
       </div>
       <div class="main">
-        <div class="title"><b>${esc(r.resort)}</b> · <span class="small">${esc(r.point)}${r.season_note ? ` · <i>${esc(r.season_note)}</i>` : ""}</span></div>
+        <div class="title"><b>${esc(r.resort)}</b> · <span class="small">${esc(r.point)}${r.piste_km ? ` · ${esc(r.piste_km)} km` : ""}${r.season_note ? ` · <i>${esc(r.season_note)}</i>` : ""}</span></div>
         ${lines}
       </div>
       <div class="side"><div>${price(r.price_chf)}</div>${park ? `<div class="small" title="Parking, one ski day">P ${esc(park)}</div>` : ""}${snr}</div>
@@ -183,6 +183,7 @@ function details(r, w) {
       <summary>${block(r)}</summary>
       <div class="detail">
         ${r.season_note ? `<div class="small">Planned operation: ${esc(r.season_note)} (depends on the snow)</div>` : ""}
+        ${r.piste_km ? `<div class="small">Size: ${esc(r.piste_km)} km of pistes${r.lifts ? `, ${esc(r.lifts)} lifts` : ""} with this day ticket</div>` : ""}
         <h4>Score breakdown</h4>${breakdown(r.reasons, w)}
         <h4>Weather points (weighted average)</h4>${pointsTable(r.points ?? [])}${snowStations(r.snow_stations)}
         ${r.car ? `<h4>Car</h4><div class="small">To ${esc(r.car.access)} (the closest access point): ${esc(r.car.summary.split(" · ").slice(1).join(" · "))}, without traffic</div>${carParks(r.car.parking)}${chargers(r.car.chargers)}` : ""}
@@ -205,6 +206,7 @@ function legend(s) {
         <li><b>Resort · point</b>: the best weather point (lift station) of the resort that day.</li>
         <li><b>Dep. / Arr.</b>: morning train from your home station, arriving at the gondola in the arrival window; first train and platform.</li>
         <li><b>Car</b>: drive from your home location to the closest access point (valley station / car park), without traffic. <b>P</b>: parking for one ski day (about 8 h) at its main car park, from parking.ch and the resort websites (2026/27, may change). <b>⚡</b> (electric car): public charging points within 300 m; not every charger is listed, no data in Austria.</li>
+        <li><b>km</b>: pistes the day ticket covers, measured in OpenStreetMap (OpenSkiMap); resorts often advertise more.</li>
         <li><b>Price</b>: adult high-season day pass in CHF. <span class="badge">SnR</span>: the resort has an SBB Snow'n'Rail offer.</li>
       </ul>
       <h3>Scoring</h3>
@@ -214,7 +216,7 @@ function legend(s) {
         <div><b>Fresh snow</b> = min(snow in the 48 h before opening ÷ ${w.snow_full_cm} cm, 1) × ${w.snow_points}</div>
         <div><b>Snow depth</b> = log(1 + d ÷ ${w.snow_depth_curve_cm}) ÷ log(1 + ${w.snow_depth_full_cm} ÷ ${w.snow_depth_curve_cm}) × ${w.snow_depth_points}, d = depth up to ${w.snow_depth_full_cm} cm: measured today at the resort's SLF stations (median) + the model's change until that day; model only without a station</div>
         <div><b>Travel</b> = (longest trip − trip) ÷ (longest − shortest) × ${w.travel_points}; trip = train or drive time (with both: the faster)</div>
-        <div><b>Price</b> = (dearest − price) ÷ (dearest − cheapest) × ${w.price_points}</div>
+        <div><b>Price</b> = (dearest − p) ÷ (dearest − cheapest) × ${w.price_points}, p = ticket price × (typical km ÷ piste km)<sup>${w.price_size_exponent}</sup>: twice the pistes justify ${Math.round((2 ** w.price_size_exponent - 1) * 100)} % more</div>
         <div><b>Wind</b> = ramp(max gust, ${w.gust_limit_kmh}, ${w.gust_full_kmh} km/h) × ${w.wind_penalty}</div>
         <div><b>Temp</b> = ${w.temp_cold_penalty} below ${w.temp_cold_c} °C, or ramp(mean temp, ${w.temp_slush_start_c}, ${w.temp_slush_full_c} °C) × ${w.temp_slush_penalty} (slush)</div>
         <div><b>Weather</b> = average over the ski hours: fog ${-w.weather_bad_points}, rain/thunder ${-w.weather_no_go_points} (no-go from ${w.no_go_min_hours} h)</div>
@@ -226,6 +228,7 @@ function legend(s) {
       <div class="small">Weather: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> (MeteoSwiss, DWD) ·
         Snow depth: ${SLF_LINK} (CC BY 4.0) · Trains: <a href="https://transport.opendata.ch" target="_blank" rel="noopener">transport.opendata.ch</a> ·
         Drive times: <a href="https://project-osrm.org" target="_blank" rel="noopener">OSRM</a>, map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors ·
+        Piste km and lifts: <a href="https://openskimap.org" target="_blank" rel="noopener">OpenSkiMap</a> (OpenStreetMap, ODbL) ·
         Charging points: <a href="https://www.ich-tanke-strom.ch" target="_blank" rel="noopener">Swiss Federal Office of Energy SFOE</a></div>
     </div>`;
 }
