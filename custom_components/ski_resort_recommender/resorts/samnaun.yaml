@@ -2,6 +2,9 @@ name: Samnaun
 meteoswiss_point_id:
 station: Samnaun-Ravaisch, Bergbahnen
 day_price_chf: 82
+season:
+  start: 2026-11-26
+  end: 2027-05-02
 access:
   - name: Samnaun
     lat: 46.9511

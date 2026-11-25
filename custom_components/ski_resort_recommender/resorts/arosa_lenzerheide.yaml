@@ -5,6 +5,10 @@ day_price_chf: 89
 snow_n_rail:
   offer: snownrail-arosa-lenzerheide
   up_to_pct: 10
+season:
+  start: 2026-11-28
+  end: 2027-04-11
+  full_from: 2026-12-19
 access:
   - name: Lenzerheide
     lat: 46.7407

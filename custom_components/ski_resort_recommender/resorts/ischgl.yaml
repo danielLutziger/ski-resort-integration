@@ -2,6 +2,9 @@ name: Ischgl
 meteoswiss_point_id:
 station:
 day_price_chf: 82
+season:
+  start: 2026-11-26
+  end: 2027-05-02
 access:
   - name: Ischgl
     lat: 47.0126

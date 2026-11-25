@@ -2,6 +2,10 @@ name: Hoch-Ybrig
 meteoswiss_point_id:
 station: Hoch-Ybrig, Talst. Weglosen
 day_price_chf: 62
+season:
+  start: 2026-12-01
+  end: 2027-03-31
+  confirmed: false
 access:
   - name: Weglosen
     lat: 47.0202
