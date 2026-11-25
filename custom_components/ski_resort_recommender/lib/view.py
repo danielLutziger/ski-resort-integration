@@ -95,6 +95,8 @@ def entry(r: Recommendation, *, outlook: bool | None = None) -> dict:
         "point": r.point.name,
         "weather_icon": r.weather_icon.mdi,
         "price_chf": r.resort.day_price_chf,
+        "piste_km": r.resort.piste_km,
+        "lifts": r.resort.lifts,
         "train": _train(r.connection) if r.connection else None,
         "car": _car(r.drive) if r.drive else None,
         "snow_n_rail": {"up_to_pct": offer.up_to_pct, "url": offer.url}

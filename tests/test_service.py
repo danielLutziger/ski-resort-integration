@@ -717,3 +717,46 @@ def test_with_train_and_car_the_faster_one_counts() -> None:
 
     # minutes: a 90 (car), b 60 (train), c 120 (car) -> b 5, a 2.5, c 0
     assert travel_points(result) == {"b": 5, "a": 2.5, "c": 0}
+
+
+def price_points_of(
+    sizes: dict[str, tuple[float, int | None]], exponent: float
+) -> dict[str, float]:
+    """Price reason per resort for {key: (price, piste km)}."""
+    resorts = [
+        replace(make_resort(key, price=price), piste_km=km)
+        for key, (price, km) in sizes.items()
+    ]
+    forecasts = {key: {MAIN: [make_day(SATURDAY)]} for key in sizes}
+    settings = replace(SETTINGS, scoring=replace(SCORING, price_size_exponent=exponent))
+    result = pick_recommendations(resorts, forecasts, settings, today=TODAY)
+    return {
+        r.resort.key: round(r.score.reasons["price"], 2) for r in result.recommendations
+    }
+
+
+def test_more_piste_km_justify_a_higher_price() -> None:
+    """Doubling the size justifies 15 % more: 80 * 2 ** 0.2 = 91.9."""
+    assert price_points_of({"small": (80, 50), "large": (91, 100)}, 0.2) == {
+        "large": 5,
+        "small": 0,
+    }
+    assert price_points_of({"small": (80, 50), "large": (93, 100)}, 0.2) == {
+        "small": 5,
+        "large": 0,
+    }
+
+
+def test_exponent_zero_compares_the_plain_prices() -> None:
+    """Size has no influence: the cheapest ticket gets all points."""
+    assert price_points_of({"small": (80, 10), "large": (81, 300)}, 0) == {
+        "small": 5,
+        "large": 0,
+    }
+
+
+def test_unknown_size_counts_as_the_typical_size() -> None:
+    """A resort without piste km is neither favoured nor punished."""
+    points = price_points_of({"a": (70, 50), "b": (80, None), "c": (90, 50)}, 0.2)
+
+    assert points == {"a": 5, "b": 2.5, "c": 0}

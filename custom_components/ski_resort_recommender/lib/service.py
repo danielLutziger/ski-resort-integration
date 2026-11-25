@@ -4,6 +4,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field, replace
 from datetime import date, timedelta
 from enum import StrEnum
+from statistics import median
 from typing import TYPE_CHECKING
 
 from custom_components.ski_resort_recommender.lib.models import (
@@ -118,7 +119,8 @@ def pick_recommendations(  # noqa: PLR0913 (optional keyword-only inputs)
     drives: drive to the closest access point per resort key (car mode). With
     train and car, the faster of the two counts for the travel points.
     prices: day ticket price per resort key (e.g. live prices); default is
-    Resort.day_price_chf from the resort files. Cheaper = more price points.
+    Resort.day_price_chf from the resort files. Cheaper for its size (piste km) =
+    more price points.
     """
     ranked: list[Recommendation] = []
     outlook: list[Recommendation] = []
@@ -135,7 +137,10 @@ def pick_recommendations(  # noqa: PLR0913 (optional keyword-only inputs)
     travel_points = _relative_points(minutes, settings.scoring.travel_points)
     if prices is None:
         prices = {r.key: r.day_price_chf for r in resorts if r.day_price_chf}
-    price_points = _relative_points(prices, settings.scoring.price_points)
+    price_points = _relative_points(
+        _prices_at_typical_size(resorts, prices, settings.scoring.price_size_exponent),
+        settings.scoring.price_points,
+    )
 
     for resort in resorts:
         point_days: dict[date, list[tuple[WeatherPoint, DayForecast]]] = defaultdict(
@@ -224,6 +229,20 @@ def _recommend(
 def _daily_code(day: DayForecast) -> tuple[int, ...]:
     """Fallback without hourly codes: the daily code (if any)."""
     return () if day.weather_code is None else (day.weather_code,)
+
+
+def _prices_at_typical_size(
+    resorts: list[Resort], prices: dict[str, float], exponent: float
+) -> dict[str, float]:
+    """Return what every ticket would cost at the typical (median) piste km."""
+    sizes = {r.key: r.piste_km for r in resorts if r.piste_km and r.key in prices}
+    if not sizes:
+        return prices
+    typical = median(sizes.values())
+    return {
+        key: price * (typical / sizes.get(key, typical)) ** exponent
+        for key, price in prices.items()
+    }
 
 
 def _relative_points(values: dict[str, float], points: float) -> dict[str, float]:

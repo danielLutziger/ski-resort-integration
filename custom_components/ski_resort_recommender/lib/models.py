@@ -130,6 +130,9 @@ class Resort:
     # by car: the closest of these wins; none: no drive time
     access: tuple[AccessPoint, ...] = ()
     season: Season | None = None  # None = unknown: never counts as closed
+    # pistes and lifts the day ticket covers (OpenSkiMap, measured); None = unknown
+    piste_km: int | None = None
+    lifts: int | None = None
 
     def is_open(self, day: date) -> bool:
         """Return True if the season is open and at least one point is."""

@@ -278,3 +278,11 @@ def test_every_resort_file_has_a_season_with_plausible_dates() -> None:
         for point in resort.points:
             if point.opens:
                 assert season.start <= point.opens <= season.end, (resort.key, point)
+
+
+def test_every_resort_file_has_its_size() -> None:
+    """Piste km and lifts (OpenSkiMap) are known for every resort."""
+    for resort in load_resorts(RESORTS_DIR):
+        assert 10 <= (resort.piste_km or 0) <= 400, resort.key
+        if resort.lifts is not None:  # unknown: Zermatt without Cervinia
+            assert 5 <= resort.lifts <= 100, resort.key
