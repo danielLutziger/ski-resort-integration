@@ -65,6 +65,9 @@ coloured background stays dark, so pick a light colour (also in dark themes). `c
    Not good ⛅  Sat 28.11  Dep.  Zürich HB, 07:15 · S5 · Pl. 3          [SnR]
                           Arr.  Hoch-Ybrig, Talst. Weglosen, 09:10
   ```
+- **Season:** resorts outside their planned season are never recommended; the window lists them last as *Closed*
+  (`opens 05.12`). Before full operation the card says so (`weekends only`, `partly open`). Dates from the lift
+  companies, they depend on the snow.
 - **Click the card:** a window with **every resort-day** (best first); the **search box** filters by resort, point or
   day (e.g. `laax`, `sat`, `28.11`). **Click a result** for its details: score
   breakdown (a bar per part), the weather points of the resort with their weights and forecast values, every leg of
