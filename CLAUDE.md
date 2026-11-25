@@ -347,8 +347,16 @@ station with `/v1/locations`. Every point adds a location to each Open-Meteo req
 
 - Size (#61, 25.11.2026): OpenSkiMap `https://tiles.openskimap.org/geojson/ski_areas.geojson` (ODbL; 21 MB, do not poll),
   downhill runs without freeride, lifts without magic carpets/rope tows. Measured the same way everywhere; advertised km
-  are not comparable (Zermatt 360, Verbier 410 vs 175). Andermatt and ASD: Gemsstock + Andermatt-Sedrun + Disentis (one
+  are not comparable (Verbier 410 advertised, 161 measured). Andermatt and ASD: Gemsstock + Andermatt-Sedrun + Disentis (one
   ticket). Zermatt: Swiss side only (Overpass, cut at the border ridge, about 131 km; lifts unknown).
+- Open lifts/slopes (#61, not built yet, needs a key): discover.swiss Infocenter `/info/v2/skiresorts` (product
+  "Infocenter OpenData", key without approval, header `Ocp-Apim-Subscription-Key`; example data CC BY-NC-SA 4.0; production
+  use: talk to them): `skiLiftSummary.totalFeatures/totalFeaturesOpen`, `skiSlopeSummary` `lengthOfSlopes/lengthOfSlopesOpen`.
+  Unverified: which entry is which resort (doc example: skipass `st_380_skipass` = snow.myswitzerland.com id 380).
+  snow.myswitzerland.com itself: terms not readable by automated clients (406), so no scraping.
+- Train prices (#55, not built yet, needs a key): opentransportdata.swiss OJP Fare `https://api.opentransportdata.swiss/ojpfare/`
+  (beta, NOVA integration data, 50 requests/min): OJP 2.0 trip query, then fare query with that trip; half-fare =
+  EntitlementProductRef `HTA`, full price must send `KEINE_ERMAESSIGUNGSKARTE` (no traveller = half-fare), product 2361 = day pass.
 - Season dates 2026/27 (#51, researched 25.11.2026; planned, depend on the snow): lift company pages, cross-checked
   with deinskigebiet.ch, skiboard.ch, skigebieteschweiz.ch. Closed resort-days are never recommended, not good, listed
   last in `all` (`Recommendation.closed`); points with a later `opens` do not count that day; only closed ones ->
