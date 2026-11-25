@@ -2,9 +2,14 @@ name: Flumserberg
 meteoswiss_point_id:
 station: Flumserberg, Tannenboden
 day_price_chf: 76
+piste_km: 55
+lifts: 16
 snow_n_rail:
   offer: snownrail-flumserberg
   up_to_pct: 30
+season:
+  start: 2026-11-27
+  end: 2027-03-29
 access:
   - name: Tannenboden
     lat: 47.0925

@@ -4,6 +4,7 @@ from dataclasses import asdict
 from html import escape
 from typing import TYPE_CHECKING
 
+from custom_components.ski_resort_recommender.lib.models import OUTDATED_AFTER
 from custom_components.ski_resort_recommender.lib.service import (
     Recommendation,
     RecommendationResult,
@@ -12,11 +13,13 @@ from custom_components.ski_resort_recommender.lib.service import (
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
+    from datetime import date
 
     from custom_components.ski_resort_recommender.lib.models import (
         Connection,
         Drive,
         Resort,
+        Season,
     )
     from custom_components.ski_resort_recommender.lib.service import PointResult
     from custom_components.ski_resort_recommender.lib.settings import Settings
@@ -39,6 +42,7 @@ HEADLINES = {
     RecommendationStatus.GOOD_DAY: "Good day",
     RecommendationStatus.NO_GOOD_DAY: "No good day",
     RecommendationStatus.NO_FORECAST: "No forecast yet",
+    RecommendationStatus.ALL_CLOSED: "All resorts closed",
 }
 NO_DATA = "No data yet"
 # full-width line between two results (plain HTML, works without card-mod)
@@ -82,6 +86,8 @@ def entry(r: Recommendation, *, outlook: bool | None = None) -> dict:
             r, outlook=r.outlook if outlook is None else outlook
         ),
         "is_good": r.is_good,  # also for an outlook day (the card colours it)
+        "closed": r.closed,
+        "season_note": _season_note(r),
         "score": round(r.score.total),
         "date": r.day.day.isoformat(),
         "day": f"{r.day.day:%a %d.%m}",
@@ -89,6 +95,8 @@ def entry(r: Recommendation, *, outlook: bool | None = None) -> dict:
         "point": r.point.name,
         "weather_icon": r.weather_icon.mdi,
         "price_chf": r.resort.day_price_chf,
+        "piste_km": r.resort.piste_km,
+        "lifts": r.resort.lifts,
         "train": _train(r.connection) if r.connection else None,
         "car": _car(r.drive) if r.drive else None,
         "snow_n_rail": {"up_to_pct": offer.up_to_pct, "url": offer.url}
@@ -284,10 +292,43 @@ def _small(text: str) -> str:
 
 
 def _classification(r: Recommendation, *, outlook: bool) -> str:
-    """Good day / Not good / Outlook (days 6-7)."""
+    """Good day / Not good / Outlook (days 6-7) / Closed (season)."""
+    if r.closed:
+        return "Closed"
     if outlook:
         return "Outlook"
     return "Good day" if r.is_good else "Not good"
+
+
+def _season_note(r: Recommendation) -> str | None:
+    """Planned operation on that day: closed until, weekends only, partial."""
+    season, day = r.resort.season, r.day.day
+    if season is None or day > season.end + OUTDATED_AFTER:
+        return None
+    if r.closed:
+        return _closed_note(r.resort, season, day)
+    notes = []
+    if season.daily_from and day < season.daily_from:
+        notes.append(f"weekends only, daily from {season.daily_from:%d.%m}")
+    if season.full_from and day < season.full_from:
+        notes.append(f"partly open, fully from {season.full_from:%d.%m}")
+    if not season.confirmed:
+        notes.append("opening not confirmed")
+    return ", ".join(notes) or None
+
+
+def _closed_note(resort: Resort, season: Season, day: date) -> str:
+    """Return why the resort is closed on that day."""
+    if day > season.end:
+        return f"season ended {season.end:%d.%m}"
+    if day < season.start:
+        if not season.confirmed:
+            return "opening not announced"
+        return f"opens {season.start:%d.%m}"
+    if season.daily_from and not season.is_open(day):
+        return f"weekends only, daily from {season.daily_from:%d.%m}"
+    sectors = [p.opens for p in resort.points if p.opens]
+    return f"opens {min(sectors, default=season.start):%d.%m}"
 
 
 def _car(d: Drive) -> dict:

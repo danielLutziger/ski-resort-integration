@@ -131,7 +131,9 @@ Done and tested (pytest green at last check):
     arrival window (`arrival_earliest`..`arrival_latest`, 08:45–09:30, closest to `arrival_target`
     09:00) or no home station = 0. Travel times come from one reference day (the next allowed day);
     the shown connection of a recommendation is fetched for its exact day (`attach_connections`).
-  - price 0..5 (relative): day ticket price, cheapest resort 5, most expensive 0; from
+  - price 0..5 (relative): day ticket price at a typical (median) size, cheapest resort 5, most expensive 0
+    (#61, 25.11): price * (typical km / `piste_km`) ** `price_size_exponent` (0.2: twice the pistes justify 15 %
+    more; 0 = plain prices; the 23 resorts themselves charge only about 7 % more per doubling, exponent 0.10); from
     `Resort.day_price_chf` or a `prices` dict (hook for live prices, issue #17). Unknown price = 0.
     Travel and price count towards `is_good` (final total >= `min_good_score`).
   - visibility 0..-30 as before. A clear day on a 50 cm base without penalties = 61 (`min_good_score` 60);
@@ -334,13 +336,33 @@ transport.opendata.ch names it, or empty), `day_price_chf` (adult high-season da
 `snow_n_rail: {offer, up_to_pct}`, `access:` (1-4 valley stations with parking: `name`, `lat`, `lon`;
 coordinates of the gondola's timetable stop, never the mountain station - check the elevation; the closest by car
 wins; each with `parking:` 1-2 car parks: `name`, `lat`, `lon`, optional `spaces`, `price_chf` = one ski day of
-about 8 h, 0 = free, missing = unknown; the main car park first), optional `snow_stations:` (0-3 SLF IMIS stations with `code`, `name`,
+about 8 h, 0 = free, missing = unknown; the main car park first), `piste_km` and `lifts` (what the day ticket covers, OpenSkiMap, not the advertised km), `season:` (`start`, `end`, optional `daily_from` = weekends only before, `full_from` = partial
+operation before, `confirmed: false` = usual dates, none announced; update every autumn), a point can have `opens:`
+(sector opens later), optional `snow_stations:` (0-3 SLF IMIS stations with `code`, `name`,
 `elevation_m`, chosen by the rule under the rating; list: `/public/api/imis/stations`) and `points:` (1-5 lift stations with `name`, `lat`, `lon`,
 `elevation_m`, `weight`). Check coordinates against the terrain height (Open-Meteo elevation API) and the
 station with `/v1/locations`. Every point adds a location to each Open-Meteo request (rate limit).
 
 ## Data sources / facts
 
+- Size (#61, 25.11.2026): OpenSkiMap `https://tiles.openskimap.org/geojson/ski_areas.geojson` (ODbL; 21 MB, do not poll),
+  downhill runs without freeride, lifts without magic carpets/rope tows. Measured the same way everywhere; advertised km
+  are not comparable (Verbier 410 advertised, 161 measured). Andermatt and ASD: Gemsstock + Andermatt-Sedrun + Disentis (one
+  ticket). Zermatt: Swiss side only (Overpass, cut at the border ridge, about 131 km; lifts unknown).
+- Open lifts/slopes (#61, not built yet, needs a key): discover.swiss Infocenter `/info/v2/skiresorts` (product
+  "Infocenter OpenData", key without approval, header `Ocp-Apim-Subscription-Key`; example data CC BY-NC-SA 4.0; production
+  use: talk to them): `skiLiftSummary.totalFeatures/totalFeaturesOpen`, `skiSlopeSummary` `lengthOfSlopes/lengthOfSlopesOpen`.
+  Unverified: which entry is which resort (doc example: skipass `st_380_skipass` = snow.myswitzerland.com id 380).
+  snow.myswitzerland.com itself: terms not readable by automated clients (406), so no scraping.
+- Train prices (#55, not built yet, needs a key): opentransportdata.swiss OJP Fare `https://api.opentransportdata.swiss/ojpfare/`
+  (beta, NOVA integration data, 50 requests/min): OJP 2.0 trip query, then fare query with that trip; half-fare =
+  EntitlementProductRef `HTA`, full price must send `KEINE_ERMAESSIGUNGSKARTE` (no traveller = half-fare), product 2361 = day pass.
+- Season dates 2026/27 (#51, researched 25.11.2026; planned, depend on the snow): lift company pages, cross-checked
+  with deinskigebiet.ch, skiboard.ch, skigebieteschweiz.ch. Closed resort-days are never recommended, not good, listed
+  last in `all` (`Recommendation.closed`); points with a later `opens` do not count that day; only closed ones ->
+  headline "All resorts closed" (`ALL_CLOSED`). Dates are ignored 150 days after the season end (`OUTDATED_AFTER`), so
+  an old file never hides a resort next winter. Hoch-Ybrig had announced no date (usual window Dec-Mar, `confirmed:
+  false`). Effect 25.11: without the dates 2 of 3 recommendations for Sat 28.11 were closed (Hoch-Ybrig, Melchsee-Frutt).
 - Snow depth: SLF IMIS stations, `https://measurement-api.slf.ch/public/api/imis/station/<code>/measurements?period_in_days=1`
   (30 min values, `HS` cm, UTC); `/imis/daily-snow` lags a day (snowpack model), not used. CC BY 4.0.
 - Weather: Open-Meteo (MeteoSwiss ICON-CH models); MeteoSwiss Open Data also exists (CSV/STAC, hourly

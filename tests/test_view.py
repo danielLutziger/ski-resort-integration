@@ -11,6 +11,7 @@ from custom_components.ski_resort_recommender.lib.models import (
     Drive,
     Leg,
     Resort,
+    Season,
     SnowRailOffer,
     SnowStation,
     WeatherPoint,
@@ -490,3 +491,56 @@ def test_train_stops_only_for_the_recommended_resorts() -> None:
         list(p) for p in stops
     ]
     assert payload["results"][1]["train"]["legs"][0]["stops"] == []
+
+
+SEASON = Season(
+    start=date(2026, 11, 28),
+    end=date(2027, 4, 4),
+    daily_from=date(2026, 12, 5),
+    full_from=date(2026, 12, 19),
+)
+
+
+def note(day: date, season: Season | None, *, closed: bool = False) -> str | None:
+    """Season note of an entry on that day."""
+    r = make_recommendation()
+    r = replace(
+        r,
+        resort=replace(r.resort, season=season),
+        day=replace(r.day, day=day),
+        closed=closed,
+    )
+    return entry(r)["season_note"]
+
+
+def test_season_notes_of_open_days() -> None:
+    """Weekends only, partial operation and unconfirmed dates are shown."""
+    assert note(SATURDAY, SEASON) == (
+        "weekends only, daily from 05.12, partly open, fully from 19.12"
+    )
+    assert note(date(2026, 12, 12), SEASON) == "partly open, fully from 19.12"
+    assert note(date(2027, 1, 9), SEASON) is None
+    assert note(date(2027, 1, 9), replace(SEASON, confirmed=False)) == (
+        "opening not confirmed"
+    )
+    assert note(SATURDAY, None) is None
+    assert note(date(2027, 12, 4), SEASON) is None  # dates of last winter
+
+
+def test_season_notes_of_closed_days() -> None:
+    """The window says why a resort is closed."""
+    assert note(date(2026, 11, 21), SEASON, closed=True) == "opens 28.11"
+    assert note(date(2026, 11, 30), SEASON, closed=True) == (
+        "weekends only, daily from 05.12"
+    )
+    assert note(date(2027, 4, 10), SEASON, closed=True) == "season ended 04.04"
+    unconfirmed = replace(SEASON, confirmed=False)  # never shown as a fixed date
+    assert note(date(2026, 11, 21), unconfirmed, closed=True) == "opening not announced"
+
+
+def test_closed_entry_is_classified_as_closed() -> None:
+    """Closed wins over the outlook label."""
+    r = replace(make_recommendation(good=False), closed=True, outlook=True)
+
+    assert entry(r)["classification"] == "Closed"
+    assert entry(r)["closed"] is True

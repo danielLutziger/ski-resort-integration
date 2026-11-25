@@ -2,9 +2,16 @@ name: Pizol
 meteoswiss_point_id:
 station: Wangs Talstation Pizolbahnen
 day_price_chf: 74
+piste_km: 37
+lifts: 11
 snow_n_rail:
   offer: snownrail-pizol
   up_to_pct: 30
+season:
+  start: 2026-11-25
+  end: 2027-04-04
+  daily_from: 2026-11-27
+  full_from: 2026-12-12
 access:
   - name: Wangs
     lat: 47.0288
@@ -38,6 +45,7 @@ points:
     lat: 46.9797
     lon: 9.4364
     elevation_m: 2224
+    opens: 2026-12-12
     weight: 1
   - name: Furt
     lat: 47.0017
@@ -48,4 +56,5 @@ points:
     lat: 46.9896
     lon: 9.4642
     elevation_m: 1627
+    opens: 2026-12-12
     weight: 1

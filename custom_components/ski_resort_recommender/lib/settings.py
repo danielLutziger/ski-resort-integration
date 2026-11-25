@@ -62,6 +62,9 @@ class ScoringSettings:
     travel_points: float = 5
     # day ticket price, relative: cheapest resort price_points, most expensive 0
     price_points: float = 5
+    # more piste km justify a higher price: prices are compared at a typical size,
+    # doubling the km justifies 2 ** exponent (0.2: 15 %; 0: plain prices)
+    price_size_exponent: float = 0.2
 
 
 @dataclass(frozen=True, slots=True)
