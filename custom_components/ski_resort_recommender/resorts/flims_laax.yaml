@@ -2,6 +2,8 @@ name: Flims Laax
 meteoswiss_point_id:
 station: Flims Dorf, Bergbahnen
 day_price_chf: 92
+piste_km: 125
+lifts: 29
 snow_n_rail:
   offer: snownrail-flims-laax-falera
   up_to_pct: 10

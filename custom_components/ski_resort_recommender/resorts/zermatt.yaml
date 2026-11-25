@@ -2,6 +2,7 @@ name: Zermatt
 meteoswiss_point_id:
 station: Zermatt
 day_price_chf: 104
+piste_km: 131
 season:
   start: 2026-11-01
   end: 2027-05-02

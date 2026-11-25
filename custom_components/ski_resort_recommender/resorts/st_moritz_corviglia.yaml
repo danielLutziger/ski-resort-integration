@@ -2,6 +2,8 @@ name: St. Moritz Corviglia
 meteoswiss_point_id:
 station: St. Moritz (Standseilbahn)
 day_price_chf: 95
+piste_km: 68
+lifts: 43
 season:
   start: 2026-11-28
   end: 2027-04-04

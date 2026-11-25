@@ -2,6 +2,8 @@ name: Grindelwald-Wengen
 meteoswiss_point_id:
 station: Grindelwald Terminal
 day_price_chf: 83
+piste_km: 124
+lifts: 34
 snow_n_rail:
   offer: snownrail-jungfrau-ski-region
   up_to_pct: 10

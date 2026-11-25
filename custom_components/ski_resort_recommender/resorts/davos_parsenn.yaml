@@ -2,6 +2,8 @@ name: Davos Klosters Parsenn
 meteoswiss_point_id:
 station: Klosters Dorf, Bahnhof
 day_price_chf: 87
+piste_km: 79
+lifts: 36
 season:
   start: 2026-11-20
   end: 2027-04-04

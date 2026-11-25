@@ -2,6 +2,8 @@ name: Crans-Montana
 meteoswiss_point_id:
 station: Crans-Montana, télé Cry d'Er
 day_price_chf: 94
+piste_km: 70
+lifts: 20
 snow_n_rail:
   offer: snownrail-crans-montana
   up_to_pct: 10

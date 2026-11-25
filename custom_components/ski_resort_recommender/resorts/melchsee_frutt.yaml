@@ -2,6 +2,8 @@ name: Melchsee Frutt
 meteoswiss_point_id:
 station: Stöckalp
 day_price_chf: 69
+piste_km: 34
+lifts: 9
 snow_n_rail:
   offer: snownrail-melchsee-frutt
   up_to_pct: 30

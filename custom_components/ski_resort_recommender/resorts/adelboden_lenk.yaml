@@ -2,6 +2,8 @@ name: Adelboden-Lenk
 meteoswiss_point_id:
 station: Adelboden Oey (Sillerenbahn)
 day_price_chf: 80
+piste_km: 90
+lifts: 20
 snow_n_rail:
   offer: snownrail-adelboden-lenk
   up_to_pct: 20

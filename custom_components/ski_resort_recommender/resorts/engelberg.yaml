@@ -2,6 +2,8 @@ name: Engelberg Titlis
 meteoswiss_point_id:
 station: Engelberg, Titlisbahn
 day_price_chf: 78
+piste_km: 42
+lifts: 28
 snow_n_rail:
   offer: snownrail-engelberg-titlis
   up_to_pct: 30

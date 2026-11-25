@@ -2,6 +2,8 @@ name: Davos Jakobshorn
 meteoswiss_point_id:
 station: Davos Platz (Jakobshorn)
 day_price_chf: 87
+piste_km: 31
+lifts: 13
 snow_n_rail:
   offer: snownrail-davos-klosters
   up_to_pct: 10

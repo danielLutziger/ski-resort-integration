@@ -2,6 +2,8 @@ name: Pizol
 meteoswiss_point_id:
 station: Wangs Talstation Pizolbahnen
 day_price_chf: 74
+piste_km: 37
+lifts: 11
 snow_n_rail:
   offer: snownrail-pizol
   up_to_pct: 30

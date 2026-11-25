@@ -2,6 +2,8 @@ name: St. Moritz Corvatsch
 meteoswiss_point_id:
 station: Surlej, Corvatschbahn
 day_price_chf: 88
+piste_km: 40
+lifts: 15
 season:
   start: 2026-11-21
   end: 2027-04-25

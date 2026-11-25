@@ -2,6 +2,8 @@ name: Arosa Lenzerheide
 meteoswiss_point_id:
 station: Lenzerheide/Lai, Rothornbahn
 day_price_chf: 89
+piste_km: 159
+lifts: 43
 snow_n_rail:
   offer: snownrail-arosa-lenzerheide
   up_to_pct: 10

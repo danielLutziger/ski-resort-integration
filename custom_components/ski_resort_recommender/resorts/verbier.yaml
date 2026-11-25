@@ -2,6 +2,8 @@ name: Verbier 4 Vallées
 meteoswiss_point_id:
 station: Le Châble VS
 day_price_chf: 94
+piste_km: 161
+lifts: 64
 snow_n_rail:
   offer: snownrail-4-vallees
   up_to_pct: 30

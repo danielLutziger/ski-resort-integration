@@ -2,6 +2,8 @@ name: Saas-Fee
 meteoswiss_point_id:
 station: Saas-Fee, Busterminal
 day_price_chf: 84
+piste_km: 45
+lifts: 29
 season:
   start: 2026-10-31
   end: 2027-04-18

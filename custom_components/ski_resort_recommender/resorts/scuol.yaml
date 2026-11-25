@@ -2,6 +2,8 @@ name: Scuol
 meteoswiss_point_id:
 station: Scuol (pendicularas)
 day_price_chf: 69
+piste_km: 43
+lifts: 9
 snow_n_rail:
   offer: snownrail-scuol-motta-naluns
   up_to_pct: 10
