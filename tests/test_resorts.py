@@ -1,11 +1,13 @@
 """Tests for the resort files (resorts/<key>.yaml) and their loader."""
 
+from datetime import date
 from pathlib import Path
 
 import pytest
 
 from custom_components.ski_resort_recommender.lib.models import (
     AccessPoint,
+    Season,
     SnowRailOffer,
     SnowStation,
 )
@@ -245,3 +247,34 @@ def test_access_points_are_valley_stations_with_parking() -> None:
         for point in resort.access:
             assert point.parking, (resort.key, point.name)
             assert all(c.walk_m < 1000 for c in point.parking), point.name
+
+
+def test_season_and_point_dates_are_parsed(tmp_path: Path) -> None:
+    """season: dates from the YAML file; a point can open later."""
+    point = "\n  - {name: a, lat: 46.8, lon: 9.3, elevation_m: 2000, opens: 2026-12-19}"
+    season = "season: {start: 2026-11-28, end: 2027-04-04, daily_from: 2026-12-05}\n"
+    (resort,) = load_resorts(write_resort(tmp_path, point, season))
+
+    assert resort.season == Season(
+        start=date(2026, 11, 28), end=date(2027, 4, 4), daily_from=date(2026, 12, 5)
+    )
+    assert resort.points[0].opens == date(2026, 12, 19)
+
+
+def test_season_dates_must_be_in_order(tmp_path: Path) -> None:
+    """A typo (end before start) would hide a resort silently."""
+    point = "\n  - {name: a, lat: 46.8, lon: 9.3, elevation_m: 2000}"
+    season = "season: {start: 2026-11-28, end: 2026-04-04}\n"
+
+    with pytest.raises(ValueError, match="season"):
+        load_resorts(write_resort(tmp_path, point, season))
+
+
+def test_every_resort_file_has_a_season_with_plausible_dates() -> None:
+    """Every resort has dates; points open inside the season."""
+    for resort in load_resorts(RESORTS_DIR):
+        season = resort.season
+        assert season is not None, resort.key
+        for point in resort.points:
+            if point.opens:
+                assert season.start <= point.opens <= season.end, (resort.key, point)

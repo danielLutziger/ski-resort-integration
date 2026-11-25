@@ -55,6 +55,7 @@ class Recommendation:
     weather_icon: WeatherIcon = WeatherIcon.UNKNOWN  # over all points and ski hours
     points: tuple[PointResult, ...] = ()  # every point of the resort that day
     outlook: bool = False  # day after the ranking window (days 6-7)
+    closed: bool = False  # not open that day (season): listed, never recommended
 
 
 # resort has an SBB Snow'n'Rail offer (per-day availability: issue #19)
@@ -67,6 +68,7 @@ class RecommendationStatus(StrEnum):
     GOOD_DAY = "good_day"
     NO_GOOD_DAY = "no_good_day"
     NO_FORECAST = "no_forecast"
+    ALL_CLOSED = "all_closed"
 
 
 @dataclass(frozen=True, slots=True)
@@ -77,7 +79,7 @@ class RecommendationResult:
     outlook: Recommendation | None = None  # best day after the ranking window
     all: tuple[
         Recommendation, ...
-    ] = ()  # every resort-day up to outlook_days, best first
+    ] = ()  # every resort-day up to outlook_days, best first, closed ones last
     # measured snow depth (cm) per SLF station code, as used for the base
     measured_snow_cm: dict[str, float] = field(default_factory=dict)
 
@@ -90,6 +92,8 @@ class RecommendationResult:
     def status(self) -> RecommendationStatus:
         """Return the headline: good day, no good day, or no forecast at all."""
         if not self.recommendations:
+            if any(r.closed for r in self.all):
+                return RecommendationStatus.ALL_CLOSED
             return RecommendationStatus.NO_FORECAST
         if self.has_good_day:
             return RecommendationStatus.GOOD_DAY
@@ -118,6 +122,7 @@ def pick_recommendations(  # noqa: PLR0913 (optional keyword-only inputs)
     """
     ranked: list[Recommendation] = []
     outlook: list[Recommendation] = []
+    closed: list[Recommendation] = []
     settings = settings or Settings()
     today = today or date.today()  # noqa: DTZ011
     ranking_end = today + timedelta(days=settings.ranking_days)
@@ -147,7 +152,12 @@ def pick_recommendations(  # noqa: PLR0913 (optional keyword-only inputs)
                 point_days[day.day].append((point, day))
         for day, points in point_days.items():
             in_outlook = day > ranking_end
-            target = outlook if in_outlook else ranked
+            is_open = resort.is_open(day)
+            if is_open:  # sectors that open later do not count
+                points = [(p, d) for p, d in points if p.is_open(day)]  # noqa: PLW2901
+                if not points:  # the open sectors have no forecast
+                    continue
+            target = (outlook if in_outlook else ranked) if is_open else closed
             extras = {
                 "travel": travel_points.get(resort.key, 0.0),
                 "price": price_points.get(resort.key, 0.0),
@@ -161,10 +171,13 @@ def pick_recommendations(  # noqa: PLR0913 (optional keyword-only inputs)
                     drive=drives.get(resort.key),
                     tags=tags,
                     outlook=in_outlook,
+                    closed=not is_open,
+                    is_good=recommendation.is_good and is_open,
                 )
             )
     ranked.sort(key=lambda r: r.score.total, reverse=True)
     everything = sorted([*ranked, *outlook], key=lambda r: r.score.total, reverse=True)
+    everything += sorted(closed, key=lambda r: r.score.total, reverse=True)
     return RecommendationResult(
         tuple(ranked[: settings.max_results]),
         outlook=max(outlook, key=lambda r: r.score.total, default=None)

@@ -2,6 +2,10 @@ name: Davos Klosters Parsenn
 meteoswiss_point_id:
 station: Klosters Dorf, Bahnhof
 day_price_chf: 87
+season:
+  start: 2026-11-20
+  end: 2027-04-04
+  full_from: 2026-12-04
 access:
   - name: Davos Dorf
     lat: 46.8086
@@ -52,4 +56,5 @@ points:
     lat: 46.8574
     lon: 9.8448
     elevation_m: 2285
+    opens: 2026-11-27
     weight: 1

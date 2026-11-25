@@ -2,6 +2,10 @@ name: St. Moritz Corviglia
 meteoswiss_point_id:
 station: St. Moritz (Standseilbahn)
 day_price_chf: 95
+season:
+  start: 2026-11-28
+  end: 2027-04-04
+  full_from: 2026-12-19
 access:
   - name: St. Moritz
     lat: 46.4988
@@ -39,6 +43,7 @@ points:
     lat: 46.5054
     lon: 9.7877
     elevation_m: 3057
+    opens: 2026-12-19
     weight: 1
   - name: Marguns
     lat: 46.5158

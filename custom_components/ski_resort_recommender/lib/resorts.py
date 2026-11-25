@@ -9,6 +9,7 @@ from custom_components.ski_resort_recommender.lib.models import (
     AccessPoint,
     CarPark,
     Resort,
+    Season,
     SnowRailOffer,
     SnowStation,
     WeatherPoint,
@@ -54,13 +55,25 @@ def _resort(entry: dict) -> Resort:
     if len(names) > MAX_ACCESS or len(set(names)) != len(names):
         msg = f"{entry['key']}: at most {MAX_ACCESS} access points, unique names"
         raise ValueError(msg)
+    season = entry.pop("season", None)
     return Resort(
         **entry,
+        season=_season(entry["key"], season) if season else None,
         points=points,
         snow_n_rail=snow_n_rail,
         snow_stations=stations,
         access=access,
     )
+
+
+def _season(key: str, entry: dict) -> Season:
+    """Build the season (YAML parses the dates) and check their order."""
+    season = Season(**entry)
+    dates = [season.start, season.daily_from, season.full_from, season.end]
+    if any(d and not season.start <= d <= season.end for d in dates):
+        msg = f"{key}: season dates must lie between start and end"
+        raise ValueError(msg)
+    return season
 
 
 def _access(entry: dict) -> AccessPoint:

@@ -5,6 +5,10 @@ day_price_chf: 80
 snow_n_rail:
   offer: snownrail-adelboden-lenk
   up_to_pct: 20
+season:
+  start: 2026-11-28
+  end: 2027-04-04
+  daily_from: 2026-12-05
 access:
   - name: Adelboden
     lat: 46.4879
@@ -49,6 +53,7 @@ points:
     lat: 46.4987
     lon: 7.5459
     elevation_m: 1941
+    opens: 2026-12-18
     weight: 1
   - name: Höchsthorn
     lat: 46.4683

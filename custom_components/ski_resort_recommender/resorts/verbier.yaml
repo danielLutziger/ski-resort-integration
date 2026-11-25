@@ -5,6 +5,11 @@ day_price_chf: 94
 snow_n_rail:
   offer: snownrail-4-vallees
   up_to_pct: 30
+season:
+  start: 2026-11-07
+  end: 2027-04-25
+  daily_from: 2026-11-28
+  full_from: 2026-12-12
 access:
   - name: Le Châble
     lat: 46.0793
@@ -39,9 +44,11 @@ points:
     lat: 46.0847
     lon: 7.301
     elevation_m: 2912
+    opens: 2026-12-12
     weight: 1
   - name: Savoleyres
     lat: 46.1227
     lon: 7.219
     elevation_m: 2295
+    opens: 2026-12-12
     weight: 1

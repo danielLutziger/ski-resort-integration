@@ -5,6 +5,10 @@ day_price_chf: 69
 snow_n_rail:
   offer: snownrail-melchsee-frutt
   up_to_pct: 30
+season:
+  start: 2026-12-05
+  end: 2027-04-04
+  daily_from: 2026-12-12
 access:
   - name: Stöckalp
     lat: 46.8024

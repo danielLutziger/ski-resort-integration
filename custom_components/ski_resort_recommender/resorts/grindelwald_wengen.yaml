@@ -5,6 +5,10 @@ day_price_chf: 83
 snow_n_rail:
   offer: snownrail-jungfrau-ski-region
   up_to_pct: 10
+season:
+  start: 2026-11-28
+  end: 2027-04-25
+  full_from: 2026-12-19
 access:
   - name: Grindelwald
     lat: 46.6255
@@ -44,6 +48,7 @@ points:
     lat: 46.6132
     lon: 7.9409
     elevation_m: 2230
+    opens: 2026-12-12
     weight: 1
   - name: Lauberhornschulter
     lat: 46.5866
@@ -59,4 +64,5 @@ points:
     lat: 46.6614
     lon: 8.053
     elevation_m: 2164
+    opens: 2026-12-19
     weight: 1

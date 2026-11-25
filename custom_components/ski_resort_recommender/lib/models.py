@@ -1,7 +1,9 @@
 """Data objects: Resort, WeatherPoint, DayForecast and train Connection."""
 
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
+
+_SATURDAY = 5  # date.weekday()
 
 
 @dataclass(frozen=True, slots=True)
@@ -13,6 +15,11 @@ class WeatherPoint:
     lon: float
     elevation_m: int  # passed to Open-Meteo for the temperature downscaling
     weight: float = 1.0  # share in the resort's weighted average
+    opens: date | None = None  # sector opens later than the resort
+
+    def is_open(self, day: date) -> bool:
+        """Return True if this sector is planned to be open."""
+        return self.opens is None or day >= self.opens
 
 
 @dataclass(frozen=True, slots=True)
@@ -84,6 +91,29 @@ class SnowStation:
     elevation_m: int
 
 
+OUTDATED_AFTER = timedelta(days=150)  # after the season end: dates of last winter
+
+
+@dataclass(frozen=True, slots=True)
+class Season:
+    """Planned operation (lift companies); every date depends on the snow."""
+
+    start: date
+    end: date
+    daily_from: date | None = None  # before: Saturday and Sunday only
+    full_from: date | None = None  # before: partial operation
+    confirmed: bool = True  # False: usual dates, the resort announced none yet
+
+    def is_open(self, day: date) -> bool:
+        """Return True if the lifts are planned to run; outdated dates are ignored."""
+        if day > self.end + OUTDATED_AFTER:
+            return True
+        if not self.start <= day <= self.end:
+            return False
+        weekend = day.weekday() >= _SATURDAY
+        return weekend or self.daily_from is None or day >= self.daily_from
+
+
 @dataclass(frozen=True)
 class Resort:
     """Every resort follows the same logic."""
@@ -99,6 +129,12 @@ class Resort:
     snow_stations: tuple[SnowStation, ...] = ()
     # by car: the closest of these wins; none: no drive time
     access: tuple[AccessPoint, ...] = ()
+    season: Season | None = None  # None = unknown: never counts as closed
+
+    def is_open(self, day: date) -> bool:
+        """Return True if the season is open and at least one point is."""
+        in_season = self.season is None or self.season.is_open(day)
+        return in_season and any(p.is_open(day) for p in self.points)
 
 
 @dataclass(frozen=True, slots=True)

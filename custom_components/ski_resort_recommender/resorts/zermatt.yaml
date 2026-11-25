@@ -2,6 +2,10 @@ name: Zermatt
 meteoswiss_point_id:
 station: Zermatt
 day_price_chf: 104
+season:
+  start: 2026-11-01
+  end: 2027-05-02
+  full_from: 2026-11-28
 access:
   - name: Täsch (train to Zermatt)
     lat: 46.0675
@@ -34,14 +38,17 @@ points:
     lat: 45.9941
     lon: 7.7548
     elevation_m: 2560
+    opens: 2026-11-28
     weight: 1
   - name: Gornergrat
     lat: 45.9861
     lon: 7.7752
     elevation_m: 2935
+    opens: 2026-11-28
     weight: 1
   - name: Blauherd
     lat: 46.0166
     lon: 7.7883
     elevation_m: 2576
+    opens: 2026-11-28
     weight: 1

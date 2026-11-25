@@ -334,13 +334,21 @@ transport.opendata.ch names it, or empty), `day_price_chf` (adult high-season da
 `snow_n_rail: {offer, up_to_pct}`, `access:` (1-4 valley stations with parking: `name`, `lat`, `lon`;
 coordinates of the gondola's timetable stop, never the mountain station - check the elevation; the closest by car
 wins; each with `parking:` 1-2 car parks: `name`, `lat`, `lon`, optional `spaces`, `price_chf` = one ski day of
-about 8 h, 0 = free, missing = unknown; the main car park first), optional `snow_stations:` (0-3 SLF IMIS stations with `code`, `name`,
+about 8 h, 0 = free, missing = unknown; the main car park first), `season:` (`start`, `end`, optional `daily_from` = weekends only before, `full_from` = partial
+operation before, `confirmed: false` = usual dates, none announced; update every autumn), a point can have `opens:`
+(sector opens later), optional `snow_stations:` (0-3 SLF IMIS stations with `code`, `name`,
 `elevation_m`, chosen by the rule under the rating; list: `/public/api/imis/stations`) and `points:` (1-5 lift stations with `name`, `lat`, `lon`,
 `elevation_m`, `weight`). Check coordinates against the terrain height (Open-Meteo elevation API) and the
 station with `/v1/locations`. Every point adds a location to each Open-Meteo request (rate limit).
 
 ## Data sources / facts
 
+- Season dates 2026/27 (#51, researched 25.11.2026; planned, depend on the snow): lift company pages, cross-checked
+  with deinskigebiet.ch, skiboard.ch, skigebieteschweiz.ch. Closed resort-days are never recommended, not good, listed
+  last in `all` (`Recommendation.closed`); points with a later `opens` do not count that day; only closed ones ->
+  headline "All resorts closed" (`ALL_CLOSED`). Dates are ignored 150 days after the season end (`OUTDATED_AFTER`), so
+  an old file never hides a resort next winter. Hoch-Ybrig had announced no date (usual window Dec-Mar, `confirmed:
+  false`). Effect 25.11: without the dates 2 of 3 recommendations for Sat 28.11 were closed (Hoch-Ybrig, Melchsee-Frutt).
 - Snow depth: SLF IMIS stations, `https://measurement-api.slf.ch/public/api/imis/station/<code>/measurements?period_in_days=1`
   (30 min values, `HS` cm, UTC); `/imis/daily-snow` lags a day (snowpack model), not used. CC BY 4.0.
 - Weather: Open-Meteo (MeteoSwiss ICON-CH models); MeteoSwiss Open Data also exists (CSV/STAC, hourly

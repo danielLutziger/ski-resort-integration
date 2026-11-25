@@ -63,13 +63,13 @@ function block(r) {
     .join("");
   const snr = r.snow_n_rail ? `<span class="badge" title="Snow'n'Rail up to ${r.snow_n_rail.up_to_pct} %">SnR</span>` : "";
   return `
-    <div class="block${r.is_good ? " good" : ""}">
+    <div class="block${r.is_good ? " good" : ""}${r.closed ? " closed" : ""}">
       <div class="score">
         <div class="points">${esc(r.score)}</div>
         <div class="class">${esc(r.classification)} <ha-icon icon="${esc(r.weather_icon)}"></ha-icon></div>
       </div>
       <div class="main">
-        <div class="title"><b>${esc(r.resort)}</b> · <span class="small">${esc(r.point)}</span></div>
+        <div class="title"><b>${esc(r.resort)}</b> · <span class="small">${esc(r.point)}${r.season_note ? ` · <i>${esc(r.season_note)}</i>` : ""}</span></div>
         ${lines}
       </div>
       <div class="side"><div>${price(r.price_chf)}</div>${park ? `<div class="small" title="Parking, one ski day">P ${esc(park)}</div>` : ""}${snr}</div>
@@ -182,6 +182,7 @@ function details(r, w) {
     <details data-search="${esc(fold(`${r.resort} ${r.point} ${r.day}`))}">
       <summary>${block(r)}</summary>
       <div class="detail">
+        ${r.season_note ? `<div class="small">Planned operation: ${esc(r.season_note)} (depends on the snow)</div>` : ""}
         <h4>Score breakdown</h4>${breakdown(r.reasons, w)}
         <h4>Weather points (weighted average)</h4>${pointsTable(r.points ?? [])}${snowStations(r.snow_stations)}
         ${r.car ? `<h4>Car</h4><div class="small">To ${esc(r.car.access)} (the closest access point): ${esc(r.car.summary.split(" · ").slice(1).join(" · "))}, without traffic</div>${carParks(r.car.parking)}${chargers(r.car.chargers)}` : ""}
@@ -199,6 +200,7 @@ function legend(s) {
       <ul>
         <li><b>Score</b> 0–100: weather part (max ${w.sun_points + w.snow_points + w.snow_depth_points}) + travel + price, minus penalties.</li>
         <li><span class="swatch"></span><b>Good day</b>: score ≥ ${esc(s.min_good_score)} and no rain/thunder at the best point. <b>Not good</b>: below. <b>Outlook</b>: days ${s.ranking_days + 1}–${s.outlook_days} (less certain; the best one is shown in the card when <i>Show the outlook</i> is on).</li>
+        <li><b>Closed</b>: outside the planned season (or weekends only); listed last, never recommended. Sectors that open later do not count. Dates from the lift companies, they depend on the snow.</li>
         <li><b>Icon</b>: most frequent weather over all points and ski hours (09–16 h).</li>
         <li><b>Resort · point</b>: the best weather point (lift station) of the resort that day.</li>
         <li><b>Dep. / Arr.</b>: morning train from your home station, arriving at the gondola in the arrival window; first train and platform.</li>
@@ -232,8 +234,9 @@ const STYLE = `
   :host { --ski-gap: 3px; --ski-score-width: 104px; --ski-date-width: 64px; --ski-label-width: 32px; --ski-side-width: 42px; }
   ha-card { padding: calc(2 * var(--ski-gap) + 1px) 4px; cursor: pointer; height: 100%; box-sizing: border-box;
             overflow-x: hidden; overflow-y: auto; scrollbar-width: thin; }  /* never cut off the outlook: scroll */
-  .block { display: grid; grid-template-columns: var(--ski-score-width) 1fr var(--ski-side-width); align-items: center; }
+  .block { display: grid; grid-template-columns: var(--ski-score-width) minmax(0, 1fr) minmax(var(--ski-side-width), max-content); align-items: center; }
   .block + .block, .sep { border-top: 1px solid var(--divider-color); margin-top: var(--ski-gap); padding-top: var(--ski-gap); }
+  .block.closed { opacity: 0.6; }
   .score { text-align: center; }
   /* color mode: good days on a coloured background, dark text (readable in dark themes too) */
   :host([color-mode]) .block { padding: var(--ski-gap) 2px; border-radius: 6px; }
@@ -249,7 +252,7 @@ const STYLE = `
   .title, .txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .line { display: grid; grid-template-columns: var(--ski-date-width) var(--ski-label-width) 1fr; font-size: 12px; line-height: 1.3; }
   .line + .line { padding-top: 2px; }
-  .side { text-align: right; font-size: 13px; }
+  .side { text-align: right; font-size: 13px; white-space: nowrap; }
   .badge { display: inline-block; font-size: 10px; font-weight: 600; line-height: 1; padding: 2px 7px; border-radius: 10px;
            background: var(--primary-color); color: var(--text-primary-color, #fff); }
   .empty { padding: 8px; color: var(--secondary-text-color); }
@@ -452,7 +455,7 @@ function trainLine(r) {
 }
 
 function pinHtml(r, top) {
-  const cls = `pin${r.is_good ? " good" : ""}${top ? " top" : ""}`;
+  const cls = `pin${r.is_good ? " good" : ""}${top ? " top" : ""}${r.closed ? " closed" : ""}`;
   return `<div class="${cls}"><b>${esc(r.score)}</b><span>${esc(r.day)}</span></div>`;
 }
 
@@ -465,6 +468,7 @@ const MAP_STYLE = `
          background: var(--card-background-color, #fff); color: var(--primary-text-color, #222);
          border: 1px solid var(--secondary-text-color, #777); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); }
   .pin b { display: block; font-size: 12px; }
+  .pin.closed { opacity: 0.55; }
   .pin.top { border: 2px solid var(--primary-color, #03a9f4); font-size: 10px; }
   .pin.top b { font-size: 14px; }
   .dark .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.85); }

@@ -5,6 +5,10 @@ day_price_chf: 78
 snow_n_rail:
   offer: snownrail-engelberg-titlis
   up_to_pct: 30
+season:
+  start: 2026-10-29
+  end: 2027-05-02
+  full_from: 2026-12-19
 access:
   - name: Engelberg
     lat: 46.8164
@@ -27,11 +31,13 @@ points:
     lat: 46.7932
     lon: 8.3987
     elevation_m: 1802
+    opens: 2026-12-04
     weight: 2
   - name: Stand
     lat: 46.7825
     lon: 8.4174
     elevation_m: 2428
+    opens: 2026-12-04
     weight: 1
   - name: Titlis
     lat: 46.7707
@@ -42,4 +48,5 @@ points:
     lat: 46.7788
     lon: 8.3868
     elevation_m: 2213
+    opens: 2026-12-05
     weight: 1

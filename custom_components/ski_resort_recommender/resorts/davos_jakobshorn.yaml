@@ -5,6 +5,10 @@ day_price_chf: 87
 snow_n_rail:
   offer: snownrail-davos-klosters
   up_to_pct: 10
+season:
+  start: 2026-11-27
+  end: 2027-04-11
+  daily_from: 2026-12-04
 access:
   - name: Davos Platz
     lat: 46.7917
